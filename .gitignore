@@ -1,0 +1,12 @@
+# Data is large and re-downloadable from the official GCS bucket — never commit
+data/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+# OS
+Thumbs.db
+.DS_Store

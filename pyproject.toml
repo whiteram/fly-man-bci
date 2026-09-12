@@ -1,0 +1,19 @@
+[project]
+name = "ffbm"
+version = "0.1.0"
+description = "MaleCNS v1.0 connectome modeling infrastructure (visual system, population activity, extracellular field forward models)"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scipy",
+    "matplotlib",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
