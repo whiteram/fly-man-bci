@@ -251,7 +251,12 @@ StaticPairField(pre_pos, post_pos, electrodes, sigma=0.33)
 
 ## 8. 下一步实验设计（已想好技术方案，未实现）
 
-### exp002：逐突触几何 + 光转导动力学 + 强度系列
+### exp002：逐突触几何 + 光转导动力学 + 强度系列 —— **已完成（2026-09-13，见 experiments/exp002_per_synapse_erg/）**
+
+核心结果：几何匹配恢复真实四联体接触（中位 0.159 μm）；突触成分的
+细胞外可见性由回流位置决定（t-bar 邻近回流 0.4% vs 神经突跨区回流
+163–193%，以均值位置核为 1）；exp001 的正 Off 瞬变确认为均值核伪影；
+强度系列给出压缩式 V–log I 与强度依赖的适应下垂。原方案存档如下：
 
 1. **逐突触偶极**：对每条边 (R_i, L_j, w)，取 R_i 的全部 PreSyn 位点 P_i 和
    L_j 的全部 PostSyn 位点 Q_j，按距离贪心匹配出 w 对（PSD 每边内唯一即可，
@@ -263,6 +268,11 @@ StaticPairField(pre_pos, post_pos, electrodes, sigma=0.33)
    ~20ms）+ 慢适应（τ_adapt≈800ms，平台 ~30% 下垂，复现真实 ERG 适应现象）
 3. **强度系列**：4 档强度 ×3s 闪光，输出"平台幅值 & On/Off 瞬变 vs 强度"
    曲线（真实 ERG 的经典定量关系）
+
+exp002 衍生的下一步（按优先级）：正 Off 瞬变的再生需要 (a) 非对称光转导
+（τ_off < τ_on，Hardie & Raghu 数值）或 (b) 扩电路到含 Off 通路（L2→Mi/Tm）；
+回流位置假设族的实验约束（哪条核的波形能同时匹配 ERG 的平台/瞬变比）；
+跨边精确配对（syn-partners.feather）。
 
 ### exp003：视网膜拓扑运动光栅 → 时间频率调谐 + 方向对称性
 

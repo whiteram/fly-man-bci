@@ -1,0 +1,407 @@
+{
+  "config": {
+    "dt_ms": 0.5,
+    "t_end_ms": 4500.0,
+    "flash_ms": [
+      500.0,
+      3500.0
+    ],
+    "level_fractions": [
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "i_r_flash_pA": 350.0,
+    "phototransduction": {
+      "tau1_ms": 10.0,
+      "tau2_ms": 10.0,
+      "tau_adapt_ms": 800.0,
+      "sag": 0.3
+    },
+    "syn_gain_pA": 12.0,
+    "syn_tau_ms": 5.0,
+    "i_r_base_pA": 150.0,
+    "n_photoreceptors": 3377,
+    "n_lamina": 5327,
+    "n_edges": 9636,
+    "n_synapses": 234561
+  },
+  "pairing": {
+    "n_pairs": 234561,
+    "pair_dist_um": {
+      "median": 0.159,
+      "p90": 0.204,
+      "p99": 0.302,
+      "max": 0.502
+    },
+    "coef_norm_vs_mean_position": {
+      "per_synapse_tbar": {
+        "L": 0.00386,
+        "R": 0.00378
+      },
+      "per_synapse_neurite": {
+        "L": 1.62863,
+        "R": 1.92827
+      }
+    }
+  },
+  "levels": {
+    "0.25x": {
+      "rates_hz": {
+        "R": {
+          "baseline": 0.0,
+          "flash": 36.6
+        },
+        "L1": {
+          "flash": 18.0
+        },
+        "L2": {
+          "flash": 19.0
+        },
+        "L3": {
+          "flash": 0.6
+        }
+      },
+      "phi_nV": {
+        "L": {
+          "per_synapse_tbar": {
+            "baseline": -209558.1,
+            "peak_on": -327864.0,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 73.0,
+            "plateau_early": -313476.1,
+            "plateau_late": -296251.2,
+            "sag_ratio": 0.945,
+            "peak_off": -209558.1,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -209558.1,
+            "peak_on": -1033632.0,
+            "t50_on_ms": 24.0,
+            "trough_on_ms": 31.0,
+            "plateau_early": -723677.3,
+            "plateau_late": -627691.8,
+            "sag_ratio": 0.867,
+            "peak_off": -209558.1,
+            "t50_off_ms": 14.0
+          },
+          "mean_position": {
+            "baseline": -209558.1,
+            "peak_on": -276336.6,
+            "t50_on_ms": 25.0,
+            "trough_on_ms": 19.0,
+            "plateau_early": -129532.1,
+            "plateau_late": -147982.7,
+            "sag_ratio": 1.142,
+            "peak_off": -141748.0,
+            "t50_off_ms": 12.0
+          }
+        },
+        "R": {
+          "per_synapse_tbar": {
+            "baseline": -398820.8,
+            "peak_on": -624178.8,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 75.0,
+            "plateau_early": -596712.3,
+            "plateau_late": -563894.9,
+            "sag_ratio": 0.945,
+            "peak_off": -398820.8,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -398820.8,
+            "peak_on": -1435789.0,
+            "t50_on_ms": 24.0,
+            "trough_on_ms": 31.0,
+            "plateau_early": -1069198.5,
+            "plateau_late": -944070.0,
+            "sag_ratio": 0.883,
+            "peak_off": -398820.8,
+            "t50_off_ms": 14.0
+          },
+          "mean_position": {
+            "baseline": -398820.8,
+            "peak_on": -529417.8,
+            "t50_on_ms": 26.0,
+            "trough_on_ms": 19.0,
+            "plateau_early": -388798.2,
+            "plateau_late": -396424.5,
+            "sag_ratio": 1.02,
+            "peak_off": -385155.7,
+            "t50_off_ms": 0.0
+          }
+        }
+      }
+    },
+    "0.5x": {
+      "rates_hz": {
+        "R": {
+          "baseline": 0.0,
+          "flash": 68.4
+        },
+        "L1": {
+          "flash": 38.1
+        },
+        "L2": {
+          "flash": 39.3
+        },
+        "L3": {
+          "flash": 4.3
+        }
+      },
+      "phi_nV": {
+        "L": {
+          "per_synapse_tbar": {
+            "baseline": -209558.1,
+            "peak_on": -446284.5,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 78.0,
+            "plateau_early": -417425.9,
+            "plateau_late": -382949.7,
+            "sag_ratio": 0.917,
+            "peak_off": -209558.1,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -209558.1,
+            "peak_on": -1574434.2,
+            "t50_on_ms": 16.0,
+            "trough_on_ms": 60.0,
+            "plateau_early": -1142582.0,
+            "plateau_late": -1025253.1,
+            "sag_ratio": 0.897,
+            "peak_off": -209558.1,
+            "t50_off_ms": 18.0
+          },
+          "mean_position": {
+            "baseline": -209558.1,
+            "peak_on": -294164.7,
+            "t50_on_ms": 17.0,
+            "trough_on_ms": 12.0,
+            "plateau_early": -87592.9,
+            "plateau_late": -94809.6,
+            "sag_ratio": 1.082,
+            "peak_off": -90659.0,
+            "t50_off_ms": 19.0
+          }
+        },
+        "R": {
+          "per_synapse_tbar": {
+            "baseline": -398820.8,
+            "peak_on": -849503.4,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 76.0,
+            "plateau_early": -794617.2,
+            "plateau_late": -728960.3,
+            "sag_ratio": 0.917,
+            "peak_off": -398820.8,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -398820.8,
+            "peak_on": -2128936.4,
+            "t50_on_ms": 16.0,
+            "trough_on_ms": 60.0,
+            "plateau_early": -1632511.3,
+            "plateau_late": -1469349.1,
+            "sag_ratio": 0.9,
+            "peak_off": -398820.8,
+            "t50_off_ms": 17.0
+          },
+          "mean_position": {
+            "baseline": -398820.8,
+            "peak_on": -601137.6,
+            "t50_on_ms": 2.0,
+            "trough_on_ms": 28.0,
+            "plateau_early": -420028.3,
+            "plateau_late": -402690.4,
+            "sag_ratio": 0.959,
+            "peak_off": -379658.8,
+            "t50_off_ms": 0.0
+          }
+        }
+      }
+    },
+    "1x": {
+      "rates_hz": {
+        "R": {
+          "baseline": 0.0,
+          "flash": 110.2
+        },
+        "L1": {
+          "flash": 59.4
+        },
+        "L2": {
+          "flash": 60.7
+        },
+        "L3": {
+          "flash": 10.7
+        }
+      },
+      "phi_nV": {
+        "L": {
+          "per_synapse_tbar": {
+            "baseline": -209558.1,
+            "peak_on": -683048.9,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 77.0,
+            "plateau_early": -625337.8,
+            "plateau_late": -556370.1,
+            "sag_ratio": 0.89,
+            "peak_off": -209558.1,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -209558.1,
+            "peak_on": -2160561.9,
+            "t50_on_ms": 12.0,
+            "trough_on_ms": 58.0,
+            "plateau_early": -1781472.2,
+            "plateau_late": -1600899.9,
+            "sag_ratio": 0.899,
+            "peak_off": -209558.1,
+            "t50_off_ms": 21.0
+          },
+          "mean_position": {
+            "baseline": -209558.1,
+            "peak_on": -311693.7,
+            "t50_on_ms": 11.0,
+            "trough_on_ms": 8.0,
+            "plateau_early": -99139.3,
+            "plateau_late": -87666.0,
+            "sag_ratio": 0.884,
+            "peak_off": -58288.8,
+            "t50_off_ms": 29.0
+          }
+        },
+        "R": {
+          "per_synapse_tbar": {
+            "baseline": -398820.8,
+            "peak_on": -1300186.7,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 77.0,
+            "plateau_early": -1190420.1,
+            "plateau_late": -1059131.6,
+            "sag_ratio": 0.89,
+            "peak_off": -398820.8,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -398820.8,
+            "peak_on": -2999671.2,
+            "t50_on_ms": 12.0,
+            "trough_on_ms": 66.0,
+            "plateau_early": -2521351.8,
+            "plateau_late": -2260545.8,
+            "sag_ratio": 0.897,
+            "peak_off": -398820.8,
+            "t50_off_ms": 21.0
+          },
+          "mean_position": {
+            "baseline": -398820.8,
+            "peak_on": -776322.2,
+            "t50_on_ms": 5.0,
+            "trough_on_ms": 54.0,
+            "plateau_early": -593193.0,
+            "plateau_late": -529400.0,
+            "sag_ratio": 0.892,
+            "peak_off": -354802.7,
+            "t50_off_ms": 7.0
+          }
+        }
+      }
+    },
+    "2x": {
+      "rates_hz": {
+        "R": {
+          "baseline": 0.0,
+          "flash": 163.9
+        },
+        "L1": {
+          "flash": 80.7
+        },
+        "L2": {
+          "flash": 82.2
+        },
+        "L3": {
+          "flash": 19.1
+        }
+      },
+      "phi_nV": {
+        "L": {
+          "per_synapse_tbar": {
+            "baseline": -209558.1,
+            "peak_on": -1156581.8,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 77.0,
+            "plateau_early": -1041257.8,
+            "plateau_late": -903276.8,
+            "sag_ratio": 0.867,
+            "peak_off": -209558.1,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -209558.1,
+            "peak_on": -3025204.1,
+            "t50_on_ms": 10.0,
+            "trough_on_ms": 81.0,
+            "plateau_early": -2748538.5,
+            "plateau_late": -2461073.0,
+            "sag_ratio": 0.895,
+            "peak_off": -209558.1,
+            "t50_off_ms": 23.0
+          },
+          "mean_position": {
+            "baseline": -209558.1,
+            "peak_on": -369993.0,
+            "t50_on_ms": 2.0,
+            "trough_on_ms": 77.0,
+            "plateau_early": -268834.9,
+            "plateau_late": -204212.2,
+            "sag_ratio": 0.76,
+            "peak_off": -30243.7,
+            "t50_off_ms": 49.0
+          }
+        },
+        "R": {
+          "per_synapse_tbar": {
+            "baseline": -398820.8,
+            "peak_on": -2201592.0,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 76.0,
+            "plateau_early": -1982087.1,
+            "plateau_late": -1719470.5,
+            "sag_ratio": 0.868,
+            "peak_off": -398820.8,
+            "t50_off_ms": 17.0
+          },
+          "per_synapse_neurite": {
+            "baseline": -398820.8,
+            "peak_on": -4361592.4,
+            "t50_on_ms": 10.0,
+            "trough_on_ms": 81.0,
+            "plateau_early": -3949830.4,
+            "plateau_late": -3513937.9,
+            "sag_ratio": 0.89,
+            "peak_off": -398820.8,
+            "t50_off_ms": 22.0
+          },
+          "mean_position": {
+            "baseline": -398820.8,
+            "peak_on": -1315176.6,
+            "t50_on_ms": 14.0,
+            "trough_on_ms": 72.0,
+            "plateau_early": -1112058.7,
+            "plateau_late": -928940.8,
+            "sag_ratio": 0.835,
+            "peak_off": -353889.9,
+            "t50_off_ms": 10.0
+          }
+        }
+      }
+    }
+  }
+}
