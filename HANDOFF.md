@@ -29,7 +29,17 @@
 
 ### 2.1 环境
 
-- Python **3.11+**（本会话用 3.12.7，Windows + Git Bash）
+- **专用 conda 环境 `ffbm`**（2026-09-13 在新机器上创建并验证）：
+  conda 在 `C:\Software\Devel\Anaconda3`（conda 22.9，不在 Git Bash PATH 里，
+  直接用绝对路径调用）
+  ```bash
+  # 创建（已建好，无需重跑）
+  C:/Software/Devel/Anaconda3/Scripts/conda.exe create -n ffbm python=3.12 -y
+  # 本项目的 python（Git Bash 里直接用这个路径，不必 activate）
+  C:/Software/Devel/Anaconda3/envs/ffbm/python.exe
+  ```
+  环境 Python 3.12.14，已 `pip install -e . pytest`；系统全局 Python
+  （C:\Python312）保持干净，勿再往里装项目依赖
 - 依赖：numpy / pandas / pyarrow / scipy / matplotlib / pytest
 - 内存建议 **≥16 GB**（neuron_sites 聚合时内存映射 12.7GB 文件，本机 32GB）
 - 磁盘：约 20 GB（数据 15.7GB + 余量）
@@ -43,7 +53,7 @@ tar -xzf male-fruit-fly-brain-map-20260913.tar.gz
 #    b) git bundle 方式（只有历史，无未跟踪文件）：
 git clone male-fruit-fly-brain-map.bundle male-fruit-fly-brain-map
 
-# 2. 安装基础设施包（可编辑模式）
+# 2. 安装基础设施包（可编辑模式；用 ffbm 环境的 python，见 §2.1）
 cd male-fruit-fly-brain-map
 pip install -e .
 
