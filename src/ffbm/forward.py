@@ -4,9 +4,10 @@ A synaptic current enters the postsynaptic membrane at one location and returns
 through the presynaptic membrane at another: a source-sink current pair. The
 potential at an electrode is the superposition of all pairs
 
-    phi(r) = (1 / 4 pi sigma) * sum_e y_e * (1/|r - r_post| - 1/|r - r_pre|)
+    phi(r) = (1 / 4 pi sigma) * sum_e y_e * (1/|r - r_pre| - 1/|r - r_post|)
 
-with y_e > 0 meaning positive current flows into the membrane at r_post.
+with y_e > 0 meaning positive current flows into the membrane at r_post (a
+medium sink, negative potential) and returns into the medium at r_pre (source).
 Geometry is static, so per-electrode edge coefficients are precomputed once and
 each time step is a single vector dot product.
 
@@ -29,9 +30,11 @@ class StaticPairField:
         electrodes = np.atleast_2d(np.asarray(electrodes, dtype=np.float64)) * 1e-6
         coef = np.empty((len(electrodes), len(pre)))
         for k, r in enumerate(electrodes):
-            inv_post = 1.0 / np.linalg.norm(post - r, axis=1)
             inv_pre = 1.0 / np.linalg.norm(pre - r, axis=1)
-            coef[k] = (inv_post - inv_pre) / (4.0 * np.pi * sigma)
+            inv_post = 1.0 / np.linalg.norm(post - r, axis=1)
+            # y>0: current enters the membrane at post (extracellular sink, -)
+            # and returns into the medium at pre (source, +)
+            coef[k] = (inv_pre - inv_post) / (4.0 * np.pi * sigma)
         self.coef = coef
         self.n_electrodes = len(electrodes)
 

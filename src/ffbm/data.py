@@ -47,6 +47,18 @@ def load_visual_edges() -> pd.DataFrame:
     return pd.read_parquet(DERIVED / "visual_edges.parquet")
 
 
+def load_neuron_sites() -> pd.DataFrame:
+    """Per-(body, kind) mean synapse-site positions (um) and site counts."""
+    return pd.read_parquet(DERIVED / "neuron_sites.parquet")
+
+
+def site_positions(sites: pd.DataFrame, kind: str) -> dict[int, np.ndarray]:
+    """bodyId -> mean synapse-site position (um) for one role ('PreSyn'/'PostSyn')."""
+    s = sites[sites["kind"] == kind]
+    return dict(zip(s["body"].astype(int).tolist(),
+                    s[["x_um", "y_um", "z_um"]].to_numpy()))
+
+
 def neuron_positions(ann: pd.DataFrame) -> dict[int, np.ndarray]:
     """bodyId -> soma (x, y, z) in micrometers (from somaLocation voxels)."""
     sl = ann[ann["somaLocation"].notna()]

@@ -1,0 +1,49 @@
+{
+  "config": {
+    "dt_ms": 0.5,
+    "t_end_ms": 3000.0,
+    "flash_ms": [
+      500.0,
+      1500.0
+    ],
+    "syn_gain_pA": 12.0,
+    "syn_tau_ms": 5.0,
+    "i_r_base_pA": 150.0,
+    "i_r_flash_pA": 350.0,
+    "n_photoreceptors": 3377,
+    "n_lamina": 5327,
+    "n_edges": 9636,
+    "n_synapses": 234561
+  },
+  "rate_r_hz": {
+    "baseline": 0.0,
+    "flash": 129.6,
+    "after": 0.0
+  },
+  "rate_l_hz": {
+    "L1": {
+      "baseline": 0.0,
+      "flash": 67.6
+    },
+    "L2": {
+      "baseline": 0.0,
+      "flash": 68.9
+    },
+    "L3": {
+      "baseline": 0.0,
+      "flash": 13.7
+    }
+  },
+  "phi_nV": {
+    "L": {
+      "peak_on": -465271.6,
+      "plateau": -119048.4,
+      "peak_off": 240925.7
+    },
+    "R": {
+      "peak_on": -1063896.1,
+      "plateau": -675413.2,
+      "peak_off": 84664.0
+    }
+  }
+}
