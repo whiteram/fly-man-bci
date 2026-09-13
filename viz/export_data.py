@@ -438,8 +438,8 @@ def main():
         bg[e] = alpha + aper + sens
     # SNR of the fly signal against this background (best electrode)
     flicker_win = slice(1500, 4500)
-    sig_std = phi_scalp[:, 1500:4500].std(axis=1) * 1e6
-    bg_std = bg[:, flicker_win].std(axis=1)
+    sig_std = phi_scalp[1500:4500, :].std(axis=0) * 1e6   # (n_elec,)
+    bg_std = bg[:, flicker_win].std(axis=1)               # (n_elec,)
     best = int(np.argmax(sig_std))
     snr = {"best_elec_deg": round(float(scalp_ang[best]), 1),
            "sig_uv": round(float(sig_std[best]), 2),
