@@ -1,18 +1,19 @@
 """Export simulation data for the 3D visualization page (viz/index.html).
 
-Runs one flash-train simulation of the left-lobe cascade (exp009's
-data-driven sign structure, exp011's protocol) with three internal fly-head
-electrodes (eye / lamina / medulla, sealed-head kernel) and saves everything
-the page needs:
+Runs one naturalistic simulation of the left-lobe cascade (exp009's
+data-driven sign structure) with three internal fly-head electrodes
+(eye / lamina / medulla, sealed-head kernel) plus a 17-electrode scalp
+array in the x400 human-head thought experiment (exp010/011 geometry,
+3-sphere ScalpPairField kernel), and saves everything the page needs:
 
   positions of every neuron per layer (centered, um)
   a sample of edges for the flow visualization
   electrode positions + head-sphere geometry
-  1 kHz traces: stimulus luminance, per-layer rates, 3 phi channels
-  flash cycle markers
+  1 kHz traces: stimulus luminance, per-layer rates, 3 phi channels,
+  17 scalp channels (channel 0 on the eye axis, sorted by angle)
 
 Run from repository root:
-    python viz/export_data.py        (~9 min)
+    python viz/export_data.py        (~20 min, scalp array dominates)
 """
 
 import json
@@ -132,20 +133,47 @@ def main():
         photo_pair[0], photo_pair[1], electrodes, center=center, r1=r1,
         r2=1.3 * r1, sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
 
-    # thought-experiment channel (exp010/011): the same network magnified
-    # 400x inside a human 3-sphere head, electrode on the scalp
+    # thought-experiment channels (exp010/011): the same network magnified
+    # 400x inside a human 3-sphere head, electrode ARRAY on the scalp
+    # (channel 0 on the eye axis + a quasi-uniform Fibonacci cover, sorted
+    # by angle from the eye axis)
     SCALE = 400.0
     R_BRAIN, R_SKULL, R_SCALP = 8.0e4, 8.5e4, 9.2e4
-    elec_scalp = center + 0.985 * R_SCALP * u_eye
-    ker_scalp = {}
-    for name, (pr, po) in {**group_pairs, "PHOTO": photo_pair}.items():
-        pr_s = center + (pr - center) * SCALE
-        po_s = center + (po - center) * SCALE
-        ker_scalp[name] = ScalpPairField(
-            pr_s, po_s, elec_scalp[None, :], center=center,
-            r1=R_BRAIN, r2=R_SKULL, r3=R_SCALP, sigma1=0.33,
-            sigma2=0.013, sigma3=0.33)
-    print("scalp kernels built (S=400)")
+    N_SCALP_ELEC = 17
+
+    def scalp_electrode_dirs():
+        n_ext = N_SCALP_ELEC          # generate N, drop the one nearest
+        i = np.arange(n_ext) + 0.5    # the anchor, then prepend the anchor
+        az = np.pi * (1.0 + 5.0 ** 0.5) * i   # -> N total, quasi-uniform
+        z = 1.0 - 2.0 * i / n_ext
+        r = np.sqrt(np.maximum(0.0, 1.0 - z * z))
+        fib = np.stack([r * np.cos(az), r * np.sin(az), z], axis=1)
+        fib = np.delete(fib, int(np.argmax(fib @ u_eye)), axis=0)
+        dirs = np.vstack([u_eye[None, :], fib])
+        ang = np.degrees(np.arccos(np.clip(dirs @ u_eye, -1.0, 1.0)))
+        return dirs[np.argsort(ang, kind="stable")]
+
+    scalp_dirs = scalp_electrode_dirs()
+    scalp_ang = np.degrees(np.arccos(np.clip(scalp_dirs @ u_eye, -1, 1)))
+    coef_scalp = {name: [] for name in
+                  list(group_pairs) + ["PHOTO"]}
+    import time as _time
+    _t0 = _time.time()
+    for k, d in enumerate(scalp_dirs):
+        elec_k = center + 0.985 * R_SCALP * d
+        for name, (pr, po) in {**group_pairs,
+                               "PHOTO": photo_pair}.items():
+            pr_s = center + (pr - center) * SCALE
+            po_s = center + (po - center) * SCALE
+            coef_scalp[name].append(ScalpPairField(
+                pr_s, po_s, elec_k[None, :], center=center,
+                r1=R_BRAIN, r2=R_SKULL, r3=R_SCALP, sigma1=0.33,
+                sigma2=0.013, sigma3=0.33).coef[0])
+        print(f"scalp kernel {k + 1}/{N_SCALP_ELEC} "
+              f"({_time.time() - _t0:.0f} s)", flush=True)
+    coef_scalp = {k: np.vstack(v) for k, v in coef_scalp.items()}
+    print(f"scalp kernels built (S=400, {N_SCALP_ELEC} electrodes, "
+          f"{_time.time() - _t0:.0f} s)")
 
     # ---- simulation ----
     rng = np.random.default_rng(SEED)
@@ -264,7 +292,7 @@ def main():
     n_steps = int(T_END / DT)
     n_field = n_steps // 2
     phi = np.zeros((n_field, 3))
-    phi_scalp = np.zeros(n_field)
+    phi_scalp = np.zeros((n_field, N_SCALP_ELEC))
     rate = {k: np.zeros(n_field) for k in
             ("R", "L", "MID", "T4", "T5")}
     stim = np.zeros(n_field)
@@ -304,11 +332,11 @@ def main():
                     y = i_photo if name == "PHOTO" else syn[name].y
                     acc += ker[name].coef[i] @ y
                 phi[j, i] = acc * 1e-12
-            acc_s = 0.0
+            acc_s = np.zeros(N_SCALP_ELEC)
             for name in list(group_pairs) + ["PHOTO"]:
                 y = i_photo if name == "PHOTO" else syn[name].y
-                acc_s += ker_scalp[name].field(y)[0]
-            phi_scalp[j] = acc_s
+                acc_s += coef_scalp[name] @ y
+            phi_scalp[j] = acc_s * 1e-12
             rate["R"][j] = sp_r.sum() * 1000.0 / n_r
             rate["L"][j] = sp_l.sum() * 1000.0 / n_l
             rate["MID"][j] = sp_mid.sum() * 1000.0 / n_mid
@@ -346,8 +374,13 @@ def main():
                              "band+": "带通纹理 →", "band-": "带通纹理 ←"},
             "head_r_um": round(r1, 1),
             "scalp": {"scale": 400, "radii_um": [8e4, 8.5e4, 9.2e4],
+                      "n_elec": N_SCALP_ELEC,
                       "elec_dist_um": 0.985 * 9.2e4,
-                      "elec_dir": [round(float(x), 4) for x in u_eye]},
+                      "elec_dir": [round(float(x), 4) for x in u_eye],
+                      "elec_dirs": [[round(float(x), 4) for x in d]
+                                    for d in scalp_dirs],
+                      "elec_deg": [round(float(a), 1)
+                                   for a in scalp_ang]},
             "layers": [
                 {"name": "R1-R6 光感受器", "color": "#a855f7", "n": n_r},
                 {"name": "L1-L3 板层", "color": "#38bdf8", "n": n_l},
@@ -370,7 +403,7 @@ def main():
         "stim": np.round(stim, 2).tolist(),
         "rates": {k: np.round(v, 1).tolist() for k, v in rate.items()},
         "phi_uV": phi_uv.tolist(),
-        "phi_scalp_uV": np.round(phi_scalp * 1e6, 3).tolist(),
+        "phi_scalp_all_uV": np.round(phi_scalp.T * 1e6, 3).tolist(),
     }
     path = OUT / "viz_data.json"
     path.write_text(json.dumps(data, separators=(",", ":")))

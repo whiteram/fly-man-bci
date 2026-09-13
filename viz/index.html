@@ -79,14 +79,19 @@
       <label style="float:right;font-weight:normal;cursor:pointer">
         <input type="checkbox" id="zoom"> 近 2 s 放大</label></div>
     <canvas id="eeg" class="chart" height="290"></canvas>
+    <div class="chart-title">人脑头皮电极阵列 ×17（行按与眼轴夹角 0°→180° 排列，
+      蓝− 红+）</div>
+    <canvas id="scalpmap" class="chart" height="170"></canvas>
     <div class="chart-title">各层群体放电率</div>
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
       电极电位：红=眼表面 · 琥珀=板层 · 绿=髓质（果蝇头内）·
       粉=<b>人脑头皮</b>（×400 思想实验：同一网络放大放进人脑三球壳，
-      电极贴头皮——exp010/011）｜ 放电率自上而下：R → L → Mi/Tm → T4 →
+      17 个电极均匀贴在头皮上，粉色曲线=眼轴方向那一个，热图=全部
+      17 通道——exp010/011）｜ 放电率自上而下：R → L → Mi/Tm → T4 →
       T5。果蝇自己的头壳外放不了电极（角质层绝缘，外部场严格为零）。
-      右上按钮可切换 果蝇头 / 人脑壳 双视图。
+      右上按钮可切换 果蝇头 / 人脑壳 双视图；人脑壳视图下头皮球面按
+      电位实时着色（脑电地形图）。
     </div>
   </div>
 </div>
@@ -109,11 +114,13 @@ let DATA = null;
 let simIdx = 0, playing = true, speed = 1.0;
 let drawnUpTo = { eeg: 0, rates: 0 };
 const SMOOTH = { R: 0, L: 0, MID: 0, T4: 0, T5: 0 };
+let scalpAll = null, scalpVmax = 1, scalpDeg = [];
 
 // ---------- 3D scene ----------
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
 let elecMeshes = [], elecLabels = [], headMesh, stimLight, scene;
 let netGroup, elecGroup, humanHead, eyeDirVec, humanMode = false;
+let scalpTopo = null, topoWeights = null;
 
 function initScene() {
   const canvas = document.getElementById("scene");
@@ -215,18 +222,51 @@ function initScene() {
       new THREE.SphereGeometry(rr, 30, 20),
       new THREE.MeshBasicMaterial({
         color: i === 2 ? 0xe879f9 : 0x94a3b8, wireframe: true,
-        transparent: true, opacity: i === 2 ? 0.10 : 0.05 }));
+        transparent: true, opacity: i === 2 ? 0.08 : 0.05 }));
     humanHead.add(wire);
   });
-  const scalpElec = new THREE.Mesh(
-    new THREE.SphereGeometry(1200, 14, 10),
-    new THREE.MeshBasicMaterial({ color: 0xe879f9 }));
-  scalpElec.position.copy(eDir.clone().multiplyScalar(meta.elec_dist_um));
-  humanHead.add(scalpElec);
-  const sl = makeLabel("人脑头皮电极", "#e879f9");
-  sl.position.copy(eDir.clone().multiplyScalar(meta.elec_dist_um + 4500));
-  sl.scale.set(14000, 5200, 1);
+
+  // scalp electrode array: channel 0 (magenta) on the eye axis, the rest
+  // quasi-uniform over the sphere
+  const eDirs = meta.elec_dirs || [meta.elec_dir || [1, 0, 0]];
+  const eDist = meta.elec_dist_um || 9.06e4;
+  eDirs.forEach((d, i) => {
+    const s = new THREE.Mesh(
+      new THREE.SphereGeometry(i === 0 ? 1200 : 750, 12, 8),
+      new THREE.MeshBasicMaterial({ color: i === 0 ? 0xe879f9 : 0xf0abfc }));
+    s.position.set(d[0] * eDist, d[1] * eDist, d[2] * eDist);
+    humanHead.add(s);
+  });
+  const sl = makeLabel("人脑头皮电极 ×17", "#e879f9", 5600);
+  sl.position.copy(eDir.clone().multiplyScalar(eDist + 6000));
   humanHead.add(sl);
+
+  // scalp surface colored by interpolated electrode potential (topomap)
+  const topoGeo = new THREE.SphereGeometry(
+    (meta.radii_um[2] || 9.2e4) * 0.996, 64, 40);
+  const tPos = topoGeo.attributes.position;
+  const nV = tPos.count, nE = eDirs.length;
+  topoWeights = new Float32Array(nV * nE);
+  for (let v = 0; v < nV; v++) {
+    const x = tPos.getX(v), y = tPos.getY(v), z = tPos.getZ(v);
+    const l = Math.hypot(x, y, z) || 1;
+    let sum = 0;
+    for (let e = 0; e < nE; e++) {
+      const c = (x / l) * eDirs[e][0] + (y / l) * eDirs[e][1]
+              + (z / l) * eDirs[e][2];
+      const w = Math.exp(7.0 * (c - 1.0));
+      topoWeights[v * nE + e] = w;
+      sum += w;
+    }
+    for (let e = 0; e < nE; e++) topoWeights[v * nE + e] /= sum;
+  }
+  topoGeo.setAttribute("color",
+    new THREE.BufferAttribute(new Float32Array(nV * 3), 3));
+  scalpTopo = new THREE.Mesh(topoGeo, new THREE.MeshBasicMaterial(
+    { vertexColors: true, transparent: true, opacity: 0.62,
+      depthWrite: false }));
+  humanHead.add(scalpTopo);
+
   humanHead.visible = false;
   scene.add(humanHead);
 
@@ -244,17 +284,22 @@ function initScene() {
   window.addEventListener("resize", onResize);
 }
 
-function makeLabel(text, color) {
+function makeLabel(text, color, worldH) {
   const cv = document.createElement("canvas");
   cv.width = 256; cv.height = 96;
-  const ctx = cv.getContext("2d");
+  let ctx = cv.getContext("2d");
+  ctx.font = "44px Microsoft YaHei, sans-serif";
+  const tw = Math.ceil(ctx.measureText("◉ " + text).width) + 12;
+  if (tw > cv.width) { cv.width = tw; ctx = cv.getContext("2d"); }
   ctx.font = "44px Microsoft YaHei, sans-serif";
   ctx.fillStyle = color;
   ctx.textAlign = "center";
-  ctx.fillText("◉ " + text, 128, 60);
+  ctx.fillText("◉ " + text, cv.width / 2, 60);
   const tex = new THREE.CanvasTexture(cv);
-  return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex,
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex,
                                                      transparent: true }));
+  if (worldH) sprite.scale.set(worldH * cv.width / cv.height, worldH, 1);
+  return sprite;
 }
 
 function onResize() {
@@ -262,6 +307,36 @@ function onResize() {
   renderer.setSize(wrap.clientWidth, wrap.clientHeight);
   camera.aspect = wrap.clientWidth / wrap.clientHeight;
   camera.updateProjectionMatrix();
+}
+
+// diverging colormap shared by the topomap and the channel heatmap:
+// t=-1 blue, t=0 dark (blends with background), t=+1 red
+function divColor(t, out) {
+  const mid = [12, 18, 30];
+  const end = t < 0 ? [96, 165, 250] : [248, 113, 113];
+  const u = Math.min(1, Math.abs(t));
+  out[0] = Math.round(mid[0] + (end[0] - mid[0]) * u);
+  out[1] = Math.round(mid[1] + (end[1] - mid[1]) * u);
+  out[2] = Math.round(mid[2] + (end[2] - mid[2]) * u);
+}
+
+// paint the scalp sphere with the interpolated potential at sample i
+function updateScalpTopo(i) {
+  if (!scalpTopo || !scalpAll) return;
+  const attr = scalpTopo.geometry.attributes.color;
+  const arr = attr.array;
+  const nE = scalpAll.length;
+  const c = [0, 0, 0];
+  for (let v = 0; v < attr.count; v++) {
+    let val = 0;
+    for (let e = 0; e < nE; e++)
+      val += topoWeights[v * nE + e] * scalpAll[e][i];
+    divColor(Math.max(-1, Math.min(1, val / scalpVmax)), c);
+    arr[v * 3] = c[0] / 255;
+    arr[v * 3 + 1] = c[1] / 255;
+    arr[v * 3 + 2] = c[2] / 255;
+  }
+  attr.needsUpdate = true;
 }
 
 // ---------- charts ----------
@@ -320,19 +395,104 @@ function drawChartFrame(ch, i0, i1, x0, x1) {
 function drawEegChart(i) {
   const rows = [0, 1, 2].map(k => ({
     key: "PHI" + k, label: ELEC_NAMES[k], color: ELEC_COLORS[k] }));
-  if (DATA.phi_scalp_uV)
-    rows.push({ key: "SCALP", label: "人脑头皮 ×400", color: "#e879f9" });
+  const scalpSingle = DATA.phi_scalp_all_uV
+    ? DATA.phi_scalp_all_uV[0] : DATA.phi_scalp_uV;
+  if (scalpSingle)
+    rows.push({ key: "SCALP", label: "人脑头皮×400·眼轴",
+                color: "#e879f9" });
   if (!drawEegChart.ch) {
     const data = { PHI0: DATA.phi_uV.map(v => v[0]),
                    PHI1: DATA.phi_uV.map(v => v[1]),
                    PHI2: DATA.phi_uV.map(v => v[2]),
-                   SCALP: DATA.phi_scalp_uV };
+                   SCALP: scalpSingle };
     drawEegChart.ch = setupChart(document.getElementById("eeg"), rows, data);
   }
   const n = DATA.t_ms.length;
   const zoom = document.getElementById("zoom").checked;
   const x0 = zoom ? Math.max(0, i - 2000) : 0;
   drawChartFrame(drawEegChart.ch, x0, i + 1, x0, zoom ? x0 + 2000 : n);
+}
+
+// 17-channel scalp array as a time x channel heatmap (rows = angle from
+// the eye axis, 0 at top); same time window logic as the EEG chart
+function drawScalpMap(i) {
+  if (!scalpAll) return;
+  const cv = document.getElementById("scalpmap");
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  if (cv.width !== Math.round(cv.clientWidth * dpr)) {
+    cv.width = Math.round(cv.clientWidth * dpr);
+    cv.height = cv.getAttribute("height") * dpr;
+  }
+  const ctx = cv.getContext("2d");
+  const w = cv.width, h = cv.height;
+  const n = DATA.t_ms.length;
+  const nE = scalpAll.length;
+  const padL = 52 * dpr, padR = 38 * dpr, padT = 4 * dpr, padB = 6 * dpr;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  ctx.fillStyle = "#060a10"; ctx.fillRect(0, 0, w, h);
+  const zoom = document.getElementById("zoom").checked;
+  const x0 = zoom ? Math.max(0, i - 2000) : 0;
+  const xRight = zoom ? x0 + 2000 : n;
+  const cols = Math.max(2, Math.min(1400, xRight - x0));
+  if (!drawScalpMap.off || drawScalpMap.off.width !== cols) {
+    drawScalpMap.off = document.createElement("canvas");
+    drawScalpMap.off.width = cols;
+    drawScalpMap.off.height = nE;
+  }
+  const octx = drawScalpMap.off.getContext("2d");
+  const img = octx.createImageData(cols, nE);
+  const buf = img.data;
+  const c = [0, 0, 0];
+  for (let col = 0; col < cols; col++) {
+    const s = x0 + Math.min(xRight - x0 - 1,
+                            Math.round(col / (cols - 1) * (xRight - x0 - 1)));
+    for (let e = 0; e < nE; e++) {
+      const p = (e * cols + col) * 4;
+      if (s > i) {
+        buf[p] = 6; buf[p + 1] = 10; buf[p + 2] = 16; buf[p + 3] = 255;
+        continue;
+      }
+      divColor(Math.max(-1, Math.min(1, scalpAll[e][s] / scalpVmax)), c);
+      buf[p] = c[0]; buf[p + 1] = c[1]; buf[p + 2] = c[2]; buf[p + 3] = 255;
+    }
+  }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(drawScalpMap.off, 0, 0, cols, nE,
+                padL, padT, plotW, plotH);
+  ctx.strokeStyle = "#22304a"; ctx.lineWidth = 1;
+  epochs.forEach(ep => {
+    const x = padL + (ep.i0 - x0) / (xRight - x0) * plotW;
+    if (x > padL && x < padL + plotW) {
+      ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+    }
+  });
+  const px = padL + (i - x0) / (xRight - x0) * plotW;
+  ctx.strokeStyle = "#7dd3fc";
+  ctx.beginPath(); ctx.moveTo(px, padT); ctx.lineTo(px, padT + plotH);
+  ctx.stroke();
+  ctx.font = `${10 * dpr}px sans-serif`;
+  ctx.fillStyle = "#8aa0b4"; ctx.textAlign = "right";
+  for (let e = 0; e < nE; e += 2) {
+    const y = padT + (e + 0.5) / nE * plotH + 3 * dpr;
+    ctx.fillText(e === 0 ? "0° 眼轴"
+                 : (scalpDeg[e] != null ? Math.round(scalpDeg[e]) + "°" : "E" + e),
+                 padL - 5 * dpr, y);
+  }
+  ctx.textAlign = "left";
+  // colorbar
+  const cbX = w - padR + 6 * dpr, cbW = 5 * dpr;
+  for (let y = 0; y < plotH; y++) {
+    divColor(1 - 2 * y / plotH, c);
+    ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+    ctx.fillRect(cbX, padT + y, cbW, 1 * dpr + 1);
+  }
+  ctx.fillStyle = "#8aa0b4"; ctx.font = `${9 * dpr}px sans-serif`;
+  ctx.textAlign = "left";
+  ctx.fillText("+" + scalpVmax.toFixed(1), cbX + 7 * dpr, padT + 8 * dpr);
+  ctx.fillText("0", cbX + 7 * dpr, padT + plotH / 2);
+  ctx.fillText("−" + scalpVmax.toFixed(1), cbX + 7 * dpr, padT + plotH);
 }
 
 function drawRatesChart(i) {
@@ -425,7 +585,9 @@ function tick() {
   // charts (progressive: redraw fully is fine at these sizes)
   drawStimChart(i);
   drawEegChart(i);
+  drawScalpMap(i);
   drawRatesChart(i);
+  if (humanMode) updateScalpTopo(i);
 
   document.getElementById("time").textContent =
     (DATA.t_ms[i] / 1000).toFixed(2) + " s";
@@ -494,6 +656,14 @@ function initUI() {
 // ---------- boot ----------
 fetch("data/viz_data.json").then(r => r.json()).then(d => {
   DATA = d;
+  if (DATA.phi_scalp_all_uV) {
+    scalpAll = DATA.phi_scalp_all_uV;
+    scalpDeg = (DATA.meta.scalp && DATA.meta.scalp.elec_deg) || [];
+    const abs = [];
+    scalpAll.forEach(ch => ch.forEach(v => abs.push(Math.abs(v))));
+    abs.sort((a, b) => a - b);
+    scalpVmax = Math.max(abs[Math.floor(abs.length * 0.98)], 1e-3);
+  }
   initScene();
   setupEpochs();
   initUI();
