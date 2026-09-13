@@ -20,6 +20,33 @@ def _repeat_ranges(starts: np.ndarray, counts: np.ndarray) -> np.ndarray:
     return offsets + within_run
 
 
+class ColoredCurrentNoise:
+    """Per-neuron Ornstein-Uhlenbeck input current noise.
+
+    The cheap stand-in for background synaptic bombardment: unlike white
+    noise (whose membrane-voltage effect is tiny), an OU process with
+    correlation time tau_n ~ synaptic tau and std sigma gives a membrane
+    fluctuation std_V = sigma * R_m * sqrt(tau_n / (tau_n + tau_m)),
+    e.g. sigma=60 pA, tau_n=8 ms, R=0.1 GOhm, tau_m=10 ms -> 4 mV --
+    the physiologically realistic range. This smooths the razor-thin
+    deterministic f-I transition into graded stochastic firing.
+    Exact discrete update: x <- a x + k w with k = sigma sqrt(1 - a^2),
+    so the stationary std is sigma for any dt.
+    """
+
+    def __init__(self, n: int, dt: float, rng, tau_n: float = 8.0,
+                 sigma: float = 60.0):
+        self.a = float(np.exp(-dt / tau_n))
+        self.k = sigma * np.sqrt(1.0 - self.a * self.a)
+        self.x = np.zeros(n, dtype=np.float64)
+        self.rng = rng
+
+    def step(self) -> np.ndarray:
+        self.x = self.a * self.x + self.k * self.rng.standard_normal(
+            self.x.shape)
+        return self.x
+
+
 class LIFPopulation:
     """Leaky integrate-and-fire population (Euler, dt << tau_m)."""
 
@@ -66,7 +93,22 @@ class ExponentialSynapses:
     Delivery uses precomputed index arrays into y for every presynaptic neuron.
 
     y_e(t) decays as y *= exp(-dt/tau_s); a presynaptic spike adds
-    `gain * weight_e` to every edge of that presynaptic neuron.
+    `gain * weight_e` (current mode, sign folded into weight or via `sign`)
+    to every edge of that presynaptic neuron.
+
+    Extensions:
+      sign        per-edge sign (+1/-1). Current mode folds it into the kick
+                  unless already folded (backwards compatible: None).
+                  Conductance mode uses it to select the reversal potential.
+      delay_ms    per-edge transmission delay (synaptic + axonal); spikes are
+                  scheduled into a ring buffer and land after
+                  round(delay_ms/dt) steps (0 = same step, as before).
+      conductance True switches to conductance-based input: per-edge current
+                  g_unit * y_e * (E_rev_e - v_post), with E_rev_e = e_rev_exc
+                  for sign>0 and e_rev_inh for sign<0. Requires passing the
+                  postsynaptic membrane potential to to_neuron_current(); the
+                  state y then carries unitless gating (pass gain ~ 1 and
+                  scale g_unit instead of gain).
     """
 
     def __init__(
@@ -79,6 +121,12 @@ class ExponentialSynapses:
         gain: float = 1.0,
         tau_s: float = 5.0,
         n_post: int | None = None,
+        sign: np.ndarray | None = None,
+        delay_ms: np.ndarray | None = None,
+        conductance: bool = False,
+        g_unit: float = 0.02,
+        e_rev_exc: float = 0.0,
+        e_rev_inh: float = -75.0,
     ):
         """post_index remaps edge post ids to contiguous [0, n_post) rows.
 
@@ -89,7 +137,19 @@ class ExponentialSynapses:
         self.pre = pre[order]
         self.post_local = post_index[post[order]]
         self.weight = weight[order]
-        self.kick = gain * self.weight
+        if sign is not None:
+            sign = np.asarray(sign)[order]
+        self.sign = sign
+        self.conductance = conductance
+        if conductance:
+            self.kick = (gain * self.weight).astype(np.float32)
+            self.e_rev_edge = np.where(
+                sign > 0 if sign is not None else True,
+                e_rev_exc, e_rev_inh).astype(np.float32)
+            self.g_unit = g_unit
+        else:
+            eff_sign = sign if sign is not None else np.ones(len(order))
+            self.kick = (gain * self.weight * eff_sign).astype(np.float32)
         self.n_edges = len(order)
 
         from scipy.sparse import csr_matrix
@@ -111,6 +171,19 @@ class ExponentialSynapses:
         self.deliv_starts = starts.astype(np.int64)
         self.deliv_counts = counts.astype(np.int64)
 
+        # per-edge transmission delays (ring buffer, in steps)
+        self.delayed = False
+        if delay_ms is not None:
+            bins = np.clip(
+                np.round(np.asarray(delay_ms, dtype=np.float64)[order] / dt
+                         ).astype(np.int64), 0, None)
+            self.delay_bins = bins
+            self.buf_len = int(bins.max()) + 1
+            self.buffer = np.zeros((self.buf_len, self.n_edges),
+                                   dtype=np.float32)
+            self.ptr = 0
+            self.delayed = bins.max() > 0
+
         self.decay = np.exp(-dt / tau_s)
         self.y = np.zeros(self.n_edges, dtype=np.float32)
 
@@ -125,12 +198,46 @@ class ExponentialSynapses:
                 targets = self.flat_idx[spans]
                 self.y[targets] += self.kick[targets]
 
+    def _deliver_delayed(self, spiked_pre: np.ndarray):
+        if not len(spiked_pre):
+            return
+        rows = [self.pre_row[int(p)] for p in spiked_pre
+                if int(p) in self.pre_row]
+        if not rows:
+            return
+        sel = np.array(rows)
+        spans = _repeat_ranges(self.deliv_starts[sel], self.deliv_counts[sel])
+        targets = self.flat_idx[spans]
+        bins = self.delay_bins[targets]
+        kicks = self.kick[targets]
+        for b in np.unique(bins):
+            m = bins == b
+            if b == 0:
+                self.y[targets[m]] += kicks[m]
+            else:
+                row = (self.ptr + int(b) - 1) % self.buf_len
+                np.add.at(self.buffer[row], targets[m], kicks[m])
+
     def step(self, spiked_pre: np.ndarray) -> np.ndarray:
         """One dt advance; returns per-edge current state (pA)."""
         self.y *= self.decay
-        self.deliver(spiked_pre)
+        if self.delayed:
+            self.y += self.buffer[self.ptr]
+            self.buffer[self.ptr].fill(0.0)
+            self.ptr = (self.ptr + 1) % self.buf_len
+            self._deliver_delayed(spiked_pre)
+        else:
+            self.deliver(spiked_pre)
         return self.y
 
-    def to_neuron_current(self) -> np.ndarray:
-        """Aggregate per-edge current onto postsynaptic neurons (pA)."""
+    def to_neuron_current(self, v_post: np.ndarray | None = None) -> np.ndarray:
+        """Aggregate per-edge current onto postsynaptic neurons (pA).
+
+        Conductance mode requires the current postsynaptic membrane
+        potential (mV) and returns g_unit * y * (E_rev - v)."""
+        if self.conductance:
+            if v_post is None:
+                raise ValueError("conductance mode needs v_post")
+            dv = self.e_rev_edge - v_post[self.post_local]
+            return self.csr @ (self.g_unit * self.y * dv)
         return self.csr @ self.y
