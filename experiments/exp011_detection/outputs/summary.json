@@ -1,0 +1,41 @@
+{
+  "config": {
+    "scale": 400.0,
+    "cycles": 12,
+    "t_dark_ms": 600.0,
+    "t_light_ms": 600.0,
+    "level_pA": 350.0,
+    "noise_levels_uV": [
+      1.0,
+      0.3,
+      0.1
+    ],
+    "d_prime_target": 2.0
+  },
+  "signal": {
+    "modulation_uV": -2.9547,
+    "self_noise_std_uV": 0.0208,
+    "ongoing_dark_rms_uV": 0.653
+  },
+  "detection": {
+    "1uV": {
+      "d_prime_1_trial": 28.342,
+      "d_prime_12": 98.18,
+      "d_prime_100": 283.42,
+      "trials_for_d2": 1
+    },
+    "0.3uV": {
+      "d_prime_1_trial": 70.265,
+      "d_prime_12": 243.404,
+      "d_prime_100": 702.65,
+      "trials_for_d2": 1
+    },
+    "0.1uV": {
+      "d_prime_1_trial": 94.954,
+      "d_prime_12": 328.929,
+      "d_prime_100": 949.54,
+      "trials_for_d2": 1
+    }
+  },
+  "hard_floor_note": "Johnson noise ~0.03 uV (1 kOhm, 50 Hz) is far below the 0.2-1.0 uV signal -> no physical obstruction; detectability is engineering"
+}
