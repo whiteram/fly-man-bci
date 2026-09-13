@@ -6,6 +6,10 @@
    3500.0
   ],
   "sign": "R->L histamine -1 (exp009), LMC base 250.0 pA, gain 12.0",
+  "tau_falls_ms": [
+   10.0,
+   2.5
+  ],
   "n_pairs": 234561,
   "pair_dist_um_median": 0.159,
   "neurite_degenerate": 0
@@ -28,61 +32,120 @@
    0.5
   ]
  },
- "variants": {
-  "tbar": {
-   "on_transient_over_plateau": 1.32,
-   "off_over_on_transient": 0.0,
-   "lmc_fraction_of_on_transient": 0.442,
-   "lmc_fraction_of_plateau": 0.583,
-   "amplitude_uv": {
-    "on_transient": 473.91,
-    "plateau": 358.9,
-    "off_transient": 0.0
+ "conditions": {
+  "tau_fall=10": {
+   "tbar": {
+    "on_transient_over_plateau": 1.32,
+    "off_over_on_transient": 0.0,
+    "lmc_fraction_of_on_transient": 0.442,
+    "lmc_fraction_of_plateau": 0.583,
+    "amplitude_uv": {
+     "on_transient": 473.91,
+     "plateau": 358.9,
+     "off_transient": 0.0
+    },
+    "anchors_pass": {
+     "on_transient_over_plateau": true,
+     "off_over_on_transient": false,
+     "lmc_fraction_of_on_transient": false,
+     "lmc_fraction_of_plateau": false
+    },
+    "n_pass": 1
    },
-   "anchors_pass": {
-    "on_transient_over_plateau": true,
-    "off_over_on_transient": false,
-    "lmc_fraction_of_on_transient": false,
-    "lmc_fraction_of_plateau": false
+   "neurite": {
+    "on_transient_over_plateau": 0.166,
+    "off_over_on_transient": 6.167,
+    "lmc_fraction_of_on_transient": 11.841,
+    "lmc_fraction_of_plateau": 1.803,
+    "amplitude_uv": {
+     "on_transient": 117.77,
+     "plateau": 708.7,
+     "off_transient": 726.34
+    },
+    "anchors_pass": {
+     "on_transient_over_plateau": false,
+     "off_over_on_transient": false,
+     "lmc_fraction_of_on_transient": false,
+     "lmc_fraction_of_plateau": false
+    },
+    "n_pass": 0
    },
-   "n_pass": 1
+   "meanpos": {
+    "on_transient_over_plateau": 1.534,
+    "off_over_on_transient": 0.0,
+    "lmc_fraction_of_on_transient": 0.251,
+    "lmc_fraction_of_plateau": 0.323,
+    "amplitude_uv": {
+     "on_transient": 1285.39,
+     "plateau": 838.14,
+     "off_transient": 0.0
+    },
+    "anchors_pass": {
+     "on_transient_over_plateau": true,
+     "off_over_on_transient": false,
+     "lmc_fraction_of_on_transient": false,
+     "lmc_fraction_of_plateau": true
+    },
+    "n_pass": 2
+   },
+   "verdict_all_anchors": []
   },
-  "neurite": {
-   "on_transient_over_plateau": 0.166,
-   "off_over_on_transient": 6.167,
-   "lmc_fraction_of_on_transient": 11.841,
-   "lmc_fraction_of_plateau": 1.803,
-   "amplitude_uv": {
-    "on_transient": 117.77,
-    "plateau": 708.7,
-    "off_transient": 726.34
+  "tau_fall=2.5": {
+   "tbar": {
+    "on_transient_over_plateau": 1.32,
+    "off_over_on_transient": 0.0,
+    "lmc_fraction_of_on_transient": 0.442,
+    "lmc_fraction_of_plateau": 0.583,
+    "amplitude_uv": {
+     "on_transient": 473.91,
+     "plateau": 358.9,
+     "off_transient": 0.0
+    },
+    "anchors_pass": {
+     "on_transient_over_plateau": true,
+     "off_over_on_transient": false,
+     "lmc_fraction_of_on_transient": false,
+     "lmc_fraction_of_plateau": false
+    },
+    "n_pass": 1
    },
-   "anchors_pass": {
-    "on_transient_over_plateau": false,
-    "off_over_on_transient": false,
-    "lmc_fraction_of_on_transient": false,
-    "lmc_fraction_of_plateau": false
+   "neurite": {
+    "on_transient_over_plateau": 0.166,
+    "off_over_on_transient": 6.141,
+    "lmc_fraction_of_on_transient": 11.841,
+    "lmc_fraction_of_plateau": 1.803,
+    "amplitude_uv": {
+     "on_transient": 117.77,
+     "plateau": 708.7,
+     "off_transient": 723.23
+    },
+    "anchors_pass": {
+     "on_transient_over_plateau": false,
+     "off_over_on_transient": false,
+     "lmc_fraction_of_on_transient": false,
+     "lmc_fraction_of_plateau": false
+    },
+    "n_pass": 0
    },
-   "n_pass": 0
-  },
-  "meanpos": {
-   "on_transient_over_plateau": 1.534,
-   "off_over_on_transient": 0.0,
-   "lmc_fraction_of_on_transient": 0.251,
-   "lmc_fraction_of_plateau": 0.323,
-   "amplitude_uv": {
-    "on_transient": 1285.39,
-    "plateau": 838.14,
-    "off_transient": 0.0
+   "meanpos": {
+    "on_transient_over_plateau": 1.534,
+    "off_over_on_transient": 0.0,
+    "lmc_fraction_of_on_transient": 0.251,
+    "lmc_fraction_of_plateau": 0.323,
+    "amplitude_uv": {
+     "on_transient": 1285.39,
+     "plateau": 838.14,
+     "off_transient": 0.0
+    },
+    "anchors_pass": {
+     "on_transient_over_plateau": true,
+     "off_over_on_transient": false,
+     "lmc_fraction_of_on_transient": false,
+     "lmc_fraction_of_plateau": true
+    },
+    "n_pass": 2
    },
-   "anchors_pass": {
-    "on_transient_over_plateau": true,
-    "off_over_on_transient": false,
-    "lmc_fraction_of_on_transient": false,
-    "lmc_fraction_of_plateau": true
-   },
-   "n_pass": 2
+   "verdict_all_anchors": []
   }
- },
- "verdict_all_anchors": []
+ }
 }

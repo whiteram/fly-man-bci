@@ -711,8 +711,11 @@ fetch("data/viz_data.json").then(r => r.json()).then(d => {
       `叠加背景后：最强电极（${snr.best_elec_deg}°）上果蝇信号 ` +
       `${snr.sig_uv} μV vs 人脑背景 ${snr.bg_uv} μV（幅值比 ` +
       `${snr.amp_ratio}）——单次试验难以看出，d′=2 需约 ` +
-      `<b>${snr.k_for_dprime2}</b> 次试验平均。` +
-      `背景 = 闭眼 α 波（${DATA.meta.bg_eeg.alpha_hz} Hz，枕区主导）+ ` +
+      `<b>${snr.k_for_dprime2}</b> 次试验平均` +
+      (snr.k_for_dprime2_band
+        ? `；按信号带（${snr.band_hz[0]}–${snr.band_hz[1]} Hz，避开 α 峰）
+           计算只需约 <b>${snr.k_for_dprime2_band}</b> 次` : "") +
+      `。背景 = 闭眼 α 波（${DATA.meta.bg_eeg.alpha_hz} Hz，枕区主导）+ ` +
       `1/f 活动 + 传感器噪声。`;
   }
   initScene();

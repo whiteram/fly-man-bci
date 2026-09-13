@@ -78,15 +78,18 @@ def main():
         group_pairs[f"MT_{mt}"] = pairs(e_mt[mt])
     rhabd = r_pos + 23.5 * u_eye
 
-    all_pts = np.vstack([p for pr, po in group_pairs.values()
+    scaled = {name: (center + (pr - center) * SCALE,
+                     center + (po - center) * SCALE)
+              for name, (pr, po) in {**group_pairs,
+                                     "PHOTO": (r_pos, rhabd)}.items()}
+    all_pts = np.vstack([p for pr, po in scaled.values()
                          for p in (pr, po)]) - center
     shift = vp.occipital_shift(all_pts, u_eye, R_BRAIN)
     elecs = center + 0.985 * R_SCALP * elec_dirs
     coef = {}
-    for name, (pr, po) in {**group_pairs, "PHOTO": (r_pos, rhabd)}.items():
+    for name, (pr_s, po_s) in scaled.items():
         coef[name] = FourSpherePairField(
-            center + (pr - center) * SCALE + shift,
-            center + (po - center) * SCALE + shift,
+            pr_s + shift, po_s + shift,
             elecs, center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
             r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
             sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef
@@ -119,7 +122,9 @@ def main():
         def lum(t):
             if t < T_DARK:
                 return 0.0
-            return I_LUM * CONTRAST * flicker[min(int(t), int(T_END) - 1)]
+            # same non-negative clamp semantics as the viz export
+            f = flicker[min(int(t), int(T_END) - 1)]
+            return I_LUM * max(CONTRAST * f, -0.95)
 
         print(f"seed {seed}: simulating {T_END / 1000:.1f} s ...",
               flush=True)

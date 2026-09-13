@@ -55,6 +55,8 @@ exp002 = _load("exp002_run",
                ROOT / "experiments" / "exp002_per_synapse_erg" / "run.py")
 exp009 = _load("exp009_run",
                ROOT / "experiments" / "exp009_lamina_polarity" / "run.py")
+exp003 = _load("exp003_run",
+               ROOT / "experiments" / "exp003_asymmetric_off" / "run.py")
 
 OUT = Path(__file__).resolve().parent / "outputs"
 
@@ -63,6 +65,10 @@ T_END = exp002.T_END
 FLASH_ON, FLASH_OFF = exp002.FLASH_ON, exp002.FLASH_OFF
 LEVEL_PA = 350.0
 SEED = 42
+# exp012b: rerun with asymmetric phototransduction (tau_fall = 2.5 ms,
+# exp003's validated Off-transient mechanism) -- round 1 showed the
+# off/on anchor fails for every variant under the symmetric cascade
+TAU_FALLS = (10.0, 2.5)
 
 ANCHORS = {
     "on_transient_over_plateau": (1.0, 3.0),
@@ -153,42 +159,47 @@ def main():
     signed_w = (-weight[order]).astype(np.float32)     # histamine: -1
     l_index = np.full(int(l_ids.max()) + 1, -1, dtype=np.int64)
     l_index[l_ids] = np.arange(n_l)
-    rng = np.random.default_rng(SEED)
-    pop_r = LIFPopulation(n_r, DT, tau_m=exp005.R_TAU, t_refrac=exp005.R_REF,
-                          R_m=exp005.RIN)
-    pop_l = LIFPopulation(n_l, DT, tau_m=exp005.L_TAU, t_refrac=exp005.L_REF,
-                          R_m=exp005.RIN)
-    syn = ExponentialSynapses(pre[order], post[order], signed_w, l_index,
-                              dt=DT, gain=exp009.GAIN_RL,
-                              tau_s=exp009.TAU_RL, n_post=n_l)
-    photo = exp002.Phototransduction(DT)
-    l_base = np.full(n_l, exp009.I_L_BASE)
 
     n_steps = int(T_END / DT)
     n_field = n_steps // 2
     t_ms = np.arange(n_field) * 2 * DT
     variants = {"tbar": edge_coef_tbar, "neurite": edge_coef_neurite}
-    phi_l = {v: np.zeros((n_field, 2)) for v in variants}
-    phi_l["meanpos"] = np.zeros((n_field, 2))
-    phi_r = np.zeros((n_field, 2))
 
-    print(f"simulating {T_END / 1000:.1f} s flash ...")
-    for k in range(n_steps):
-        t = k * DT
-        flash = LEVEL_PA if FLASH_ON <= t < FLASH_OFF else 0.0
-        inc = photo.step(flash)
-        sp_r = pop_r.step(exp005.I_R_BASE + inc
-                          + rng.normal(0, exp005.NOISE_SD["R"], n_r))
-        sp_l = pop_l.step(l_base + syn.to_neuron_current()
-                          + rng.normal(0, exp005.NOISE_SD["L"], n_l))
-        y = syn.step(r_ids[sp_r])
-        if k % 2 == 0:
-            j = k // 2
-            i_photo = exp005.I_R_BASE + inc
-            for v, coef in variants.items():
-                phi_l[v][j] = coef @ y * 1e-12
-            phi_l["meanpos"][j] = mean_field.field(y)
-            phi_r[j] = photo_field.field(np.full(n_r, i_photo))
+    def run_sim(tau_fall):
+        rng = np.random.default_rng(SEED)
+        pop_r = LIFPopulation(n_r, DT, tau_m=exp005.R_TAU,
+                              t_refrac=exp005.R_REF, R_m=exp005.RIN)
+        pop_l = LIFPopulation(n_l, DT, tau_m=exp005.L_TAU,
+                              t_refrac=exp005.L_REF, R_m=exp005.RIN)
+        syn = ExponentialSynapses(pre[order], post[order], signed_w,
+                                  l_index, dt=DT, gain=exp009.GAIN_RL,
+                                  tau_s=exp009.TAU_RL, n_post=n_l)
+        photo = exp003.AsymPhototransduction(DT, 10.0, tau_fall)
+        l_base = np.full(n_l, exp009.I_L_BASE)
+        phi_l = {v: np.zeros((n_field, 2)) for v in
+                 list(variants) + ["meanpos"]}
+        phi_r = np.zeros((n_field, 2))
+        for k in range(n_steps):
+            t = k * DT
+            flash = LEVEL_PA if FLASH_ON <= t < FLASH_OFF else 0.0
+            inc = photo.step(flash)
+            sp_r = pop_r.step(exp005.I_R_BASE + inc
+                              + rng.normal(0, exp005.NOISE_SD["R"], n_r))
+            sp_l = pop_l.step(l_base + syn.to_neuron_current()
+                              + rng.normal(0, exp005.NOISE_SD["L"], n_l))
+            y = syn.step(r_ids[sp_r])
+            if k % 2 == 0:
+                j = k // 2
+                i_photo = exp005.I_R_BASE + inc
+                for v, coef in variants.items():
+                    phi_l[v][j] = coef @ y * 1e-12
+                phi_l["meanpos"][j] = mean_field.field(y)
+                phi_r[j] = photo_field.field(np.full(n_r, i_photo))
+        return phi_l, phi_r
+
+    print(f"simulating {T_END / 1000:.1f} s flash x "
+          f"{len(TAU_FALLS)} photo conditions ...")
+    sims = {f"tau_fall={tf:g}": run_sim(tf) for tf in TAU_FALLS}
 
     # ---- metrics vs anchors ----
     def metrics(phi_tot, phi_lmc):
@@ -222,31 +233,37 @@ def main():
         }
 
     results = {}
-    for v in ("tbar", "neurite", "meanpos"):
-        tot = phi_l[v] + phi_r
-        results[v] = metrics(tot, phi_l[v])
-        ok = {a: (ANCHORS[a][0] <= results[v][a] <= ANCHORS[a][1])
-              for a in ANCHORS}
-        results[v]["anchors_pass"] = ok
-        results[v]["n_pass"] = int(sum(ok.values()))
-        print(f"{v:8s} {json.dumps(results[v], indent=None)}")
+    for cond, (phi_l, phi_r) in sims.items():
+        results[cond] = {}
+        for v in ("tbar", "neurite", "meanpos"):
+            tot = phi_l[v] + phi_r
+            results[cond][v] = metrics(tot, phi_l[v])
+            ok = {a: (ANCHORS[a][0] <= results[cond][v][a] <= ANCHORS[a][1])
+                  for a in ANCHORS}
+            results[cond][v]["anchors_pass"] = ok
+            results[cond][v]["n_pass"] = int(sum(ok.values()))
+            print(f"{cond} {v:8s} {json.dumps(results[cond][v], indent=None)}")
+        verdict = [v for v in results[cond]
+                   if results[cond][v]["n_pass"] == len(ANCHORS)]
+        results[cond]["verdict_all_anchors"] = verdict
 
-    verdict = [v for v in results if results[v]["n_pass"] == len(ANCHORS)]
     summary = {
         "config": {"level_pa": LEVEL_PA,
                    "flash_ms": [FLASH_ON, FLASH_OFF],
                    "sign": "R->L histamine -1 (exp009), LMC base "
                            f"{exp009.I_L_BASE} pA, gain {exp009.GAIN_RL}",
+                   "tau_falls_ms": list(TAU_FALLS),
                    "n_pairs": int(len(pair_dist)),
                    "pair_dist_um_median": round(float(np.median(pair_dist)),
                                                 3),
                    "neurite_degenerate": degenerate},
         "anchors": ANCHORS,
-        "variants": results,
-        "verdict_all_anchors": verdict,
+        "conditions": results,
     }
     (OUT / "summary.json").write_text(json.dumps(summary, indent=1))
-    print(f"\nverdict (passes all anchors): {verdict}")
+    for cond in results:
+        print(f"\nverdict {cond} (passes all anchors): "
+              f"{results[cond]['verdict_all_anchors']}")
     print(f"written to {OUT / 'summary.json'}")
 
 
