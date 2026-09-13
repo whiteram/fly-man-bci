@@ -145,9 +145,10 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
     """Run one trial of the cascade.
 
     lum_inc_fn(t_ms) -> phototransduction input increment, pA, scalar or
-    (n_r,). on_sample(j, k, t, stack) fires every 2 steps (1 kHz). The
-    RNG draw order is fixed (R, L, MID, T45 noises) so any given seed
-    reproduces exactly across callers.
+    (n_r,). on_sample(j, k, t, stack, inc_f, spikes) fires every 2 steps
+    (1 kHz); spikes = {"R","L","MID","T45"} boolean masks. The RNG draw
+    order is fixed (R, L, MID, T45 noises) so any given seed reproduces
+    exactly across callers.
     """
     rng = np.random.default_rng(seed)
     st = build_stack(circuit, cal, rng)
@@ -177,5 +178,7 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
         for mt in cal["MID_TAU_S"]:
             syn[f"MT_{mt}"].step(spiked_mid)
         if k % 2 == 0 and on_sample is not None:
-            on_sample(k // 2, k, t, st, inc_f)
+            on_sample(k // 2, k, t, st, inc_f,
+                      {"R": sp_r, "L": sp_l, "MID": sp_mid,
+                       "T45": sp_t45})
     return st
