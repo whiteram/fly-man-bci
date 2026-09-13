@@ -1,0 +1,206 @@
+{
+  "config": {
+    "flash_ms": [
+      500.0,
+      3500.0
+    ],
+    "levels_pA": [
+      350.0,
+      700.0
+    ],
+    "i_l_base_pA": 250.0,
+    "i_mid_base_pA": 220.0,
+    "gains": {
+      "RL": 12.0,
+      "LM": 20.0,
+      "MT": 5.0
+    },
+    "signs": "dataset sign column (R->L histamine -, L1->Mi/Tm glutamate -, L2/L3->Tm ACh +)",
+    "n_R": 2265,
+    "n_L": 2677,
+    "n_mid": 7195,
+    "n_t45": 6793
+  },
+  "levels": {
+    "350pA": {
+      "rates_hz": {
+        "R": {
+          "dark": 0.0,
+          "on": 54.9,
+          "off": 0.0
+        },
+        "L1": {
+          "dark": 14.4,
+          "on": 6.6,
+          "off": 15.0
+        },
+        "L2": {
+          "dark": 14.3,
+          "on": 6.4,
+          "off": 15.0
+        },
+        "L3": {
+          "dark": 14.5,
+          "on": 8.0,
+          "off": 15.1
+        },
+        "Mi1": {
+          "dark": 6.8,
+          "on": 16.8,
+          "off": 9.4
+        },
+        "Tm3": {
+          "dark": 0.0,
+          "on": 8.9,
+          "off": 0.0
+        },
+        "Mi9": {
+          "dark": 49.3,
+          "on": 36.6,
+          "off": 50.4
+        },
+        "Tm1": {
+          "dark": 65.5,
+          "on": 39.5,
+          "off": 65.3
+        },
+        "Tm2": {
+          "dark": 68.1,
+          "on": 41.1,
+          "off": 68.2
+        },
+        "Tm4": {
+          "dark": 72.7,
+          "on": 45.6,
+          "off": 79.3
+        },
+        "Tm9": {
+          "dark": 37.9,
+          "on": 30.1,
+          "off": 38.6
+        },
+        "T4": {
+          "dark": 48.9,
+          "on": 70.5,
+          "off": 58.5
+        },
+        "T5": {
+          "dark": 132.7,
+          "on": 96.3,
+          "off": 135.1
+        }
+      },
+      "erg_eye_hom_nV": {
+        "baseline": 1266476.6,
+        "peak_on": -351784.7,
+        "plateau": 243785.8,
+        "peak_off": 1454971.2,
+        "off_overshoot": 188494.6
+      },
+      "erg_eye_seal_nV": {
+        "baseline": 2381947.5,
+        "peak_on": -330805.2,
+        "plateau": 627026.9,
+        "peak_off": 2691416.3,
+        "off_overshoot": 309468.8
+      },
+      "medulla_hom_nV": {
+        "baseline": -7041101.3,
+        "peak_on": -8908612.2,
+        "plateau": -4845805.2,
+        "peak_off": -4695265.8,
+        "off_overshoot": 2345835.5
+      }
+    },
+    "700pA": {
+      "rates_hz": {
+        "R": {
+          "dark": 0.0,
+          "on": 81.6,
+          "off": 0.0
+        },
+        "L1": {
+          "dark": 14.4,
+          "on": 6.5,
+          "off": 14.9
+        },
+        "L2": {
+          "dark": 14.3,
+          "on": 6.4,
+          "off": 15.0
+        },
+        "L3": {
+          "dark": 14.5,
+          "on": 7.6,
+          "off": 15.1
+        },
+        "Mi1": {
+          "dark": 6.8,
+          "on": 16.5,
+          "off": 9.7
+        },
+        "Tm3": {
+          "dark": 0.0,
+          "on": 9.0,
+          "off": 0.0
+        },
+        "Mi9": {
+          "dark": 49.3,
+          "on": 35.9,
+          "off": 50.5
+        },
+        "Tm1": {
+          "dark": 65.5,
+          "on": 39.4,
+          "off": 65.2
+        },
+        "Tm2": {
+          "dark": 68.1,
+          "on": 41.0,
+          "off": 68.3
+        },
+        "Tm4": {
+          "dark": 72.7,
+          "on": 45.5,
+          "off": 79.4
+        },
+        "Tm9": {
+          "dark": 37.9,
+          "on": 29.6,
+          "off": 38.6
+        },
+        "T4": {
+          "dark": 48.9,
+          "on": 69.4,
+          "off": 59.5
+        },
+        "T5": {
+          "dark": 132.7,
+          "on": 95.5,
+          "off": 134.8
+        }
+      },
+      "erg_eye_hom_nV": {
+        "baseline": 1266476.6,
+        "peak_on": -1015995.2,
+        "plateau": -284099.1,
+        "peak_off": 1428028.2,
+        "off_overshoot": 161551.6
+      },
+      "erg_eye_seal_nV": {
+        "baseline": 2381947.5,
+        "peak_on": -1366326.1,
+        "plateau": -197134.6,
+        "peak_off": 2621510.7,
+        "off_overshoot": 239563.2
+      },
+      "medulla_hom_nV": {
+        "baseline": -7041101.3,
+        "peak_on": -8714339.3,
+        "plateau": -4644572.5,
+        "peak_off": -4541835.8,
+        "off_overshoot": 2499265.5
+      }
+    }
+  }
+}
