@@ -99,6 +99,65 @@ class LIFPopulation:
         return spike
 
 
+class GradedSynapsePool:
+    """Graded-release synapse pool (fly lamina style).
+
+    Presynaptic drive is a continuous release rate r_pre in [0, 1] (one
+    value per presynaptic neuron, e.g. a sigmoid of its membrane
+    potential), NOT spike events. Each edge's gating s_e follows its
+    presynaptic rate with time constant tau_s; the per-edge synaptic
+    "current state" consumed by the forward kernels is y_e = weight_e *
+    s_e (synapse-count weighted), matching ExponentialSynapses'
+    conductance-mode convention: I_e = g_unit * y_e * (e_rev - v_post).
+
+    exp013 uses this for the mechanistic lamina: R1-6 graded release ->
+    histamine-gated chloride conductance on the (non-spiking) LMCs with
+    E_Cl ~ -38 mV (Rusanen & Weckstrom 2016), replacing the exp009
+    base-current proxy.
+    """
+
+    def __init__(self, pre: np.ndarray, post: np.ndarray,
+                 weight: np.ndarray, post_index: np.ndarray, dt: float,
+                 tau_s: float = 5.0, n_post: int | None = None,
+                 g_unit: float = 0.02, e_rev: float = -38.0):
+        order = np.lexsort((pre, post))
+        self.pre_local_of_edge = np.argsort(pre[order], kind="stable")
+        # per-edge presynaptic index into the caller's r_pre array
+        self.pre_ids = pre[order]
+        self.weight = weight[order].astype(np.float32)
+        self.post_local = post_index[post[order]]
+        self.n_edges = len(order)
+        self.g_unit = g_unit
+        self.e_rev = float(e_rev)
+
+        from scipy.sparse import csr_matrix
+        n_post = (n_post if n_post is not None
+                  else int(self.post_local.max()) + 1)
+        self.csr = csr_matrix(
+            (np.ones(self.n_edges, dtype=np.float32),
+             (self.post_local, np.arange(self.n_edges))),
+            shape=(n_post, self.n_edges))
+
+        self.k = dt / tau_s
+        self.s = np.zeros(self.n_edges, dtype=np.float32)
+        self.y = np.zeros(self.n_edges, dtype=np.float32)
+
+    def step(self, r_pre: np.ndarray):
+        """r_pre: (n_pre_neurons,) release rates in [0, 1]."""
+        self.s += (np.clip(r_pre[self.pre_ids], 0.0, 1.0) - self.s) * self.k
+        self.y = self.weight * self.s
+        return self.y
+
+    def edge_currents(self, v_post: np.ndarray) -> np.ndarray:
+        """Per-edge transmembrane current (pA) for the field kernels."""
+        return self.g_unit * self.y * (self.e_rev - v_post[self.post_local])
+
+    def to_neuron_drive(self) -> tuple[np.ndarray, np.ndarray]:
+        """(i_indep, g_tot): I(v) = i_indep - g_tot*v, semi-implicit form."""
+        gy = self.g_unit * self.y
+        return (self.csr @ (gy * self.e_rev), self.csr @ gy)
+
+
 class ExponentialSynapses:
     """Edge-resolved exponential synapses driven by presynaptic spikes.
 

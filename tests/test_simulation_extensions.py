@@ -3,7 +3,8 @@
 
 import numpy as np
 
-from ffbm.simulation import ColoredCurrentNoise, ExponentialSynapses, LIFPopulation
+from ffbm.simulation import (ColoredCurrentNoise, ExponentialSynapses,
+                             GradedSynapsePool, LIFPopulation)
 
 
 def test_ou_stationary_std_and_corr_time():
@@ -107,3 +108,52 @@ def test_to_neuron_drive_matches_explicit_current():
     v = np.array([-70.0, -70.0, -70.0, -70.0])
     explicit = syn.to_neuron_current(v)[0]
     assert abs((i_indep[0] - g_tot[0] * (-70.0)) - explicit) < 1e-6
+
+
+def test_graded_pool_tracks_release_rate():
+    """s_e -> r_pre with time constant tau_s; y = weight * s; the drive
+    form matches the explicit conductance current."""
+    pre = np.array([7, 7])
+    post = np.array([3, 3])
+    post_index = np.full(4, -1, dtype=np.int64)
+    post_index[3] = 0
+    pool = GradedSynapsePool(pre, post, np.array([10.0, 5.0], np.float32),
+                             post_index, dt=0.5, tau_s=5.0, n_post=1,
+                             g_unit=0.02, e_rev=-38.0)
+    r = np.zeros(8)
+    r[7] = 1.0
+    for _ in range(200):                       # ~10 tau -> converged
+        y = pool.step(r)
+    assert abs(y[0] - 10.0) < 0.1 and abs(y[1] - 5.0) < 0.1
+    i_indep, g_tot = pool.to_neuron_drive()
+    v = np.full(4, -70.0)
+    explicit_neuron = pool.csr @ pool.edge_currents(v)
+    assert np.allclose(i_indep - g_tot * (-70.0), explicit_neuron, atol=1e-5)
+
+
+def test_graded_lamina_dark_clamp():
+    """The exp013 core behaviour: with tonic dark release the chloride
+    conductance clamps the non-spiking LMC near E_Cl = -38 mV; removing
+    the release (light) hyperpolarizes it toward the K-rest."""
+    n_r, n_l = 40, 40
+    pre = np.repeat(np.arange(n_r), 3)
+    post = np.repeat(np.arange(n_l), 3)[:len(pre)]
+    post_index = np.arange(n_l, dtype=np.int64)
+    pool = GradedSynapsePool(pre, post,
+                             np.full(len(pre), 8.0, np.float32), post_index,
+                             dt=0.5, tau_s=5.0, n_post=n_l, g_unit=8.0,
+                             e_rev=-38.0)
+    lmc = LIFPopulation(n_l, 0.5, tau_m=20.0, t_refrac=1e9,
+                        v_rest=-58.0, v_th=1e9)     # graded, K-rest -58
+    r_dark = np.ones(n_r) * 0.5
+    for _ in range(2000):
+        pool.step(r_dark)
+        i, g = pool.to_neuron_drive()
+        lmc.step(i, g)
+    assert abs(lmc.v.mean() - (-38.0)) < 2.0       # clamped at E_Cl
+    r_light = np.zeros(n_r)                        # release off
+    for _ in range(4000):
+        pool.step(r_light)
+        i, g = pool.to_neuron_drive()
+        lmc.step(i, g)
+    assert lmc.v.mean() < -50.0                    # hyperpolarized toward K-rest
