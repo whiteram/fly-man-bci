@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "experiments" / "exp005_medulla_ds"))
 
-from ffbm.forward import SealedHeadPairField
+from ffbm.forward import ScalpPairField, SealedHeadPairField
 from ffbm.simulation import ExponentialSynapses, LIFPopulation
 
 import run as exp005
@@ -131,6 +131,21 @@ def main():
     ker["PHOTO"] = SealedHeadPairField(
         photo_pair[0], photo_pair[1], electrodes, center=center, r1=r1,
         r2=1.3 * r1, sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
+
+    # thought-experiment channel (exp010/011): the same network magnified
+    # 400x inside a human 3-sphere head, electrode on the scalp
+    SCALE = 400.0
+    R_BRAIN, R_SKULL, R_SCALP = 8.0e4, 8.5e4, 9.2e4
+    elec_scalp = center + 0.985 * R_SCALP * u_eye
+    ker_scalp = {}
+    for name, (pr, po) in {**group_pairs, "PHOTO": photo_pair}.items():
+        pr_s = center + (pr - center) * SCALE
+        po_s = center + (po - center) * SCALE
+        ker_scalp[name] = ScalpPairField(
+            pr_s, po_s, elec_scalp[None, :], center=center,
+            r1=R_BRAIN, r2=R_SKULL, r3=R_SCALP, sigma1=0.33,
+            sigma2=0.013, sigma3=0.33)
+    print("scalp kernels built (S=400)")
 
     # ---- simulation ----
     rng = np.random.default_rng(SEED)
@@ -249,6 +264,7 @@ def main():
     n_steps = int(T_END / DT)
     n_field = n_steps // 2
     phi = np.zeros((n_field, 3))
+    phi_scalp = np.zeros(n_field)
     rate = {k: np.zeros(n_field) for k in
             ("R", "L", "MID", "T4", "T5")}
     stim = np.zeros(n_field)
@@ -288,6 +304,11 @@ def main():
                     y = i_photo if name == "PHOTO" else syn[name].y
                     acc += ker[name].coef[i] @ y
                 phi[j, i] = acc * 1e-12
+            acc_s = 0.0
+            for name in list(group_pairs) + ["PHOTO"]:
+                y = i_photo if name == "PHOTO" else syn[name].y
+                acc_s += ker_scalp[name].field(y)[0]
+            phi_scalp[j] = acc_s
             rate["R"][j] = sp_r.sum() * 1000.0 / n_r
             rate["L"][j] = sp_l.sum() * 1000.0 / n_l
             rate["MID"][j] = sp_mid.sum() * 1000.0 / n_mid
@@ -324,6 +345,9 @@ def main():
                              "drift+": "纹理漂移 →", "drift-": "纹理漂移 ←",
                              "band+": "带通纹理 →", "band-": "带通纹理 ←"},
             "head_r_um": round(r1, 1),
+            "scalp": {"scale": 400, "radii_um": [8e4, 8.5e4, 9.2e4],
+                      "elec_dist_um": 0.985 * 9.2e4,
+                      "elec_dir": [round(float(x), 4) for x in u_eye]},
             "layers": [
                 {"name": "R1-R6 光感受器", "color": "#a855f7", "n": n_r},
                 {"name": "L1-L3 板层", "color": "#38bdf8", "n": n_l},
@@ -346,6 +370,7 @@ def main():
         "stim": np.round(stim, 2).tolist(),
         "rates": {k: np.round(v, 1).tolist() for k, v in rate.items()},
         "phi_uV": phi_uv.tolist(),
+        "phi_scalp_uV": np.round(phi_scalp * 1e6, 3).tolist(),
     }
     path = OUT / "viz_data.json"
     path.write_text(json.dumps(data, separators=(",", ":")))

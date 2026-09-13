@@ -63,6 +63,7 @@
     <div id="controls">
       <button id="play">⏸ 暂停</button>
       <button id="restart">↺ 重放</button>
+      <button id="viewmode">🧠 人脑壳视图（×400）</button>
       <select id="speed">
         <option value="0.5">0.5×</option>
         <option value="1" selected>1×</option>
@@ -77,13 +78,15 @@
     <div class="chart-title">电极电位（实时生成）
       <label style="float:right;font-weight:normal;cursor:pointer">
         <input type="checkbox" id="zoom"> 近 2 s 放大</label></div>
-    <canvas id="eeg" class="chart" height="220"></canvas>
+    <canvas id="eeg" class="chart" height="290"></canvas>
     <div class="chart-title">各层群体放电率</div>
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
-      红=眼表面 · 琥珀=板层 · 绿=髓质（左）｜ 放电率自上而下：R → L →
-      Mi/Tm → T4 → T5（右）。黑暗→1/f 闪烁→纹理往复漂移→带通纹理：
-      注意 L 层在亮段被抑制（组胺能抑制），漂移反向时 T4/T5 的响应差异。
+      电极电位：红=眼表面 · 琥珀=板层 · 绿=髓质（果蝇头内）·
+      粉=<b>人脑头皮</b>（×400 思想实验：同一网络放大放进人脑三球壳，
+      电极贴头皮——exp010/011）｜ 放电率自上而下：R → L → Mi/Tm → T4 →
+      T5。果蝇自己的头壳外放不了电极（角质层绝缘，外部场严格为零）。
+      右上按钮可切换 果蝇头 / 人脑壳 双视图。
     </div>
   </div>
 </div>
@@ -110,6 +113,7 @@ const SMOOTH = { R: 0, L: 0, MID: 0, T4: 0, T5: 0 };
 // ---------- 3D scene ----------
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
 let elecMeshes = [], elecLabels = [], headMesh, stimLight, scene;
+let netGroup, elecGroup, humanHead, eyeDirVec, humanMode = false;
 
 function initScene() {
   const canvas = document.getElementById("scene");
@@ -129,6 +133,10 @@ function initScene() {
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
   stimLight = new THREE.DirectionalLight(0xffd97a, 0.0);
   scene.add(stimLight);
+  netGroup = new THREE.Group();
+  elecGroup = new THREE.Group();
+  scene.add(netGroup);
+  scene.add(elecGroup);
 
   // neuron layers
   DATA.positions.forEach((pts, i) => {
@@ -141,7 +149,7 @@ function initScene() {
     });
     const mesh = new THREE.Points(geo, mat);
     mesh.userData.base = new THREE.Color(DATA.meta.layers[i].color);
-    scene.add(mesh);
+    netGroup.add(mesh);
     layerMeshes.push(mesh);
   });
 
@@ -161,7 +169,7 @@ function initScene() {
     });
     const mesh = new THREE.LineSegments(geo, mat);
     mesh.userData.preKey = stagePreKey[gi];
-    scene.add(mesh);
+    netGroup.add(mesh);
     flowMeshes.push(mesh);
   });
 
@@ -170,7 +178,7 @@ function initScene() {
     const mat = new THREE.MeshBasicMaterial({ color: ELEC_COLORS[i] });
     const s = new THREE.Mesh(new THREE.SphereGeometry(6, 12, 8), mat);
     s.position.set(p[0], p[1], p[2]);
-    scene.add(s);
+    elecGroup.add(s);
     elecMeshes.push(s);
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(9, 11, 24),
@@ -178,7 +186,7 @@ function initScene() {
                                     opacity: 0.5, side: THREE.DoubleSide }));
     ring.position.copy(s.position);
     ring.userData.isRing = true;
-    scene.add(ring);
+    elecGroup.add(ring);
     elecLabels.push(ring);
     const sprite = makeLabel(ELEC_NAMES[i], ELEC_COLORS[i]);
     const radial = new THREE.Vector3(p[0], p[1], p[2]).normalize()
@@ -186,10 +194,10 @@ function initScene() {
     radial.y += 6;
     sprite.position.set(p[0], p[1], p[2]).add(radial);
     sprite.scale.set(72, 27, 1);
-    scene.add(sprite);
+    elecGroup.add(sprite);
   });
 
-  // head sphere
+  // fly head sphere
   const r1 = DATA.meta.head_r_um;
   headMesh = new THREE.Mesh(
     new THREE.SphereGeometry(r1, 28, 18),
@@ -197,12 +205,40 @@ function initScene() {
                                   transparent: true, opacity: 0.05 }));
   scene.add(headMesh);
 
+  // human 3-sphere head (thought experiment, S=400): brain/skull/scalp
+  humanHead = new THREE.Group();
+  const meta = DATA.meta.scalp || { radii_um: [8e4, 8.5e4, 9.2e4],
+                                    elec_dist_um: 9.06e4 };
+  const eDir = new THREE.Vector3(...(meta.elec_dir || [1, 0, 0]));
+  meta.radii_um.forEach((rr, i) => {
+    const wire = new THREE.Mesh(
+      new THREE.SphereGeometry(rr, 30, 20),
+      new THREE.MeshBasicMaterial({
+        color: i === 2 ? 0xe879f9 : 0x94a3b8, wireframe: true,
+        transparent: true, opacity: i === 2 ? 0.10 : 0.05 }));
+    humanHead.add(wire);
+  });
+  const scalpElec = new THREE.Mesh(
+    new THREE.SphereGeometry(1200, 14, 10),
+    new THREE.MeshBasicMaterial({ color: 0xe879f9 }));
+  scalpElec.position.copy(eDir.clone().multiplyScalar(meta.elec_dist_um));
+  humanHead.add(scalpElec);
+  const sl = makeLabel("人脑头皮电极", "#e879f9");
+  sl.position.copy(eDir.clone().multiplyScalar(meta.elec_dist_um + 4500));
+  sl.scale.set(14000, 5200, 1);
+  humanHead.add(sl);
+  humanHead.visible = false;
+  scene.add(humanHead);
+
   // camera: along the eye direction
   const eye = new THREE.Vector3(...DATA.electrodes_pos[0]);
   const dir = eye.clone().normalize();
+  eyeDirVec = dir.clone();
   camera.position.copy(dir.multiplyScalar(r1 * 2.6))
     .add(new THREE.Vector3(0, r1 * 0.9, 0));
   camera.lookAt(0, 0, 0);
+  camera.far = 1e6;
+  camera.updateProjectionMatrix();
   stimLight.position.copy(eye.clone().multiplyScalar(3));
 
   window.addEventListener("resize", onResize);
@@ -284,10 +320,13 @@ function drawChartFrame(ch, i0, i1, x0, x1) {
 function drawEegChart(i) {
   const rows = [0, 1, 2].map(k => ({
     key: "PHI" + k, label: ELEC_NAMES[k], color: ELEC_COLORS[k] }));
+  if (DATA.phi_scalp_uV)
+    rows.push({ key: "SCALP", label: "人脑头皮 ×400", color: "#e879f9" });
   if (!drawEegChart.ch) {
     const data = { PHI0: DATA.phi_uV.map(v => v[0]),
                    PHI1: DATA.phi_uV.map(v => v[1]),
-                   PHI2: DATA.phi_uV.map(v => v[2]) };
+                   PHI2: DATA.phi_uV.map(v => v[2]),
+                   SCALP: DATA.phi_scalp_uV };
     drawEegChart.ch = setupChart(document.getElementById("eeg"), rows, data);
   }
   const n = DATA.t_ms.length;
@@ -354,11 +393,12 @@ function tick() {
     const target = DATA.rates[k][i] / 90;     // normalize to ~1 at peak
     SMOOTH[k] += (Math.min(target, 1.4) - SMOOTH[k]) * 0.12;
   });
+  const sizeScale = humanMode ? 400 : 1;
   layerMeshes.forEach((m, li) => {
     const a = SMOOTH[LAYER_KEYS[li]];
     m.material.color.copy(m.userData.base)
       .multiplyScalar(0.35 + 0.85 * a);
-    m.material.size = 5.0 + 3.5 * a;
+    m.material.size = (5.0 + 3.5 * a) * sizeScale;
   });
   flowMeshes.forEach(m => {
     m.material.opacity = 0.04 + 0.16 * SMOOTH[m.userData.preKey];
@@ -430,6 +470,18 @@ function initUI() {
     if (playing && simIdx >= DATA.t_ms.length - 2) simIdx = 0;
   };
   document.getElementById("restart").onclick = () => { simIdx = 0; };
+  document.getElementById("viewmode").onclick = function () {
+    humanMode = !humanMode;
+    const s = humanMode ? 400 : 1;
+    netGroup.scale.set(s, s, s);
+    headMesh.visible = !humanMode;
+    elecGroup.visible = !humanMode;
+    humanHead.visible = humanMode;
+    const r = humanMode ? DATA.meta.scalp.radii_um[2] : DATA.meta.head_r_um;
+    camera.position.copy(eyeDirVec.clone().multiplyScalar(r * 2.6))
+      .add(new THREE.Vector3(0, r * 0.9, 0));
+    this.textContent = humanMode ? "🐛 果蝇头视图" : "🧠 人脑壳视图（×400）";
+  };
   document.getElementById("speed").onchange = function () {
     speed = +this.value;
   };
