@@ -27,7 +27,8 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "experiments" / "exp005_medulla_ds"))
 
 from ffbm.forward import FourSpherePairField, SealedHeadPairField
-from ffbm.simulation import ExponentialSynapses, LIFPopulation
+from ffbm.simulation import (ColoredCurrentNoise, ExponentialSynapses,
+                             LIFPopulation)
 
 import run as exp005
 import importlib.util as _ilu
@@ -63,12 +64,24 @@ EPOCH_COLORS = {"dark": "#33465a", "flicker": "#f7c948", "drift+": "#34d399",
 
 N_FLOW_EDGES = 1400
 
-# working-point calibration (scripts/calibrate_working_point.py, round 2):
-# matches spontaneous rates to fly literature. The T4 background (base +
-# noise) stands in for inputs from partners outside the wired 5-layer
-# subcircuit -- without it T4 is silent in the dark (L1 inhibits Mi1/Tm3).
-CAL = {"I_MID_BASE": 90.0, "GAIN_MT": 1.4,
-       "I_T4_BASE": 195.0, "T4_NOISE": 80.0}
+# working-point calibration (scripts/calibrate_working_point.py round 3,
+# under OU background noise + conductance MT synapses + axon/syn delays):
+# spontaneous rates matched to fly literature. The T4 background base
+# stands in for inputs from partners outside the wired subcircuit; the OU
+# noise (tau 8 ms, ~4 mV membrane fluctuation) makes the f-I curve graded
+# instead of knife-edge. MT synapses are conductance-based (driving force
+# depends on v_post; E_rev from dataset sign, exc 0 / inh -80 mV).
+V_AXON_UM_PER_MS = 300.0     # 0.3 m/s small fly axons
+SYN_DELAY_MS = 1.0
+CAL = {"I_MID_BASE": 90.0, "I_T4_BASE": 175.0, "OU_SIGMA_T45": 60.0,
+       "G_UNIT_MT": 0.02, "E_REV_INH": -80.0}
+
+# background human EEG added to the scalp channels (thought experiment:
+# the fly network's signal must be read out of a realistic recording):
+# posterior-dominant 10 Hz alpha (eyes closed), 1/f aperiodic activity
+# and sensor white noise
+BG = {"ALPHA_HZ": 10.0, "ALPHA_AMP_UV": 30.0, "APERIODIC_UV": 3.0,
+      "SENSOR_UV": 1.5}
 
 
 def main():
@@ -217,6 +230,13 @@ def main():
     photo = exp005.PhotoCascadeVector(n_r, DT)
     l_base = np.full(n_l, exp009.I_L_BASE)
     mid_base = np.full(n_mid, CAL["I_MID_BASE"])
+    noise_t45 = ColoredCurrentNoise(n_t45, DT, rng, tau_n=8.0,
+                                    sigma=CAL["OU_SIGMA_T45"])
+
+    def edge_delays(pre_ids, post_ids):
+        d = np.array([np.linalg.norm(pp[a] - qq[b])
+                      for a, b in zip(pre_ids, post_ids)])
+        return SYN_DELAY_MS + d / V_AXON_UM_PER_MS
 
     syn = {}
     for name, e_sub, tgt, n_t, gain, tau in (
@@ -226,15 +246,22 @@ def main():
             e_sub["body_pre"].to_numpy(np.int64),
             e_sub["body_post"].to_numpy(np.int64),
             e_sub["weight"].to_numpy(np.float32), tgt, dt=DT, gain=gain,
-            tau_s=tau, n_post=n_t)
+            tau_s=tau, n_post=n_t,
+            delay_ms=edge_delays(e_sub["body_pre"].to_numpy(np.int64),
+                                 e_sub["body_post"].to_numpy(np.int64)))
     for mt in exp005.MID_TYPES:
         e_sub = e_mt[mt]
         syn[f"MT_{mt}"] = ExponentialSynapses(
             e_sub["body_pre"].to_numpy(np.int64),
             e_sub["body_post"].to_numpy(np.int64),
-            (e_sub["weight"] * e_sub["sign"]).to_numpy(np.float32),
-            t45_index, dt=DT, gain=CAL["GAIN_MT"],
-            tau_s=exp005.KINETICS["differentiated"][mt], n_post=n_t45)
+            e_sub["weight"].to_numpy(np.float32),
+            t45_index, dt=DT, gain=1.0,          # unitless gating
+            tau_s=exp005.KINETICS["differentiated"][mt], n_post=n_t45,
+            sign=e_sub["sign"].to_numpy(np.float32),
+            delay_ms=edge_delays(e_sub["body_pre"].to_numpy(np.int64),
+                                 e_sub["body_post"].to_numpy(np.int64)),
+            conductance=True, g_unit=CAL["G_UNIT_MT"], e_rev_exc=0.0,
+            e_rev_inh=CAL["E_REV_INH"])
 
     # naturalistic stimulus: 1/f flicker, drifting 1/f texture along the
     # T4/T5 preferred axis (hex regression), DS-scale bandpassed texture;
@@ -343,10 +370,9 @@ def main():
         i_mid = mid_base + syn["LM"].to_neuron_current() + rng.normal(
             0, exp005.NOISE_SD["MID"], n_mid)
         sp_mid = pop_mid.step(i_mid)
-        noise_t45 = rng.normal(0, exp005.NOISE_SD["T45"], n_t45)
-        noise_t45[is_t4] = rng.normal(0, CAL["T4_NOISE"], is_t4.sum())
-        i_t45 = t45_base + sum(syn[f"MT_{mt}"].to_neuron_current()
-                               for mt in exp005.MID_TYPES) + noise_t45
+        i_t45 = t45_base + sum(syn[f"MT_{mt}"].to_neuron_current(pop_t45.v)
+                               for mt in exp005.MID_TYPES) \
+            + noise_t45.step()
         sp_t45 = pop_t45.step(i_t45)
 
         syn["RL"].step(r_ids[sp_r])
@@ -358,16 +384,22 @@ def main():
         if k % 2 == 0:
             j = k // 2
             i_photo = exp005.I_R_BASE + inc_f
+
+            def y_of(name):
+                if name == "PHOTO":
+                    return i_photo
+                if name.startswith("MT_"):
+                    return syn[name].edge_currents(pop_t45.v)
+                return syn[name].y
+
             for i in range(3):
                 acc = 0.0
                 for name in list(group_pairs) + ["PHOTO"]:
-                    y = i_photo if name == "PHOTO" else syn[name].y
-                    acc += ker[name].coef[i] @ y
+                    acc += ker[name].coef[i] @ y_of(name)
                 phi[j, i] = acc * 1e-12
             acc_s = np.zeros(N_SCALP_ELEC)
             for name in list(group_pairs) + ["PHOTO"]:
-                y = i_photo if name == "PHOTO" else syn[name].y
-                acc_s += coef_scalp[name] @ y
+                acc_s += coef_scalp[name] @ y_of(name)
             phi_scalp[j] = acc_s * 1e-12
             rate["R"][j] = sp_r.sum() * 1000.0 / n_r
             rate["L"][j] = sp_l.sum() * 1000.0 / n_l
@@ -375,6 +407,46 @@ def main():
             rate["T4"][j] = sp_t45[is_t4].sum() * 1000.0 / is_t4.sum()
             rate["T5"][j] = sp_t45[is_t5].sum() * 1000.0 / is_t5.sum()
             stim[j] = float(np.mean(lum))
+
+    # ---- background human EEG added to the scalp channels ----
+    # eyes-closed alpha (10 Hz, waxing envelope, occipital-dominant like
+    # the real posterior rhythm) + 1/f aperiodic activity + sensor noise
+    rng_bg = np.random.default_rng(2026)
+    bg = np.zeros((N_SCALP_ELEC, n_field))
+    tt = np.arange(n_field, dtype=np.float64)
+    cos_occ = scalp_dirs @ (-u_eye)              # cos(angle to occipital)
+    w_occ = np.clip(cos_occ, 0.0, None) ** 2     # posterior weight
+
+    def bg_one_over_f(n, exponent=1.0):
+        x = rng_bg.standard_normal(n)
+        f = np.fft.rfftfreq(n)
+        f[0] = 1.0
+        y = np.fft.irfft(np.fft.rfft(x) / f ** (exponent / 2.0), n)
+        return y / y.std()
+
+    for e in range(N_SCALP_ELEC):
+        env = 0.55 + 0.45 * np.sin(
+            2 * np.pi * tt / 700.0 + 0.7 * e)   # ~1.4 s waxing cycles
+        alpha = (BG["ALPHA_AMP_UV"] * w_occ[e] * env
+                 * np.sin(2 * np.pi * BG["ALPHA_HZ"] * tt / 1000.0
+                          + 0.15 * e))
+        aper = BG["APERIODIC_UV"] * bg_one_over_f(n_field)
+        sens = rng_bg.normal(0, BG["SENSOR_UV"], n_field)
+        bg[e] = alpha + aper + sens
+    # SNR of the fly signal against this background (best electrode)
+    flicker_win = slice(1500, 4500)
+    sig_std = phi_scalp[:, 1500:4500].std(axis=1) * 1e6
+    bg_std = bg[:, flicker_win].std(axis=1)
+    best = int(np.argmax(sig_std))
+    snr = {"best_elec_deg": round(float(scalp_ang[best]), 1),
+           "sig_uv": round(float(sig_std[best]), 2),
+           "bg_uv": round(float(bg_std[best]), 2),
+           "amp_ratio": round(float(sig_std[best] / bg_std[best]), 3),
+           "k_for_dprime2": int(np.ceil(
+               (2.0 * bg_std[best] / sig_std[best]) ** 2))}
+    print(f"background EEG: fly signal {snr['sig_uv']:.2f} uV vs bg "
+          f"{snr['bg_uv']:.2f} uV at {snr['best_elec_deg']:.0f} deg -> "
+          f"d'=2 needs ~{snr['k_for_dprime2']} trials")
 
     # ---- assemble viz data ----
     def pts(arr):
@@ -418,9 +490,9 @@ def main():
                       "elec_deg": [round(float(a), 1)
                                    for a in scalp_ang]},
             "calibration": {**CAL, "source":
-                            "scripts/calibrate_working_point.py round 2; "
-                            "dark rates Hz: MID 22.4 T4 2.1 T5 11.7 "
-                            "(was 40 / 0 / 134)"},
+                            "scripts/calibrate_working_point.py round 3 "
+                            "(OU bg + conductance MT + delays)"},
+            "bg_eeg": {**BG, "snr": snr},
             "layers": [
                 {"name": "R1-R6 光感受器", "color": "#a855f7", "n": n_r},
                 {"name": "L1-L3 板层", "color": "#38bdf8", "n": n_l},
@@ -444,6 +516,7 @@ def main():
         "rates": {k: np.round(v, 1).tolist() for k, v in rate.items()},
         "phi_uV": phi_uv.tolist(),
         "phi_scalp_all_uV": np.round(phi_scalp.T * 1e6, 3).tolist(),
+        "phi_scalp_bg_uV": np.round(bg, 2).tolist(),
     }
     path = OUT / "viz_data.json"
     path.write_text(json.dumps(data, separators=(",", ":")))

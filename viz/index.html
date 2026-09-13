@@ -80,8 +80,11 @@
         <input type="checkbox" id="zoom"> 近 2 s 放大</label></div>
     <canvas id="eeg" class="chart" height="290"></canvas>
     <div class="chart-title">人脑头皮电极阵列 ×17（行按与眼轴夹角 0°→180° 排列，
-      蓝− 红+）</div>
+      蓝− 红+）
+      <label style="float:right;font-weight:normal;cursor:pointer">
+        <input type="checkbox" id="bgon"> 叠加人脑背景脑电</label></div>
     <canvas id="scalpmap" class="chart" height="170"></canvas>
+    <div class="flash-legend" id="snrinfo"></div>
     <div class="chart-title">各层群体放电率</div>
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
@@ -116,6 +119,12 @@ let simIdx = 0, playing = true, speed = 1.0;
 let drawnUpTo = { eeg: 0, rates: 0 };
 const SMOOTH = { R: 0, L: 0, MID: 0, T4: 0, T5: 0 };
 let scalpAll = null, scalpVmax = 1, scalpDeg = [];
+let bgAll = null, scalpMix = null, scalpVmaxBg = 1, bgOn = false;
+
+function scalpData() { return bgOn && scalpMix ? scalpMix : scalpAll; }
+function scalpScale() {
+  return bgOn && scalpMix ? scalpVmaxBg : scalpVmax;
+}
 
 // ---------- 3D scene ----------
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
@@ -328,15 +337,16 @@ function divColor(t, out) {
 // paint the scalp sphere with the interpolated potential at sample i
 function updateScalpTopo(i) {
   if (!scalpTopo || !scalpAll) return;
+  const S = scalpData(), vmax = scalpScale();
   const attr = scalpTopo.geometry.attributes.color;
   const arr = attr.array;
-  const nE = scalpAll.length;
+  const nE = S.length;
   const c = [0, 0, 0];
   for (let v = 0; v < attr.count; v++) {
     let val = 0;
     for (let e = 0; e < nE; e++)
-      val += topoWeights[v * nE + e] * scalpAll[e][i];
-    divColor(Math.max(-1, Math.min(1, val / scalpVmax)), c);
+      val += topoWeights[v * nE + e] * S[e][i];
+    divColor(Math.max(-1, Math.min(1, val / vmax)), c);
     arr[v * 3] = c[0] / 255;
     arr[v * 3 + 1] = c[1] / 255;
     arr[v * 3 + 2] = c[2] / 255;
@@ -401,7 +411,8 @@ function drawEegChart(i) {
   const rows = [0, 1, 2].map(k => ({
     key: "PHI" + k, label: ELEC_NAMES[k], color: ELEC_COLORS[k] }));
   const scalpSingle = DATA.phi_scalp_all_uV
-    ? DATA.phi_scalp_all_uV[0] : DATA.phi_scalp_uV;
+    ? (bgOn && scalpMix ? scalpMix[0] : DATA.phi_scalp_all_uV[0])
+    : DATA.phi_scalp_uV;
   if (scalpSingle)
     rows.push({ key: "SCALP", label: "人脑头皮×400·眼轴",
                 color: "#e879f9" });
@@ -431,7 +442,8 @@ function drawScalpMap(i) {
   const ctx = cv.getContext("2d");
   const w = cv.width, h = cv.height;
   const n = DATA.t_ms.length;
-  const nE = scalpAll.length;
+  const S = scalpData(), vmax = scalpScale();
+  const nE = S.length;
   const padL = 52 * dpr, padR = 38 * dpr, padT = 4 * dpr, padB = 6 * dpr;
   const plotW = w - padL - padR, plotH = h - padT - padB;
   ctx.fillStyle = "#060a10"; ctx.fillRect(0, 0, w, h);
@@ -457,7 +469,7 @@ function drawScalpMap(i) {
         buf[p] = 6; buf[p + 1] = 10; buf[p + 2] = 16; buf[p + 3] = 255;
         continue;
       }
-      divColor(Math.max(-1, Math.min(1, scalpAll[e][s] / scalpVmax)), c);
+      divColor(Math.max(-1, Math.min(1, S[e][s] / vmax)), c);
       buf[p] = c[0]; buf[p + 1] = c[1]; buf[p + 2] = c[2]; buf[p + 3] = 255;
     }
   }
@@ -495,9 +507,9 @@ function drawScalpMap(i) {
   }
   ctx.fillStyle = "#8aa0b4"; ctx.font = `${9 * dpr}px sans-serif`;
   ctx.textAlign = "left";
-  ctx.fillText("+" + scalpVmax.toFixed(1), cbX + 7 * dpr, padT + 8 * dpr);
+  ctx.fillText("+" + vmax.toFixed(1), cbX + 7 * dpr, padT + 8 * dpr);
   ctx.fillText("0", cbX + 7 * dpr, padT + plotH / 2);
-  ctx.fillText("−" + scalpVmax.toFixed(1), cbX + 7 * dpr, padT + plotH);
+  ctx.fillText("−" + vmax.toFixed(1), cbX + 7 * dpr, padT + plotH);
 }
 
 function drawRatesChart(i) {
@@ -666,6 +678,10 @@ function initUI() {
   document.getElementById("scrub").oninput = function () {
     simIdx = +this.value / 1000 * (DATA.t_ms.length - 1);
   };
+  document.getElementById("bgon").onchange = function () {
+    bgOn = this.checked;
+    drawEegChart.ch = null;      // rebuild the EEG chart with/without bg
+  };
   buildLayerBox();
 }
 
@@ -679,6 +695,25 @@ fetch("data/viz_data.json").then(r => r.json()).then(d => {
     scalpAll.forEach(ch => ch.forEach(v => abs.push(Math.abs(v))));
     abs.sort((a, b) => a - b);
     scalpVmax = Math.max(abs[Math.floor(abs.length * 0.98)], 1e-3);
+  }
+  if (DATA.phi_scalp_bg_uV && DATA.phi_scalp_all_uV) {
+    bgAll = DATA.phi_scalp_bg_uV;
+    scalpMix = scalpAll.map((ch, i) =>
+      ch.map((v, j) => v + bgAll[i][j]));
+    const abs2 = [];
+    scalpMix.forEach(ch => ch.forEach(v => abs2.push(Math.abs(v))));
+    abs2.sort((a, b) => a - b);
+    scalpVmaxBg = Math.max(abs2[Math.floor(abs2.length * 0.98)], 1e-3);
+  }
+  const snr = DATA.meta && DATA.meta.bg_eeg && DATA.meta.bg_eeg.snr;
+  if (snr) {
+    document.getElementById("snrinfo").innerHTML =
+      `叠加背景后：最强电极（${snr.best_elec_deg}°）上果蝇信号 ` +
+      `${snr.sig_uv} μV vs 人脑背景 ${snr.bg_uv} μV（幅值比 ` +
+      `${snr.amp_ratio}）——单次试验难以看出，d′=2 需约 ` +
+      `<b>${snr.k_for_dprime2}</b> 次试验平均。` +
+      `背景 = 闭眼 α 波（${DATA.meta.bg_eeg.alpha_hz} Hz，枕区主导）+ ` +
+      `1/f 活动 + 传感器噪声。`;
   }
   initScene();
   setupEpochs();
