@@ -1,0 +1,304 @@
+{
+ "n_t45": 13585,
+ "downstream_top25": [
+  {
+   "type": "LPi34",
+   "n_edges": 14744,
+   "n_syn": 175317,
+   "n_cells": 119,
+   "site_cloud_diameter_um": 536.7,
+   "soma_cloud_diameter_um": 710.4
+  },
+  {
+   "type": "VS",
+   "n_edges": 16046,
+   "n_syn": 158026,
+   "n_cells": 18,
+   "site_cloud_diameter_um": 447.0,
+   "soma_cloud_diameter_um": 398.8
+  },
+  {
+   "type": "Y11",
+   "n_edges": 29570,
+   "n_syn": 144763,
+   "n_cells": 153,
+   "site_cloud_diameter_um": 526.1,
+   "soma_cloud_diameter_um": 530.2
+  },
+  {
+   "type": "LPi21",
+   "n_edges": 5958,
+   "n_syn": 124684,
+   "n_cells": 2,
+   "site_cloud_diameter_um": 425.2,
+   "soma_cloud_diameter_um": 347.3
+  },
+  {
+   "type": "LPi3412",
+   "n_edges": 18759,
+   "n_syn": 124345,
+   "n_cells": 104,
+   "site_cloud_diameter_um": 568.0,
+   "soma_cloud_diameter_um": 582.4
+  },
+  {
+   "type": "Tlp14",
+   "n_edges": 15302,
+   "n_syn": 117970,
+   "n_cells": 58,
+   "site_cloud_diameter_um": 537.7,
+   "soma_cloud_diameter_um": 654.2
+  },
+  {
+   "type": "LPi12",
+   "n_edges": 8845,
+   "n_syn": 116647,
+   "n_cells": 4,
+   "site_cloud_diameter_um": 445.2,
+   "soma_cloud_diameter_um": 356.7
+  },
+  {
+   "type": "LPLC2",
+   "n_edges": 33409,
+   "n_syn": 112941,
+   "n_cells": 185,
+   "site_cloud_diameter_um": 446.9,
+   "soma_cloud_diameter_um": 401.1
+  },
+  {
+   "type": "Tlp13",
+   "n_edges": 20711,
+   "n_syn": 108544,
+   "n_cells": 115,
+   "site_cloud_diameter_um": 524.4,
+   "soma_cloud_diameter_um": 538.4
+  },
+  {
+   "type": "Y12",
+   "n_edges": 24318,
+   "n_syn": 99638,
+   "n_cells": 186,
+   "site_cloud_diameter_um": 542.7,
+   "soma_cloud_diameter_um": 587.4
+  },
+  {
+   "type": "LLPC1",
+   "n_edges": 18253,
+   "n_syn": 98260,
+   "n_cells": 285,
+   "site_cloud_diameter_um": 482.1,
+   "soma_cloud_diameter_um": 520.0
+  },
+  {
+   "type": "TmY4",
+   "n_edges": 37388,
+   "n_syn": 97495,
+   "n_cells": 562,
+   "site_cloud_diameter_um": 572.3,
+   "soma_cloud_diameter_um": 731.0
+  },
+  {
+   "type": "TmY20",
+   "n_edges": 17083,
+   "n_syn": 90896,
+   "n_cells": 343,
+   "site_cloud_diameter_um": 522.4,
+   "soma_cloud_diameter_um": 708.7
+  },
+  {
+   "type": "Y13",
+   "n_edges": 14852,
+   "n_syn": 90045,
+   "n_cells": 193,
+   "site_cloud_diameter_um": 530.8,
+   "soma_cloud_diameter_um": 597.1
+  },
+  {
+   "type": "TmY14",
+   "n_edges": 30932,
+   "n_syn": 89332,
+   "n_cells": 477,
+   "site_cloud_diameter_um": 619.5,
+   "soma_cloud_diameter_um": 712.5
+  },
+  {
+   "type": "Am1",
+   "n_edges": 4433,
+   "n_syn": 86422,
+   "n_cells": 2,
+   "site_cloud_diameter_um": 428.0,
+   "soma_cloud_diameter_um": 301.7
+  },
+  {
+   "type": "Tlp12",
+   "n_edges": 18466,
+   "n_syn": 85604,
+   "n_cells": 139,
+   "site_cloud_diameter_um": 526.4,
+   "soma_cloud_diameter_um": 676.8
+  },
+  {
+   "type": "LPi43",
+   "n_edges": 9070,
+   "n_syn": 85577,
+   "n_cells": 61,
+   "site_cloud_diameter_um": 550.0,
+   "soma_cloud_diameter_um": 494.3
+  },
+  {
+   "type": "LLPC2",
+   "n_edges": 15287,
+   "n_syn": 81568,
+   "n_cells": 250,
+   "site_cloud_diameter_um": 484.3,
+   "soma_cloud_diameter_um": 494.5
+  },
+  {
+   "type": "LLPC3",
+   "n_edges": 12835,
+   "n_syn": 79879,
+   "n_cells": 219,
+   "site_cloud_diameter_um": 502.8,
+   "soma_cloud_diameter_um": 511.9
+  },
+  {
+   "type": "LPi2c",
+   "n_edges": 17404,
+   "n_syn": 74253,
+   "n_cells": 54,
+   "site_cloud_diameter_um": 517.0,
+   "soma_cloud_diameter_um": 558.7
+  },
+  {
+   "type": "CT1",
+   "n_edges": 13375,
+   "n_syn": 70457,
+   "n_cells": 2,
+   "site_cloud_diameter_um": 414.5,
+   "soma_cloud_diameter_um": 25.9
+  },
+  {
+   "type": "LPi4b",
+   "n_edges": 3748,
+   "n_syn": 64947,
+   "n_cells": 2,
+   "site_cloud_diameter_um": 423.2,
+   "soma_cloud_diameter_um": 384.7
+  },
+  {
+   "type": "LPC2",
+   "n_edges": 10873,
+   "n_syn": 61704,
+   "n_cells": 154,
+   "site_cloud_diameter_um": 529.2,
+   "soma_cloud_diameter_um": 393.3
+  },
+  {
+   "type": "LPC1",
+   "n_edges": 12612,
+   "n_syn": 60618,
+   "n_cells": 224,
+   "site_cloud_diameter_um": 510.8,
+   "soma_cloud_diameter_um": 497.5
+  }
+ ],
+ "upstream_of_top12": {
+  "LPi34": {
+   "T5c": 92944,
+   "T4c": 77453,
+   "Y11": 6780,
+   "LPi43": 5529,
+   "Tlp13": 4205,
+   "TmY3": 2924
+  },
+  "VS": {
+   "T5d": 51735,
+   "T4d": 51016,
+   "T5a": 17008,
+   "T4a": 14788,
+   "T5b": 11981,
+   "LPi34": 11918
+  },
+  "Y11": {
+   "T5c": 45830,
+   "T4c": 43816,
+   "T5a": 27829,
+   "T4a": 26343,
+   "LPi3a": 13389,
+   "TmY9b": 11017
+  },
+  "LPi21": {
+   "T5b": 63041,
+   "T4b": 55493,
+   "T4a": 3266,
+   "LPi2b": 3222,
+   "Tlp12": 3109,
+   "LPi12": 2882
+  },
+  "LPi3412": {
+   "T4c": 36608,
+   "T5c": 30364,
+   "T4d": 29311,
+   "T5d": 25412,
+   "TmY4": 9510,
+   "LPi12": 5486
+  },
+  "Tlp14": {
+   "T5c": 59822,
+   "T4c": 57419,
+   "LPi43": 13041,
+   "TmY5a": 11462,
+   "TmY15": 2539,
+   "LPT115": 1260
+  },
+  "LPi12": {
+   "T5a": 54541,
+   "T4a": 53256,
+   "Y13": 6117,
+   "T5b": 4837,
+   "Y12": 3952,
+   "Y11": 3566
+  },
+  "LPLC2": {
+   "LPLC2": 46178,
+   "Tm5Y": 27058,
+   "T5d": 19165,
+   "T5b": 18245,
+   "T5c": 17171,
+   "T4c": 15374
+  },
+  "Tlp13": {
+   "T5c": 50572,
+   "T4c": 44299,
+   "LPi3a": 10033,
+   "LPi43": 9444,
+   "T4b": 7219,
+   "TmY4": 7011
+  },
+  "Y12": {
+   "T4d": 30236,
+   "T5d": 29609,
+   "T5a": 20488,
+   "T4a": 18903,
+   "LPT111": 13327,
+   "LPi21": 8781
+  },
+  "LLPC1": {
+   "T4a": 43291,
+   "T5a": 43027,
+   "LLPC1": 18706,
+   "LPi21": 11888,
+   "TmY3": 9303,
+   "Tm4": 8443
+  },
+  "TmY4": {
+   "T4c": 30671,
+   "Dm3c": 25667,
+   "T4d": 24479,
+   "T5c": 23834,
+   "T5d": 15552,
+   "Tm1": 14268
+  }
+ },
+ "notes": "site_cloud_diameter = 2*max |site - centroid| over ALL synapse sites of the class (the x400 dipole-length lever)"
+}
