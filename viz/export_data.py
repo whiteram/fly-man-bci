@@ -42,10 +42,23 @@ DT = exp005.DT
 SEED = 42
 LEVEL_PA = 350.0
 
-T_LEAD = 2000.0
-N_CYCLES = 8
-T_DARK, T_LIGHT = 600.0, 600.0
-T_END = T_LEAD + N_CYCLES * (T_DARK + T_LIGHT) + 600.0
+# naturalistic protocol (exp007-style): continuous waveforms, no square
+# flashes -- the resulting EEG traces are wavy, not blocky
+T_EPOCHS = [
+    ("dark", 0.0, 1500.0),            # 黑暗基线
+    ("flicker", 1500.0, 4500.0),      # 空间均匀 1/f 闪烁
+    ("drift+", 4500.0, 6000.0),       # 1/f 纹理沿偏好方向漂移
+    ("drift-", 6000.0, 7500.0),       # 同一影片时间反演
+    ("band+", 7500.0, 9000.0),        # DS 尺度带通纹理漂移
+    ("band-", 9000.0, 10500.0),       # 其反演
+]
+T_END = T_EPOCHS[-1][2]
+STIM_CONTRAST = 2.0
+I_LUM = 150.0
+DRIFT_SPEED = 0.1                     # um/ms
+LAM_UM = 22.0
+EPOCH_COLORS = {"dark": "#33465a", "flicker": "#f7c948", "drift+": "#34d399",
+                "drift-": "#22d3ee", "band+": "#f472b6", "band-": "#c084fc"}
 
 N_FLOW_EDGES = 1400
 
@@ -151,11 +164,85 @@ def main():
             t45_index, dt=DT, gain=exp009.GAIN_MT,
             tau_s=exp005.KINETICS["differentiated"][mt], n_post=n_t45)
 
-    def in_light(t):
-        if t < T_LEAD:
-            return False
-        ph = (t - T_LEAD) % (T_DARK + T_LIGHT)
-        return ph >= T_DARK
+    # naturalistic stimulus: 1/f flicker, drifting 1/f texture along the
+    # T4/T5 preferred axis (hex regression), DS-scale bandpassed texture;
+    # reverse epochs replay the forward movie exactly backwards
+    from ffbm import data as fdata
+    ann = fdata.load_annotations()
+    hex1 = ann.set_index("bodyId")["assignedOlHex1"]
+    hex2 = ann.set_index("bodyId")["assignedOlHex2"]
+    a1 = np.array([1.0, 0.0, 0.0]) - u_eye * u_eye[0]
+    a1 /= np.linalg.norm(a1)
+    b1 = np.cross(u_eye, a1)
+    mi1_ids = mid_ids[mid_type == "Mi1"]
+    mi1_pos = np.array([pp[b] for b in mi1_ids])
+
+    def hex_dir(hex_series):
+        h = np.array([hex_series.get(b, np.nan) for b in mi1_ids])
+        ok = np.isfinite(h)
+        X = np.stack([mi1_pos[ok] @ a1, mi1_pos[ok] @ b1], axis=1)
+        coef, *_ = np.linalg.lstsq(X, h[ok], rcond=None)
+        d = coef[0] * a1 + coef[1] * b1
+        return d / np.linalg.norm(d)
+
+    u_dir, v_dir = hex_dir(hex1), hex_dir(hex2)
+    e_ds = (np.cos(np.radians(-135.0)) * u_dir
+            + np.sin(np.radians(-135.0)) * v_dir)
+    e_ds /= np.linalg.norm(e_ds)
+    x_r = r_pos @ e_ds
+
+    rng_s = np.random.default_rng(SEED)
+
+    def one_over_f(n, exponent=1.0):
+        x = rng_s.standard_normal(n)
+        f = np.fft.rfftfreq(n)
+        f[0] = 1.0
+        y = np.fft.irfft(np.fft.rfft(x) / f ** (exponent / 2.0), n)
+        return y / y.std()
+
+    n_ms = int(T_END)
+    flicker = one_over_f(n_ms)
+    n_tex = 8192
+    span = (x_r.max() - x_r.min()) + DRIFT_SPEED * T_END + 4 * LAM_UM
+    texture = one_over_f(n_tex)
+    kx = np.fft.rfftfreq(n_tex, d=span / n_tex)
+    band = np.fft.rfft(rng_s.standard_normal(n_tex))
+    lo, hi = 1.0 / 45.0, 1.0 / 15.0
+    amp = np.where((kx >= lo) & (kx <= hi), 1.0 / np.maximum(kx, lo), 0.0)
+    texture_bp = np.fft.irfft(band * amp, n_tex)
+    texture_bp /= texture_bp.std()
+    tex_dx = span / n_tex
+
+    def tex_at(x, table):
+        idx = np.clip(((x - (x_r.min() - 2 * LAM_UM)) / tex_dx)
+                      .astype(int), 0, n_tex - 1)
+        return table[idx]
+
+    def epoch_of(t):
+        for name, t0, t1 in T_EPOCHS:
+            if t0 <= t < t1:
+                return name
+        return "dark"
+
+    def luminance(t):
+        """Per-R luminance (1 = dark base); non-negative by construction."""
+        ep = epoch_of(t)
+        one = np.ones(n_r)
+        if ep == "flicker":
+            return np.maximum(one + STIM_CONTRAST * flicker[min(int(t),
+                                                                n_ms - 1)],
+                              0.05)
+        if ep in ("drift+", "drift-"):
+            t0 = 4500.0
+            s = t - t0 if ep == "drift+" else 1500.0 - (t - 6000.0)
+            return np.maximum(one + STIM_CONTRAST * tex_at(
+                x_r - DRIFT_SPEED * s, texture), 0.05)
+        if ep in ("band+", "band-"):
+            t0 = 7500.0
+            s = t - t0 if ep == "band+" else 1500.0 - (t - 9000.0)
+            return np.maximum(one + STIM_CONTRAST * tex_at(
+                x_r - DRIFT_SPEED * s, texture_bp), 0.05)
+        return one
 
     is_t4 = np.array([str(s).startswith("T4") for s in t45_type])
     is_t5 = np.array([str(s).startswith("T5") for s in t45_type])
@@ -169,7 +256,8 @@ def main():
     print(f"simulating {T_END / 1000:.1f} s ...")
     for k in range(n_steps):
         t = k * DT
-        inc = np.full(n_r, LEVEL_PA) if in_light(t) else np.zeros(n_r)
+        lum = luminance(t)
+        inc = I_LUM * (lum - 1.0)
         inc_f = photo.step(inc)
         i_r = exp005.I_R_BASE + inc_f + rng.normal(0, exp005.NOISE_SD["R"],
                                                    n_r)
@@ -205,7 +293,7 @@ def main():
             rate["MID"][j] = sp_mid.sum() * 1000.0 / n_mid
             rate["T4"][j] = sp_t45[is_t4].sum() * 1000.0 / is_t4.sum()
             rate["T5"][j] = sp_t45[is_t5].sum() * 1000.0 / is_t5.sum()
-            stim[j] = 1.0 + LEVEL_PA / exp005.I_R_BASE if in_light(t) else 0.0
+            stim[j] = float(np.mean(lum))
 
     # ---- assemble viz data ----
     def pts(arr):
@@ -227,8 +315,14 @@ def main():
     phi_uv = np.round(phi * 1e6, 2)
     data = {
         "meta": {
-            "t_end_ms": T_END, "cycle_ms": [T_DARK, T_LIGHT],
-            "t_lead_ms": T_LEAD, "n_cycles": N_CYCLES,
+            "t_end_ms": T_END,
+            "epochs": [
+                {"name": name, "t0": t0, "t1": t1,
+                 "color": EPOCH_COLORS[name]}
+                for name, t0, t1 in T_EPOCHS],
+            "epoch_labels": {"dark": "黑暗", "flicker": "1/f 闪烁",
+                             "drift+": "纹理漂移 →", "drift-": "纹理漂移 ←",
+                             "band+": "带通纹理 →", "band-": "带通纹理 ←"},
             "head_r_um": round(r1, 1),
             "layers": [
                 {"name": "R1-R6 光感受器", "color": "#a855f7", "n": n_r},

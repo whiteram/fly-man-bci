@@ -72,16 +72,18 @@
       <span id="time">0.00 s</span>
       <input id="scrub" type="range" min="0" max="1000" value="0">
     </div>
-    <div class="chart-title">刺激（闪光时段以黄色标出）</div>
-    <div id="stimbar"></div>
-    <div class="chart-title">电极电位（实时生成）</div>
+    <div class="chart-title">刺激亮度（各时段颜色见右上）</div>
+    <canvas id="stim" class="chart" height="64"></canvas>
+    <div class="chart-title">电极电位（实时生成）
+      <label style="float:right;font-weight:normal;cursor:pointer">
+        <input type="checkbox" id="zoom"> 近 2 s 放大</label></div>
     <canvas id="eeg" class="chart" height="220"></canvas>
     <div class="chart-title">各层群体放电率</div>
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
       红=眼表面 · 琥珀=板层 · 绿=髓质（左）｜ 放电率自上而下：R → L →
-      Mi/Tm → T4 → T5（右）。注意 L 层光中被抑制（组胺能抑制），
-      光灭时网络活动恢复——正是眼表面电极正 Off 过冲的来源。
+      Mi/Tm → T4 → T5（右）。黑暗→1/f 闪烁→纹理往复漂移→带通纹理：
+      注意 L 层在亮段被抑制（组胺能抑制），漂移反向时 T4/T5 的响应差异。
     </div>
   </div>
 </div>
@@ -179,11 +181,11 @@ function initScene() {
     scene.add(ring);
     elecLabels.push(ring);
     const sprite = makeLabel(ELEC_NAMES[i], ELEC_COLORS[i]);
-    const off = new THREE.Vector3(0, 16, 0);
-    if (i === 0) off.add(new THREE.Vector3(0, 10, 0));
-    if (i === 2) off.add(new THREE.Vector3(0, -34, 0));
-    sprite.position.set(p[0], p[1], p[2]).add(off);
-    sprite.scale.set(70, 26, 1);
+    const radial = new THREE.Vector3(p[0], p[1], p[2]).normalize()
+      .multiplyScalar(30 + 16 * i);
+    radial.y += 6;
+    sprite.position.set(p[0], p[1], p[2]).add(radial);
+    sprite.scale.set(72, 27, 1);
     scene.add(sprite);
   });
 
@@ -243,15 +245,17 @@ function setupChart(canvas, rows, data) {
            rowH: canvas.height / rows.length };
 }
 
-function drawChartFrame(ch, upto, flashRanges) {
+function drawChartFrame(ch, i0, i1, x0, x1) {
   const { ctx, rows, ranges, w, h, rowH, dpr } = ch;
+  const n = x1 - x0;
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = "#060a10"; ctx.fillRect(0, 0, w, h);
-  const n = DATA.t_ms.length;
-  // flash shading
-  ctx.fillStyle = "rgba(247,201,72,0.10)";
-  flashRanges.forEach(([a, b]) => {
-    ctx.fillRect(a / n * w, 0, (b - a) / n * w, h);
+  // epoch shading (in sample space)
+  epochs.forEach(ep => {
+    const a = Math.max(ep.i0, x0), b = Math.min(ep.i1, x1);
+    if (b <= a) return;
+    ctx.fillStyle = ep.color + "1c";
+    ctx.fillRect((a - x0) / n * w, 0, (b - a) / n * w, h);
   });
   rows.forEach((row, ri) => {
     const y0 = ri * rowH;
@@ -261,70 +265,76 @@ function drawChartFrame(ch, upto, flashRanges) {
     ctx.fillText(row.label, 6 * dpr, y0 + 14 * dpr);
     const v = ch.series[row.key];
     const [lo, hi] = ranges[ri];
-    ctx.strokeStyle = row.color; ctx.lineWidth = 1.2 * dpr;
+    ctx.strokeStyle = row.color; ctx.lineWidth = 2.2 * dpr;
     ctx.beginPath();
-    for (let i = 0; i < upto; i++) {
-      const x = i / n * w;
+    for (let i = i0; i < i1; i++) {
+      const x = (i - x0) / n * w;
       const y = y0 + rowH - (v[i] - lo) / (hi - lo) * (rowH - 18 * dpr)
                 - 4 * dpr;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      if (i === i0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     ctx.stroke();
   });
   // playhead
-  const px = upto / n * w;
+  const px = (i1 - 1 - x0) / n * w;
   ctx.strokeStyle = "#7dd3fc"; ctx.lineWidth = 1 * dpr;
   ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
 }
 
-function drawEegChart(upto, flashRanges) {
-  const rows = [0, 1, 2].map(i => ({
-    key: "PHI" + i, label: ELEC_NAMES[i], color: ELEC_COLORS[i] }));
+function drawEegChart(i) {
+  const rows = [0, 1, 2].map(k => ({
+    key: "PHI" + k, label: ELEC_NAMES[k], color: ELEC_COLORS[k] }));
   if (!drawEegChart.ch) {
     const data = { PHI0: DATA.phi_uV.map(v => v[0]),
                    PHI1: DATA.phi_uV.map(v => v[1]),
                    PHI2: DATA.phi_uV.map(v => v[2]) };
     drawEegChart.ch = setupChart(document.getElementById("eeg"), rows, data);
   }
-  drawChartFrame(drawEegChart.ch, upto, flashRanges);
+  const n = DATA.t_ms.length;
+  const zoom = document.getElementById("zoom").checked;
+  const x0 = zoom ? Math.max(0, i - 2000) : 0;
+  drawChartFrame(drawEegChart.ch, x0, i + 1, x0, zoom ? x0 + 2000 : n);
 }
 
-function drawRatesChart(upto, flashRanges) {
+function drawRatesChart(i) {
   if (!drawRatesChart.ch) {
     drawRatesChart.ch = setupChart(document.getElementById("rates"),
                                    RATE_ROWS, DATA.rates);
   }
-  drawChartFrame(drawRatesChart.ch, upto, flashRanges);
+  drawChartFrame(drawRatesChart.ch, 0, i + 1, 0, DATA.t_ms.length);
+}
+
+function drawStimChart(i) {
+  const cv = document.getElementById("stim");
+  if (!drawStimChart.ch) {
+    drawStimChart.ch = setupChart(cv,
+      [{ key: "stim", label: "平均亮度", color: "#f7c948" }],
+      { stim: DATA.stim });
+  }
+  drawChartFrame(drawStimChart.ch, 0, i + 1, 0, DATA.t_ms.length);
+  const { ctx, w, h, dpr } = drawStimChart.ch;
+  ctx.font = `${11 * dpr}px sans-serif`;
+  epochs.forEach(ep => {
+    const n = DATA.t_ms.length;
+    const cx = ((ep.i0 + ep.i1) / 2) / n * w;
+    ctx.fillStyle = "#d8e6f2";
+    ctx.textAlign = "center";
+    ctx.fillText(ep.label, cx, h - 7 * dpr);
+  });
+  ctx.textAlign = "left";
 }
 
 // ---------- playback ----------
-let flashRanges = [];
+let epochs = [];
 
-function computeFlashRanges() {
-  const { t_lead_ms, cycle_ms, n_cycles } = DATA.meta;
+function setupEpochs() {
   const n = DATA.t_ms.length;
   const tEnd = DATA.t_ms[n - 1];
-  flashRanges = [];
-  for (let c = 0; c < n_cycles; c++) {
-    const a = t_lead_ms + c * (cycle_ms[0] + cycle_ms[1]) + cycle_ms[0];
-    const b = a + cycle_ms[1];
-    flashRanges.push([a, b]);
-  }
-  flashRanges = flashRanges.map(([a, b]) => [
-    a / tEnd * n, Math.min(b / tEnd * n, n)]);
-}
-
-function updateStimBar() {
-  const bar = document.getElementById("stimbar");
-  bar.innerHTML = "";
-  const n = DATA.t_ms.length;
-  flashRanges.forEach(([a, b]) => {
-    const d = document.createElement("div");
-    d.className = "on";
-    d.style.left = (a / n * 100) + "%";
-    d.style.width = ((b - a) / n * 100) + "%";
-    bar.appendChild(d);
-  });
+  const labels = DATA.meta.epoch_labels || {};
+  epochs = DATA.meta.epochs.map(ep => ({
+    i0: ep.t0 / tEnd * n, i1: ep.t1 / tEnd * n,
+    color: ep.color, label: labels[ep.name] || ep.name,
+  }));
 }
 
 let lastWall = performance.now();
@@ -373,8 +383,9 @@ function tick() {
   renderer.render(scene, camera);
 
   // charts (progressive: redraw fully is fine at these sizes)
-  drawEegChart(i + 1, flashRanges);
-  drawRatesChart(i + 1, flashRanges);
+  drawStimChart(i);
+  drawEegChart(i);
+  drawRatesChart(i);
 
   document.getElementById("time").textContent =
     (DATA.t_ms[i] / 1000).toFixed(2) + " s";
@@ -432,8 +443,7 @@ function initUI() {
 fetch("data/viz_data.json").then(r => r.json()).then(d => {
   DATA = d;
   initScene();
-  computeFlashRanges();
-  updateStimBar();
+  setupEpochs();
   initUI();
   tick();
 }).catch(err => {
