@@ -1,0 +1,89 @@
+{
+ "config": {
+  "e_cl_mv": -70.0,
+  "v_k_lmc_mv": -25.0,
+  "g_unit_hist_ns": 1.6,
+  "l1_dark_mv": -37.2,
+  "l1_light_mv": -41.8,
+  "r_release_map_mv": [
+   -62.0,
+   -22.0
+  ],
+  "n_pairs": 234561
+ },
+ "anchors": {
+  "on_transient_over_plateau": [
+   1.0,
+   3.0
+  ],
+  "off_over_on_transient": [
+   0.3,
+   1.0
+  ],
+  "lmc_fraction_of_on_transient": [
+   0.5,
+   1.0
+  ],
+  "lmc_fraction_of_plateau": [
+   0.0,
+   0.5
+  ]
+ },
+ "variants": {
+  "tbar": {
+   "on_transient_over_plateau": 1.32,
+   "off_over_on_transient": 0.0,
+   "lmc_fraction_of_on_transient": 0.442,
+   "lmc_fraction_of_plateau": 0.584,
+   "amplitude_uv": {
+    "on": 473.7,
+    "plateau": 358.76,
+    "off": 0.0
+   },
+   "anchors_pass": {
+    "on_transient_over_plateau": true,
+    "off_over_on_transient": false,
+    "lmc_fraction_of_on_transient": false,
+    "lmc_fraction_of_plateau": false
+   },
+   "n_pass": 1
+  },
+  "neurite": {
+   "on_transient_over_plateau": 1.519,
+   "off_over_on_transient": 0.085,
+   "lmc_fraction_of_on_transient": 1.376,
+   "lmc_fraction_of_plateau": 2.008,
+   "amplitude_uv": {
+    "on": 287.03,
+    "plateau": 188.92,
+    "off": 24.53
+   },
+   "anchors_pass": {
+    "on_transient_over_plateau": true,
+    "off_over_on_transient": false,
+    "lmc_fraction_of_on_transient": false,
+    "lmc_fraction_of_plateau": false
+   },
+   "n_pass": 1
+  },
+  "meanpos": {
+   "on_transient_over_plateau": 1.277,
+   "off_over_on_transient": 0.002,
+   "lmc_fraction_of_on_transient": 0.181,
+   "lmc_fraction_of_plateau": 0.251,
+   "amplitude_uv": {
+    "on": 580.02,
+    "plateau": 454.12,
+    "off": 1.41
+   },
+   "anchors_pass": {
+    "on_transient_over_plateau": true,
+    "off_over_on_transient": false,
+    "lmc_fraction_of_on_transient": false,
+    "lmc_fraction_of_plateau": true
+   },
+   "n_pass": 2
+  }
+ },
+ "verdict_all_anchors": []
+}
