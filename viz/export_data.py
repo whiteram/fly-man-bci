@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "experiments" / "exp005_medulla_ds"))
 
-from ffbm.forward import ScalpPairField, SealedHeadPairField
+from ffbm.forward import FourSpherePairField, SealedHeadPairField
 from ffbm.simulation import ExponentialSynapses, LIFPopulation
 
 import run as exp005
@@ -62,6 +62,13 @@ EPOCH_COLORS = {"dark": "#33465a", "flicker": "#f7c948", "drift+": "#34d399",
                 "drift-": "#22d3ee", "band+": "#f472b6", "band-": "#c084fc"}
 
 N_FLOW_EDGES = 1400
+
+# working-point calibration (scripts/calibrate_working_point.py, round 2):
+# matches spontaneous rates to fly literature. The T4 background (base +
+# noise) stands in for inputs from partners outside the wired 5-layer
+# subcircuit -- without it T4 is silent in the dark (L1 inhibits Mi1/Tm3).
+CAL = {"I_MID_BASE": 90.0, "GAIN_MT": 1.4,
+       "I_T4_BASE": 195.0, "T4_NOISE": 80.0}
 
 
 def main():
@@ -134,12 +141,36 @@ def main():
         r2=1.3 * r1, sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
 
     # thought-experiment channels (exp010/011): the same network magnified
-    # 400x inside a human 3-sphere head, electrode ARRAY on the scalp
-    # (channel 0 on the eye axis + a quasi-uniform Fibonacci cover, sorted
-    # by angle from the eye axis)
+    # 400x inside a human 4-layer head (brain/CSF/skull/scalp), electrode
+    # ARRAY on the scalp (channel 0 on the eye axis + a quasi-uniform
+    # Fibonacci cover, sorted by angle from the eye axis). The network is
+    # shifted occipitally: the T4/T5 (output/"cortex") end of the cascade
+    # is brought near the inner skull wall, like the real visual cortex at
+    # the occipital pole; the retina end dips toward the head center.
     SCALE = 400.0
-    R_BRAIN, R_SKULL, R_SCALP = 8.0e4, 8.5e4, 9.2e4
+    R_BRAIN, R_CSF, R_SKULL, R_SCALP = 7.8e4, 8.0e4, 8.5e4, 9.2e4
+    SIGMAS = (0.33, 1.79, 0.013, 0.33)
     N_SCALP_ELEC = 17
+
+    scaled_pairs = {name: (center + (pr - center) * SCALE,
+                           center + (po - center) * SCALE)
+                    for name, (pr, po) in {**group_pairs,
+                                           "PHOTO": photo_pair}.items()}
+    all_pts = np.vstack([p for pr, po in scaled_pairs.values()
+                         for p in (pr, po)])
+    proj = all_pts @ u_eye
+    e_cortex = float(-proj.min())                    # T4/T5-side extent
+    r_safe = 0.98 * R_BRAIN
+    # per-point quadratic |s - d*u_eye| <= r_safe -> d <= root+
+    root = proj + np.sqrt(proj ** 2 - (np.linalg.norm(all_pts - center,
+                                                      axis=1) ** 2)
+                          + r_safe ** 2)
+    d_shift = float(min(0.90 * R_BRAIN - e_cortex, root.min()))
+    d_shift = max(d_shift, 0.0)
+    shift_vec = -u_eye * d_shift
+    margin = r_safe - np.linalg.norm(all_pts + shift_vec - center, axis=1).max()
+    print(f"occipital shift: {d_shift / 1000:.1f} mm toward the T4/T5 pole "
+          f"(brain-margin {margin:.0f} um)")
 
     def scalp_electrode_dirs():
         n_ext = N_SCALP_ELEC          # generate N, drop the one nearest
@@ -161,18 +192,16 @@ def main():
     _t0 = _time.time()
     for k, d in enumerate(scalp_dirs):
         elec_k = center + 0.985 * R_SCALP * d
-        for name, (pr, po) in {**group_pairs,
-                               "PHOTO": photo_pair}.items():
-            pr_s = center + (pr - center) * SCALE
-            po_s = center + (po - center) * SCALE
-            coef_scalp[name].append(ScalpPairField(
-                pr_s, po_s, elec_k[None, :], center=center,
-                r1=R_BRAIN, r2=R_SKULL, r3=R_SCALP, sigma1=0.33,
-                sigma2=0.013, sigma3=0.33).coef[0])
+        for name, (pr_s, po_s) in scaled_pairs.items():
+            coef_scalp[name].append(FourSpherePairField(
+                pr_s + shift_vec, po_s + shift_vec, elec_k[None, :],
+                center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
+                r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
+                sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0])
         print(f"scalp kernel {k + 1}/{N_SCALP_ELEC} "
               f"({_time.time() - _t0:.0f} s)", flush=True)
     coef_scalp = {k: np.vstack(v) for k, v in coef_scalp.items()}
-    print(f"scalp kernels built (S=400, {N_SCALP_ELEC} electrodes, "
+    print(f"scalp kernels built (S=400, 4-sphere, {N_SCALP_ELEC} electrodes, "
           f"{_time.time() - _t0:.0f} s)")
 
     # ---- simulation ----
@@ -187,7 +216,7 @@ def main():
                             t_refrac=exp005.T45_REF, R_m=exp005.RIN)
     photo = exp005.PhotoCascadeVector(n_r, DT)
     l_base = np.full(n_l, exp009.I_L_BASE)
-    mid_base = np.full(n_mid, exp009.I_MID_BASE)
+    mid_base = np.full(n_mid, CAL["I_MID_BASE"])
 
     syn = {}
     for name, e_sub, tgt, n_t, gain, tau in (
@@ -204,7 +233,7 @@ def main():
             e_sub["body_pre"].to_numpy(np.int64),
             e_sub["body_post"].to_numpy(np.int64),
             (e_sub["weight"] * e_sub["sign"]).to_numpy(np.float32),
-            t45_index, dt=DT, gain=exp009.GAIN_MT,
+            t45_index, dt=DT, gain=CAL["GAIN_MT"],
             tau_s=exp005.KINETICS["differentiated"][mt], n_post=n_t45)
 
     # naturalistic stimulus: 1/f flicker, drifting 1/f texture along the
@@ -289,6 +318,8 @@ def main():
 
     is_t4 = np.array([str(s).startswith("T4") for s in t45_type])
     is_t5 = np.array([str(s).startswith("T5") for s in t45_type])
+    t45_base = np.zeros(n_t45)
+    t45_base[is_t4] = CAL["I_T4_BASE"]
     n_steps = int(T_END / DT)
     n_field = n_steps // 2
     phi = np.zeros((n_field, 3))
@@ -312,9 +343,10 @@ def main():
         i_mid = mid_base + syn["LM"].to_neuron_current() + rng.normal(
             0, exp005.NOISE_SD["MID"], n_mid)
         sp_mid = pop_mid.step(i_mid)
-        i_t45 = sum(syn[f"MT_{mt}"].to_neuron_current()
-                    for mt in exp005.MID_TYPES) \
-            + rng.normal(0, exp005.NOISE_SD["T45"], n_t45)
+        noise_t45 = rng.normal(0, exp005.NOISE_SD["T45"], n_t45)
+        noise_t45[is_t4] = rng.normal(0, CAL["T4_NOISE"], is_t4.sum())
+        i_t45 = t45_base + sum(syn[f"MT_{mt}"].to_neuron_current()
+                               for mt in exp005.MID_TYPES) + noise_t45
         sp_t45 = pop_t45.step(i_t45)
 
         syn["RL"].step(r_ids[sp_r])
@@ -373,7 +405,11 @@ def main():
                              "drift+": "纹理漂移 →", "drift-": "纹理漂移 ←",
                              "band+": "带通纹理 →", "band-": "带通纹理 ←"},
             "head_r_um": round(r1, 1),
-            "scalp": {"scale": 400, "radii_um": [8e4, 8.5e4, 9.2e4],
+            "scalp": {"model": "4sphere", "place": "occipital",
+                      "scale": 400,
+                      "radii_um": [7.8e4, 8.0e4, 8.5e4, 9.2e4],
+                      "sigmas": list(SIGMAS),
+                      "shift_um": [round(float(x), 1) for x in shift_vec],
                       "n_elec": N_SCALP_ELEC,
                       "elec_dist_um": 0.985 * 9.2e4,
                       "elec_dir": [round(float(x), 4) for x in u_eye],
@@ -381,6 +417,10 @@ def main():
                                     for d in scalp_dirs],
                       "elec_deg": [round(float(a), 1)
                                    for a in scalp_ang]},
+            "calibration": {**CAL, "source":
+                            "scripts/calibrate_working_point.py round 2; "
+                            "dark rates Hz: MID 22.4 T4 2.1 T5 11.7 "
+                            "(was 40 / 0 / 134)"},
             "layers": [
                 {"name": "R1-R6 光感受器", "color": "#a855f7", "n": n_r},
                 {"name": "L1-L3 板层", "color": "#38bdf8", "n": n_l},

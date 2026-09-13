@@ -86,12 +86,13 @@
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
       电极电位：红=眼表面 · 琥珀=板层 · 绿=髓质（果蝇头内）·
-      粉=<b>人脑头皮</b>（×400 思想实验：同一网络放大放进人脑三球壳，
-      17 个电极均匀贴在头皮上，粉色曲线=眼轴方向那一个，热图=全部
-      17 通道——exp010/011）｜ 放电率自上而下：R → L → Mi/Tm → T4 →
-      T5。果蝇自己的头壳外放不了电极（角质层绝缘，外部场严格为零）。
-      右上按钮可切换 果蝇头 / 人脑壳 双视图；人脑壳视图下头皮球面按
-      电位实时着色（脑电地形图）。
+      粉=<b>人脑头皮</b>（×400 思想实验：同一网络放大放进<b>人脑四球壳</b>
+      ——脑/脑脊液/颅骨/头皮，网络<b>贴枕极</b>（T4/T5 端靠着颅骨内壁，
+      像真实视觉皮层）；17 个电极均匀贴头皮，粉色曲线=眼轴方向那一个，
+      热图=全部 17 通道——exp010/011）｜ 放电率自上而下：R → L → Mi/Tm
+      → T4 → T5。果蝇自己的头壳外放不了电极（角质层绝缘，外部场严格
+      为零）。右上按钮可切换 果蝇头 / 人脑壳 双视图；人脑壳视图下头皮
+      球面按电位实时着色（脑电地形图），相机从枕侧看。
     </div>
   </div>
 </div>
@@ -212,17 +213,22 @@ function initScene() {
                                   transparent: true, opacity: 0.05 }));
   scene.add(headMesh);
 
-  // human 3-sphere head (thought experiment, S=400): brain/skull/scalp
+  // human 4-sphere head (thought experiment, S=400):
+  // brain / CSF / skull / scalp wireframes, network shifted occipitally
   humanHead = new THREE.Group();
   const meta = DATA.meta.scalp || { radii_um: [8e4, 8.5e4, 9.2e4],
                                     elec_dist_um: 9.06e4 };
   const eDir = new THREE.Vector3(...(meta.elec_dir || [1, 0, 0]));
+  const R_SCALP_UM = meta.radii_um[meta.radii_um.length - 1] || 9.2e4;
   meta.radii_um.forEach((rr, i) => {
+    const last = i === meta.radii_um.length - 1;
+    const csf = meta.radii_um.length === 4 && i === 1;
     const wire = new THREE.Mesh(
       new THREE.SphereGeometry(rr, 30, 20),
       new THREE.MeshBasicMaterial({
-        color: i === 2 ? 0xe879f9 : 0x94a3b8, wireframe: true,
-        transparent: true, opacity: i === 2 ? 0.08 : 0.05 }));
+        color: last ? 0xe879f9 : csf ? 0x38bdf8 : 0x94a3b8,
+        wireframe: true, transparent: true,
+        opacity: last ? 0.08 : 0.05 }));
     humanHead.add(wire);
   });
 
@@ -242,8 +248,7 @@ function initScene() {
   humanHead.add(sl);
 
   // scalp surface colored by interpolated electrode potential (topomap)
-  const topoGeo = new THREE.SphereGeometry(
-    (meta.radii_um[2] || 9.2e4) * 0.996, 64, 40);
+  const topoGeo = new THREE.SphereGeometry(R_SCALP_UM * 0.996, 64, 40);
   const tPos = topoGeo.attributes.position;
   const nV = tPos.count, nE = eDirs.length;
   topoWeights = new Float32Array(nV * nE);
@@ -636,11 +641,22 @@ function initUI() {
     humanMode = !humanMode;
     const s = humanMode ? 400 : 1;
     netGroup.scale.set(s, s, s);
+    if (DATA.meta.scalp && DATA.meta.scalp.shift_um) {
+      const sv = DATA.meta.scalp.shift_um;
+      netGroup.position.set(humanMode ? sv[0] : 0,
+                            humanMode ? sv[1] : 0,
+                            humanMode ? sv[2] : 0);
+    }
     headMesh.visible = !humanMode;
     elecGroup.visible = !humanMode;
     humanHead.visible = humanMode;
-    const r = humanMode ? DATA.meta.scalp.radii_um[2] : DATA.meta.head_r_um;
-    camera.position.copy(eyeDirVec.clone().multiplyScalar(r * 2.6))
+    const r = humanMode
+      ? DATA.meta.scalp.radii_um[DATA.meta.scalp.radii_um.length - 1]
+      : DATA.meta.head_r_um;
+    // in human mode look from the occipital (-eye) side: that is where
+    // the shifted network (T4/T5 pole) sits under the scalp
+    camera.position.copy(eyeDirVec.clone()
+      .multiplyScalar((humanMode ? -1 : 1) * r * 2.6))
       .add(new THREE.Vector3(0, r * 0.9, 0));
     this.textContent = humanMode ? "🐛 果蝇头视图" : "🧠 人脑壳视图（×400）";
   };
