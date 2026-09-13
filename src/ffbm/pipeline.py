@@ -20,26 +20,14 @@ from __future__ import annotations
 
 import numpy as np
 
+from .params import cal as _params_cal
 from .simulation import ColoredCurrentNoise, ExponentialSynapses, LIFPopulation
 
 DT_MS = 0.5
 
-# defaults = round-3 winner; round 4 recalibrates I_MID/I_T4 under the
-# all-OU noise configuration
-CAL = {
-    "I_L_BASE": 250.0, "I_MID_BASE": 90.0, "I_T4_BASE": 175.0,
-    "GAIN_RL": 12.0, "GAIN_LM": 20.0, "TAU_RL": 5.0, "TAU_LM": 5.0,
-    "G_UNIT_MT": 0.02, "E_REV_EXC": 0.0, "E_REV_INH": -80.0,
-    "OU": {"R": 50.0, "L": 40.0, "MID": 40.0, "T45": 60.0},
-    "OU_TAU_MS": 8.0,
-    "SYN_DELAY_MS": 1.0, "V_AXON_UM_PER_MS": 300.0,
-    "DELAY_JITTER_MS": 0.5,
-    "LIF": {"R": (10.0, 3.0), "L": (20.0, 2.0),
-            "MID": (10.0, 2.0), "T45": (10.0, 2.0)},
-    "RIN_GOHM": 0.1, "I_R_BASE": 150.0,
-    "MID_TAU_S": {"Mi1": 25.0, "Tm3": 8.0, "Mi4": 10.0, "Mi9": 15.0,
-                  "Tm1": 20.0, "Tm2": 8.0, "Tm4": 10.0, "Tm9": 20.0},
-}
+# single source of truth: src/ffbm/params.py (docs/PARAMS.md, regenerate
+# with `python -m ffbm.params`); CAL is assembled from that registry
+CAL = _params_cal()
 
 
 class PhotoCascade:

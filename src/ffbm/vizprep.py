@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import numpy as np
 
-BG_DEFAULTS = {"alpha_hz": 10.0, "alpha_amp_uv": 30.0,
-               "aperiodic_uv": 3.0, "sensor_uv": 1.5,
-               "envelope_period_ms": 700.0, "seed": 2026}
+from .params import bg_defaults as _params_bg
+
+BG_DEFAULTS = _params_bg()
 
 
 def scalp_electrode_dirs(n_elec: int, anchor: np.ndarray) -> np.ndarray:
