@@ -82,3 +82,28 @@ def test_current_mode_sign_folding_matches_legacy():
     y = syn.step(np.array([7]))
     assert y[0] == -20.0                       # gain * weight * sign
     assert syn.to_neuron_current(np.array([0, 0, 0, 0.0]))[0] == -20.0
+
+
+def test_semi_implicit_conductance_is_stable():
+    """With R_m*g*dt comparable to tau_m (strong synaptic conductance),
+    explicit Euler diverges; the semi-implicit update must stay bounded
+    and clamp v near the reversal potential."""
+    n, dt = 50, 0.5
+    pop = LIFPopulation(n, dt, tau_m=10.0, t_refrac=1e9)  # never spikes
+    g_huge = np.full(n, 500.0)                  # nS: R*g = 50 >> tau/dt
+    e_rev = -80.0
+    i_drive = g_huge * e_rev                    # pA: base + g*E_rev
+    for _ in range(4000):
+        pop.step(i_drive, g_tot=g_huge)
+    assert np.all(np.isfinite(pop.v))
+    assert np.abs(pop.v - e_rev).max() < 1.0    # clamped at reversal
+
+
+def test_to_neuron_drive_matches_explicit_current():
+    """i_indep - g_tot*v must equal the explicit per-edge current sum."""
+    syn = _one_syn(conductance=True, sign=np.array([1.0]), g_unit=0.02)
+    syn.step(np.array([7]))
+    i_indep, g_tot = syn.to_neuron_drive()
+    v = np.array([-70.0, -70.0, -70.0, -70.0])
+    explicit = syn.to_neuron_current(v)[0]
+    assert abs((i_indep[0] - g_tot[0] * (-70.0)) - explicit) < 1e-6

@@ -72,11 +72,25 @@ class LIFPopulation:
         self.v = np.full(n, v_rest, dtype=np.float64)
         self.refrac = np.zeros(n)
 
-    def step(self, i_ext: np.ndarray) -> np.ndarray:
-        """Advance one dt; i_ext in pA. Returns boolean spike mask."""
+    def step(self, i_ext: np.ndarray, g_tot: np.ndarray | None = None
+             ) -> np.ndarray:
+        """Advance one dt; i_ext in pA. Returns boolean spike mask.
+
+        g_tot (nS) is an optional summed conductance input whose reversal
+        drive is already folded into i_ext (i_ext = base + g·E_rev, so the
+        voltage-dependent part is −g·v, units nS·mV = pA). With g_tot the
+        update is semi-implicit and unconditionally stable -- explicit
+        Euler diverges when R_m * g_tot * dt approaches tau_m (strong
+        synaptic conductance)."""
         hold = self.refrac > 0
         v = np.where(hold, self.v_reset, self.v)
-        v = v + self.dt * (-(v - self.v_rest) + self.R_m * i_ext) / self.tau_m
+        if g_tot is None:
+            v = v + self.dt * (-(v - self.v_rest)
+                               + self.R_m * i_ext) / self.tau_m
+        else:
+            a = self.dt / self.tau_m
+            v = (v + a * (self.v_rest + self.R_m * i_ext)) \
+                / (1.0 + a * (1.0 + self.R_m * g_tot))
         spike = v >= self.v_th
         v[spike] = self.v_reset
         self.refrac = np.maximum(self.refrac - self.dt, 0.0)
@@ -230,6 +244,28 @@ class ExponentialSynapses:
             self.deliver(spiked_pre)
         return self.y
 
+    def edge_currents(self, v_post: np.ndarray | None = None) -> np.ndarray:
+        """Per-edge transmembrane current (pA), the quantity the extracellular
+        forward kernels consume. Current mode: the state y itself.
+        Conductance mode: g_unit * y * (E_rev - v_post) (needs v_post)."""
+        if self.conductance:
+            if v_post is None:
+                raise ValueError("conductance mode needs v_post")
+            return (self.g_unit * self.y
+                    * (self.e_rev_edge - v_post[self.post_local]))
+        return self.y
+
+    def to_neuron_drive(self) -> tuple[np.ndarray, np.ndarray]:
+        """(i_indep, g_tot) form of the input: i_indep collects all
+        voltage-independent parts of the per-neuron current (pA) and g_tot
+        the summed conductance (nS) whose voltage-dependent part is
+        -g_tot * v (nS*mV = pA). Current mode returns (sum y, 0).
+        Feeds LIFPopulation.step(i_ext, g_tot) for stable integration."""
+        if self.conductance:
+            gy = self.g_unit * self.y
+            return (self.csr @ (gy * self.e_rev_edge), self.csr @ gy)
+        return self.csr @ self.y, np.zeros(1, dtype=np.float32)
+
     def to_neuron_current(self, v_post: np.ndarray | None = None) -> np.ndarray:
         """Aggregate per-edge current onto postsynaptic neurons (pA).
 
@@ -238,6 +274,4 @@ class ExponentialSynapses:
         if self.conductance:
             if v_post is None:
                 raise ValueError("conductance mode needs v_post")
-            dv = self.e_rev_edge - v_post[self.post_local]
-            return self.csr @ (self.g_unit * self.y * dv)
-        return self.csr @ self.y
+        return self.csr @ self.edge_currents(v_post)

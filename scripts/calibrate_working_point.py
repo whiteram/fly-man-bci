@@ -149,9 +149,13 @@ def run_combo(circuit, params):
                           + rng.normal(0, exp005.NOISE_SD["L"], n_l))
         sp_mid = pop_mid.step(mid_base + syn["LM"].to_neuron_current()
                               + rng.normal(0, exp005.NOISE_SD["MID"], n_mid))
-        sp_t45 = pop_t45.step(
-            t45_base + sum(syn[f"MT_{mt}"].to_neuron_current(pop_t45.v)
-                           for mt in exp005.MID_TYPES) + noise_t45.step())
+        i_t45 = t45_base + noise_t45.step()
+        g_t45 = np.zeros(n_t45)
+        for mt in exp005.MID_TYPES:
+            di, dg = syn[f"MT_{mt}"].to_neuron_drive()
+            i_t45 += di
+            g_t45 += dg
+        sp_t45 = pop_t45.step(i_t45, g_t45)
         syn["RL"].step(r_ids[sp_r])
         syn["LM"].step(l_ids[sp_l])
         spiked_mid = mid_ids[sp_mid]
