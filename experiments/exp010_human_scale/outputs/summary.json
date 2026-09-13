@@ -1,0 +1,80 @@
+{
+  "config": {
+    "scale": 400.0,
+    "head_um": [
+      80000.0,
+      85000.0,
+      92000.0
+    ],
+    "sigmas": [
+      0.33,
+      0.013,
+      0.33
+    ],
+    "level_pA": 350.0,
+    "epochs": [
+      [
+        "dark",
+        100.0,
+        500.0
+      ],
+      [
+        "on",
+        800.0,
+        3200.0
+      ],
+      [
+        "off",
+        3600.0,
+        4300.0
+      ]
+    ]
+  },
+  "S1": {
+    "dark": {
+      "rms_uV": 0.0027
+    },
+    "on": {
+      "rms_uV": 0.0006
+    },
+    "off": {
+      "rms_uV": 0.0004
+    }
+  },
+  "S400": {
+    "dark": {
+      "rms_uV": 0.9455
+    },
+    "on": {
+      "rms_uV": 0.2431
+    },
+    "off": {
+      "rms_uV": 0.1331
+    }
+  },
+  "dipole_nAm": {
+    "dark": {
+      "mean": 0.1336,
+      "p95": 0.185
+    },
+    "on": {
+      "mean": 0.0523,
+      "p95": 0.0637
+    },
+    "off": {
+      "mean": 0.1392,
+      "p95": 0.1474
+    }
+  },
+  "replication_uV": {
+    "1 copy (flash, maximal synchrony)": 0.243,
+    "10^3 independent copies": 7.687,
+    "10^6 independent copies (human cell count)": 243.1,
+    "10^6 synchronized copies (unphysical)": 243100.0
+  },
+  "anchors_uV": {
+    "EEG noise floor": 1.5,
+    "human VEP": 10.0,
+    "human alpha": 50.0
+  }
+}
