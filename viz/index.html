@@ -200,12 +200,13 @@ function initScene() {
     const fill = new THREE.Mesh(
       new THREE.SphereGeometry(rr, 48, 32),
       new THREE.MeshBasicMaterial({ color: col, transparent: true,
-                                    opacity: 0.035, depthWrite: false,
+                                    opacity: 0.05, depthWrite: false,
                                     side: THREE.DoubleSide }));
     const wire = new THREE.Mesh(
       new THREE.SphereGeometry(rr * 1.0005, 28, 18),
       new THREE.MeshBasicMaterial({ color: col, wireframe: true,
-                                    transparent: true, opacity: 0.30 }));
+                                    transparent: true,
+                                    opacity: Math.max(0.35, 0.48 - 0.04 * i) }));
     grp.add(fill, wire);
     grp.userData.shellName = shellNames[i] || `层${i}`;
     humanHead.add(grp);
@@ -224,8 +225,10 @@ function initScene() {
     humanHead.add(s);
     scalpElecMeshes.push(s);
   });
+  // label on the occipital (camera-start) side so it is actually readable
   const sl = makeLabel("人脑头皮电极 ×17", "#e879f9", 5600);
-  sl.position.copy(eDir.clone().multiplyScalar(eDist + 6000));
+  sl.position.copy(eDir.clone().multiplyScalar(-(R_SCALP_UM + 15000)))
+    .add(new THREE.Vector3(0, R_SCALP_UM * 0.22, 0));
   humanHead.add(sl);
 
   // scalp surface colored by interpolated electrode potential (topomap)
@@ -253,7 +256,6 @@ function initScene() {
       depthWrite: false }));
   humanHead.add(scalpTopo);
 
-  humanHead.visible = false;
   scene.add(humanHead);
 
   // camera: from the occipital (-eye) side, where the shifted network
