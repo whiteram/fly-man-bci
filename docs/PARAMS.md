@@ -119,5 +119,18 @@
 | 参数 | 值 | 单位 | 状态 | 说明 |
 |---|---|---|---|---|
 | return_current_geometry | None | - | 待定 | 三候选差 ~10 倍幅值；判别需 LMC 动力学闭合 |
-| lmc_e_cl_mv | None | mV | 待定 | LMC 氯翻转电位（inverted-Cl 结构的真值）；需查板层电生理文献 |
+| lmc_e_cl_mv | -70.0 | mV | 校准 | 已由文献反解闭合（exp013）：E_Cl≈−70mV 常规极性 + 去极化漏 v_K≈−25mV；详见 lamina_mechanistic 节 |
 | r16_phototransduction_heterogeneity | None | - | 待定 | R1-6 个体差异（低优先） |
+
+## 机制板层（exp013，文献反解；主管线采纳待末轮校准）
+
+| 参数 | 值 | 单位 | 状态 | 说明 |
+|---|---|---|---|---|
+| e_cl_mv | -70.0 | mV | 校准 | 组胺氯通道翻转电位：由暗 −38.4mV + 光深度 10–25mV + 释放比 ~4 双电导稳态反解（常规极性；'inverted-Cl' 说法适用于其他昆虫中间神经元，不适用 L1/2） |
+| v_k_lmc_mv | -25.0 | mV | 校准 | LMC 漏通道翻转电位（去极化侧），同一反解 |
+| l_dark_target_mv | -38.4 | mV | 文献 | L1/2 暗静息（Rusanen & Weckström 2016: −38.4 ± 3.2 mV） |
+| light_depth_window_mv | [10.0, 25.0] | mV | 文献 | 光反应深度窗（Laughlin/Hardie 经典值） |
+| g_unit_hist_ns | 2.5 | nS | 校准 | 每突触单位组胺电导峰值（exp013 二维扫描在联合约束内选定；见该实验 outputs） |
+| release_map_mv | [-62.0, -22.0] | mV | 校准 | v_R→释放率线性映射 [lo, hi]；暗紧张释放约 0.1–0.2 |
+
+> exp013 已验证机制（暗电位/超极化方向/off 瞬变可达）；主管线采纳 = R 分级 + 组胺分级释放 + L 分级 + L→Mi/Tm 分级释放，替换 exp009 双反号代理与 I_L_BASE hack，需第 5 轮校准与 ON/OFF 复验。

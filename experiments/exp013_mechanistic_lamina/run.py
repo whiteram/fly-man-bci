@@ -66,9 +66,14 @@ SEED = 42
 E_CL_MV = -70.0          # histamine-gated chloride reversal
 V_K_L_MC_MV = -25.0      # LMC leak reversal (depolarized)
 V_L_DARK_TARGET_MV = -38.4
-R_RELEASE_LO_MV = -62.0  # v_R -> r map (dark tonic release ~0.18)
-R_RELEASE_HI_MV = -22.0
-G_UNIT_GRID = (0.3, 0.6, 1.0, 1.6)     # nS per synapse-unit, auto-cal
+# 2-D sweep: histamine conductance x release contrast. v_R dark ~ -55 mV,
+# bright ~ -30 mV; the map (lo, hi) sets the tonic dark release and the
+# release ratio (r_bright / r_dark) -- the two levers that traded the
+# off-amplitude against the dark clamp in the single runs.
+SWEEP_G_UNIT = (1.6, 2.5, 4.0)
+SWEEP_RELEASE = ((-66.0, -26.0), (-62.0, -22.0), (-58.0, -18.0))
+DARK_WINDOW_MV = (V_L_DARK_TARGET_MV - 3.2, V_L_DARK_TARGET_MV + 3.2)
+LIGHT_DEPTH_WINDOW_MV = (10.0, 25.0)
 
 ANCHORS = {
     "on_transient_over_plateau": (1.0, 3.0),
@@ -151,7 +156,7 @@ def main():
     l_index[l_ids] = np.arange(n_l)
     pre_rows_sorted = np.array([r_row[int(b)] for b in pre[order]])
 
-    def run_sim(g_unit):
+    def run_sim(g_unit, r_lo, r_hi):
         rng = np.random.default_rng(SEED)
         # graded (non-spiking) R and L1/L2: leaky integrators, v_th = inf
         pop_r = LIFPopulation(n_r, DT, tau_m=exp005.R_TAU,
@@ -170,6 +175,7 @@ def main():
                  "neurite": np.zeros((n_field, 2)),
                  "meanpos": np.zeros((n_field, 2))}
         phi_r = np.zeros((n_field, 2))
+        l12 = np.isin(l_type, ("L1", "L2"))
         v_l_trace = np.zeros(n_field)
         v_r_trace = np.zeros(n_field)
         for k in range(int(T_END / DT)):
@@ -178,8 +184,7 @@ def main():
             inc = photo.step(flash)
             pop_r.step(exp005.I_R_BASE + inc
                        + rng.normal(0, exp005.NOISE_SD["R"], n_r))
-            r_release = np.clip((pop_r.v - R_RELEASE_LO_MV)
-                                / (R_RELEASE_HI_MV - R_RELEASE_LO_MV),
+            r_release = np.clip((pop_r.v - r_lo) / (r_hi - r_lo),
                                 0.0, 1.0)
             y = pool.step(r_release)
             i_indep, g_tot = pool.to_neuron_drive()
@@ -194,29 +199,9 @@ def main():
                 phi_l["meanpos"][j] = mean_field.field(
                     pool.edge_currents(pop_l.v))
                 phi_r[j] = photo_field.field(np.full(n_r, i_photo))
-                v_l_trace[j] = float(pop_l.v.mean())
+                v_l_trace[j] = float(pop_l.v[l12].mean())
                 v_r_trace[j] = float(pop_r.v.mean())
         return phi_l, phi_r, v_l_trace, v_r_trace
-
-    # ---- auto-calibrate g_unit on the L1/2 dark rest ----
-    t_ms = np.arange(int(T_END / DT) // 2) * 2 * DT
-    print("calibrating g_unit_hist for L1/2 dark rest ...")
-    best_g, best_v = None, None
-    for g in G_UNIT_GRID:
-        _, _, vl, _ = run_sim(g)
-        v_dark = float(np.median(vl[(t_ms >= 100) & (t_ms < FLASH_ON)]))
-        print(f"  g_unit={g:.2f} nS -> dark v_L1/2 = {v_dark:.1f} mV")
-        if best_v is None or abs(v_dark - V_L_DARK_TARGET_MV) < abs(
-                best_v - V_L_DARK_TARGET_MV):
-            best_g, best_v = g, v_dark
-    print(f"chosen g_unit = {best_g} nS (dark {best_v:.1f} mV)")
-
-    phi_l, phi_r, v_l_trace, v_r_trace = run_sim(best_g)
-    v_dark = float(np.median(v_l_trace[(t_ms >= 100) & (t_ms < FLASH_ON)]))
-    v_light = float(np.median(v_l_trace[(t_ms >= FLASH_ON + 800)
-                                        & (t_ms < FLASH_OFF - 300)]))
-    print(f"L1/2: dark {v_dark:.1f} mV -> light plateau {v_light:.1f} mV "
-          f"(hyperpolarizing {v_dark - v_light:.1f} mV)")
 
     # ---- ERG anchors per return geometry ----
     def metrics(phi_tot, phi_lmc):
@@ -244,6 +229,65 @@ def main():
                              "plateau": round(pl_d * 1e6, 2),
                              "off": round(off_d * 1e6, 2)}}
 
+    # ---- 2-D sweep: which return geometry passes the off/on anchor
+    # across the whole literature-feasible lamina parameter set? ----
+    t_ms = np.arange(int(T_END / DT) // 2) * 2 * DT
+    rows = []
+    for g in SWEEP_G_UNIT:
+        for (r_lo, r_hi) in SWEEP_RELEASE:
+            phi_l_g, phi_r_g, vl, vr = run_sim(g, r_lo, r_hi)
+            v_dark = float(np.median(
+                vl[(t_ms >= 100) & (t_ms < FLASH_ON)]))
+            v_light = float(np.median(
+                vl[(t_ms >= FLASH_ON + 800) & (t_ms < FLASH_OFF - 300)]))
+            depth = v_dark - v_light
+            feasible = (DARK_WINDOW_MV[0] <= v_dark <= DARK_WINDOW_MV[1]
+                        and LIGHT_DEPTH_WINDOW_MV[0] <= depth
+                        <= LIGHT_DEPTH_WINDOW_MV[1])
+            anchor = {}
+            for v in ("tbar", "neurite", "meanpos"):
+                mm = metrics(phi_l_g[v] + phi_r_g, phi_l_g[v])
+                anchor[v] = (ANCHORS["off_over_on_transient"][0]
+                             <= mm["off_over_on_transient"]
+                             <= ANCHORS["off_over_on_transient"][1])
+            row = {"g_unit": g, "r_map": [r_lo, r_hi],
+                   "v_dark": round(v_dark, 1), "depth_mv": round(depth, 1),
+                   "feasible": feasible,
+                   "off_on_pass": anchor,
+                   "vl": vl, "phi_l": phi_l_g, "phi_r": phi_r_g, "vr": vr}
+            rows.append(row)
+            print(f"g={g:4.1f} r=({r_lo:.0f},{r_hi:.0f}) "
+                  f"dark {v_dark:6.1f} depth {depth:5.1f} "
+                  f"{'FEASIBLE' if feasible else '        '} "
+                  f"off/on pass {anchor}", flush=True)
+
+    feas = [r for r in rows if r["feasible"]]
+    print("feasible lamina configs: %d/%d" % (len(feas), len(rows)))
+    verdict = {}
+    for v in ("tbar", "neurite", "meanpos"):
+        n_pass = sum(1 for r in feas if r["off_on_pass"][v])
+        verdict[v] = {"n_pass_of_feasible": n_pass, "n_feasible": len(feas)}
+        print(f"  {v:8s}: off/on anchor in {n_pass}/{len(feas)} "
+              f"feasible configs")
+    # keep a feasible representative (closest to the literature targets)
+    # for the full anchor table
+    best = min(feas, key=lambda r: abs(r["v_dark"] - V_L_DARK_TARGET_MV)
+               + abs(r["depth_mv"] - 15.0)) if feas else rows[0]
+    best_g = best["g_unit"]
+    phi_l = best["phi_l"]
+    phi_r = best["phi_r"]
+    v_l_trace = best["vl"]
+    v_r_trace = best["vr"]
+    summary_extra = {
+        "sweep": [{k: r[k] for k in ("g_unit", "r_map", "v_dark",
+                                     "depth_mv", "feasible",
+                                     "off_on_pass")} for r in rows],
+        "sweep_verdict": verdict,
+        "chosen": {"g_unit": best["g_unit"], "r_map": best["r_map"],
+                   "v_dark": best["v_dark"], "depth_mv": best["depth_mv"]},
+    }
+
+
     results = {}
     for v in ("tbar", "neurite", "meanpos"):
         tot = phi_l[v] + phi_r
@@ -260,9 +304,10 @@ def main():
                    "g_unit_hist_ns": best_g,
                    "l1_dark_mv": round(v_dark, 1),
                    "l1_light_mv": round(v_light, 1),
-                   "r_release_map_mv": [R_RELEASE_LO_MV, R_RELEASE_HI_MV],
+                   "r_release_map_mv": best["r_map"],
                    "n_pairs": int(len(pair_dist))},
         "anchors": ANCHORS,
+        **summary_extra,
         "variants": results,
         "verdict_all_anchors": verdict,
     }
