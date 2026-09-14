@@ -31,15 +31,28 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-# name -> (module file, builder attr)
+# name -> (module file, builder attr); order = assembly order
 _BUILDERS = {
     "visual_bilateral": (ROOT / "experiments" / "exp015_bilateral"
                          / "circuit.py", "build_bilateral_circuit"),
     "vpn_central": (ROOT / "experiments" / "exp016_vpn_central"
                     / "circuit2.py", "build_vpn_circuit"),
+    "ol_rest": (ROOT / "experiments" / "exp017_full_cns"
+                / "circuit3.py", "build_ol_rest"),
+    "central_brain": (ROOT / "experiments" / "exp017_full_cns"
+                      / "circuit3.py", "build_central_brain"),
+    "vnc": (ROOT / "experiments" / "exp017_full_cns"
+            / "circuit3.py", "build_vnc"),
 }
 
-DEFAULT_REGIONS = {"visual_bilateral": True, "vpn_central": False}
+# vnc/central_brain/ol_rest share exp017's caches: assemble them
+# together (ol_rest feeds central, central feeds vnc)
+_ORDER = ("visual_bilateral", "vpn_central", "ol_rest", "central_brain",
+          "vnc")
+
+DEFAULT_REGIONS = {"visual_bilateral": True, "vpn_central": False,
+                   "ol_rest": False, "central_brain": False,
+                   "vnc": False}
 
 
 def _load(module_file: Path, attr: str):
@@ -78,7 +91,7 @@ def build_circuit(regions: dict | None = None):
     active = [name for name, on in cfg.items() if on]
 
     circuit = None
-    for name in ("visual_bilateral", "vpn_central"):
+    for name in _ORDER:
         if not cfg.get(name):
             continue
         builder = _load(*_BUILDERS[name])

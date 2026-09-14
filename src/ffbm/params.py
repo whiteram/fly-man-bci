@@ -117,7 +117,7 @@ SECTIONS: dict = {
         "jitter_ms": (0.5, "ms", "assumed", "±均匀抖动；影响微小（实测校准点不变）"),
     },
     "vpn_central": {
-        "_title": "视觉下游 VPN→中央脑（exp016 可选层，现象学工作点）",
+        "_title": "扩展脑区（exp016 VPN / exp017 全 CNS，可选层）",
         "_status": "phenomenol.",
         "vpn_classes": (["LC17", "LC12", "LC10a", "LC10d", "LC11", "LC18",
                          "LPLC2", "LLPC1", "LC9", "LC16"], "-", "chosen",
@@ -127,19 +127,32 @@ SECTIONS: dict = {
                           "MID/T45→VPN 单突触电导（全部 ACh 兴奋性）"),
         "g_unit_v2c_ns": (0.02, "nS", "phenomenol.",
                           "VPN→CB 单突触电导（全部 ACh 兴奋性）"),
-        "tau_v_ms": (8.0, "ms", "phenomenol.", "VPN 一级突触动力学"),
-        "i_v_base_pa": (60.0, "pA", "calibrated",
-                        "VPN 未建模背景基流（暗率 1-10 Hz 窗口内）"),
+        "g_unit_cx_ns": (0.004, "nS", "phenomenol.",
+                         "exp017 扩展区域（ol_rest/central/vnc）单突触"
+                         "电导；复发环路增益保守取小，防爆发作"),
+        "tau_v_ms": (8.0, "ms", "phenomenol.", "扩展区域一级突触动力学"),
+        "i_v_base_pa": (120.0, "pA", "calibrated",
+                        "VPN 未建模背景基流（暗率窗口 1-10 Hz）"),
         "i_c_base_pa": (60.0, "pA", "calibrated",
-                        "中央脑目标细胞基流（同窗口）"),
+                        "exp016 中央脑目标细胞基流（同窗口）"),
+        "i_olr_base_pa": (60.0, "pA", "calibrated",
+                          "exp017 其余视叶基流（同窗口）"),
+        "i_cen_base_pa": (60.0, "pA", "calibrated",
+                          "exp017 中央脑（含 VPN/下行）基流（同窗口）"),
+        "i_vnc_base_pa": (60.0, "pA", "calibrated",
+                          "exp017 腹索 VNC 基流（同窗口）"),
         "ou_sigma_vpn_cb_pa": (40.0, "pA", "phenomenol.",
-                               "VPN/CB 的 OU 噪声（与 MID 同量级）"),
+                               "扩展区域的 OU 噪声（与 MID 同量级）"),
+        "sign_mapping": ("consensus_nt", "-", "assumed",
+                          "ACh→+1；GABA/Glu→−1；多巴胺/5-HT/章鱼胺/"
+                          "未知→+1（多数为兴奋/调质，文档化为假设）"),
         "positions": ("soma", "-", "assumed",
-                      "VPN/CB 用胞体位置近似突触位置（syn-points 13 GB "
+                      "扩展区域用胞体位置近似突触位置（syn-points 13 GB "
                       "未做子集扫描；偶极长度因此保守偏短）"),
         "_note": "区域为可选扩展：由 ffbm.regions 的区域开关装配，开启时"
                  "电路带 extra_pops/extra_edges 规范、build_stack 才构建"
-                 "这两层（exp016 评估判决为信号贡献可忽略，默认关闭）。",
+                 "这些层。VNC 组标记 forward=False（参与仿真、不进头壳"
+                 "前向核——腹索在 ×N 下位于头球之外）。",
     },
     "head_model": {
         "_title": "人脑四球壳 + 电极（思想实验几何）",
@@ -264,14 +277,18 @@ def cal() -> dict:
         "R_RELEASE_MAP_MV": list(lam["release_map_mv"][0]),
         "L_RELEASE_MAP_MV": list(lam["l_release_map_mv"][0]),
         "G_UNIT_LM_NS": lam["g_unit_lm_ns"][0],
-        # exp016 optional VPN->central layers (built only when the
-        # circuit carries vpn_ids/cb_ids)
+        # exp016/017 optional regions (built only when the region
+        # switches in ffbm.regions are on)
         "VPN_CLASSES": list(vpn["vpn_classes"][0]),
         "G_UNIT_M2V": vpn["g_unit_m2v_ns"][0],
         "G_UNIT_V2C": vpn["g_unit_v2c_ns"][0],
+        "G_UNIT_CX": vpn["g_unit_cx_ns"][0],
         "TAU_V_MS": vpn["tau_v_ms"][0],
         "I_V_BASE": vpn["i_v_base_pa"][0],
         "I_C_BASE": vpn["i_c_base_pa"][0],
+        "I_OLR_BASE": vpn["i_olr_base_pa"][0],
+        "I_CEN_BASE": vpn["i_cen_base_pa"][0],
+        "I_VNC_BASE": vpn["i_vnc_base_pa"][0],
         "OU_VPN_CB": vpn["ou_sigma_vpn_cb_pa"][0],
     }
 

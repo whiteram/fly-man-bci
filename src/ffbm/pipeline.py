@@ -96,8 +96,11 @@ def build_stack(circuit, cal, rng):
 
     def delays(e_sub):
         pre, post = edges(e_sub)
-        d = np.array([np.linalg.norm(pp[a] - qq[b])
-                      for a, b in zip(pre, post)])
+        if len(pre) == 0:
+            return np.zeros(0)
+        pa = np.array([pp[a] for a in pre], dtype=np.float64)
+        qa = np.array([qq[b] for b in post], dtype=np.float64)
+        d = np.linalg.norm(pa - qa, axis=1)
         return (cal["SYN_DELAY_MS"] + d / cal["V_AXON_UM_PER_MS"]
                 + rng.uniform(-cal["DELAY_JITTER_MS"],
                               cal["DELAY_JITTER_MS"], len(d)))
@@ -167,10 +170,10 @@ def build_stack(circuit, cal, rng):
         post = spec["post"]
         syn[name] = ExponentialSynapses(
             *edges(e_sub), e_sub["weight"].to_numpy(np.float32),
-            pop_index[post], dt=DT_MS, gain=1.0, tau_s=spec["tau_s"],
+            pop_index[post], dt=DT_MS, gain=1.0, tau_s=_res(spec["tau_s"]),
             n_post=len(extra_pops[post]["ids"]),
             delay_ms=delays(e_sub), conductance=True,
-            g_unit=spec["g_unit"], e_rev_exc=cal["E_REV_EXC"],
+            g_unit=_res(spec["g_unit"]), e_rev_exc=cal["E_REV_EXC"],
             e_rev_inh=cal["E_REV_INH"])
 
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],

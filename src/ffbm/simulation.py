@@ -244,10 +244,11 @@ class ExponentialSynapses:
             shape=(n_post, self.n_edges),
         )
 
-        # delivery indices into y, grouped by presynaptic id
+        # delivery indices into y, grouped by presynaptic id (factorized:
+        # body ids can reach 1e9 and a raw bincount would allocate GBs)
         by_pre = np.argsort(self.pre, kind="stable")
         unique_pre, starts = np.unique(self.pre[by_pre], return_index=True)
-        counts = np.bincount(self.pre)[unique_pre]
+        counts = np.diff(np.append(starts, len(by_pre)))
         self.unique_pre = unique_pre
         self.pre_row = {int(p): i for i, p in enumerate(unique_pre)}
         self.flat_idx = by_pre.astype(np.int64)

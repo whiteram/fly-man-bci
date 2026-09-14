@@ -87,20 +87,25 @@
 | v_axon_um_per_ms | 300.0 | um/ms | 文献 | 0.3 m/s，小轴突传导速度 |
 | jitter_ms | 0.5 | ms | 假设 | ±均匀抖动；影响微小（实测校准点不变） |
 
-## 视觉下游 VPN→中央脑（exp016 可选层，现象学工作点）
+## 扩展脑区（exp016 VPN / exp017 全 CNS，可选层）
 
 | 参数 | 值 | 单位 | 状态 | 说明 |
 |---|---|---|---|---|
 | vpn_classes | ['LC17', 'LC12', 'LC10a', 'LC10d', 'LC11', 'LC18', 'LPLC2', 'LLPC1', 'LC9', 'LC16'] | - | 选定 | CB 突触量前 10 的 VPN 类（承担 3.17M VPN→CB 突触中的 1.35M；全部胆碱能；跨度 326-561 um） |
 | g_unit_m2v_ns | 0.02 | nS | 现象学 | MID/T45→VPN 单突触电导（全部 ACh 兴奋性） |
 | g_unit_v2c_ns | 0.02 | nS | 现象学 | VPN→CB 单突触电导（全部 ACh 兴奋性） |
-| tau_v_ms | 8.0 | ms | 现象学 | VPN 一级突触动力学 |
-| i_v_base_pa | 60.0 | pA | 校准 | VPN 未建模背景基流（暗率 1-10 Hz 窗口内） |
-| i_c_base_pa | 60.0 | pA | 校准 | 中央脑目标细胞基流（同窗口） |
-| ou_sigma_vpn_cb_pa | 40.0 | pA | 现象学 | VPN/CB 的 OU 噪声（与 MID 同量级） |
-| positions | soma | - | 假设 | VPN/CB 用胞体位置近似突触位置（syn-points 13 GB 未做子集扫描；偶极长度因此保守偏短） |
+| g_unit_cx_ns | 0.004 | nS | 现象学 | exp017 扩展区域（ol_rest/central/vnc）单突触电导；复发环路增益保守取小，防爆发作 |
+| tau_v_ms | 8.0 | ms | 现象学 | 扩展区域一级突触动力学 |
+| i_v_base_pa | 120.0 | pA | 校准 | VPN 未建模背景基流（暗率窗口 1-10 Hz） |
+| i_c_base_pa | 60.0 | pA | 校准 | exp016 中央脑目标细胞基流（同窗口） |
+| i_olr_base_pa | 60.0 | pA | 校准 | exp017 其余视叶基流（同窗口） |
+| i_cen_base_pa | 60.0 | pA | 校准 | exp017 中央脑（含 VPN/下行）基流（同窗口） |
+| i_vnc_base_pa | 60.0 | pA | 校准 | exp017 腹索 VNC 基流（同窗口） |
+| ou_sigma_vpn_cb_pa | 40.0 | pA | 现象学 | 扩展区域的 OU 噪声（与 MID 同量级） |
+| sign_mapping | consensus_nt | - | 假设 | ACh→+1；GABA/Glu→−1；多巴胺/5-HT/章鱼胺/未知→+1（多数为兴奋/调质，文档化为假设） |
+| positions | soma | - | 假设 | 扩展区域用胞体位置近似突触位置（syn-points 13 GB 未做子集扫描；偶极长度因此保守偏短） |
 
-> 区域为可选扩展：由 ffbm.regions 的区域开关装配，开启时电路带 extra_pops/extra_edges 规范、build_stack 才构建这两层（exp016 评估判决为信号贡献可忽略，默认关闭）。
+> 区域为可选扩展：由 ffbm.regions 的区域开关装配，开启时电路带 extra_pops/extra_edges 规范、build_stack 才构建这些层。VNC 组标记 forward=False（参与仿真、不进头壳前向核——腹索在 ×N 下位于头球之外）。
 
 ## 人脑四球壳 + 电极（思想实验几何）
 
