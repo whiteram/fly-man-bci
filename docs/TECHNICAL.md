@@ -448,6 +448,13 @@ deferred 的 inverted-Cl 组胺电导（§12 A3）是**同一块生物学的两�
   即构建，参数见注册表 `vpn_central`）。
 - 阶段 3（全中央脑/全脑）：维持远期；exp015/016 的证据进一步支持
   "扩中央脑的信号价值很低"这一评估。
+- **区域可选装配机制（2026-09-14）**：面向"逐步扩到全脑"的基础设施
+  已就位——`ffbm.regions` 维护区域注册表与 `DEFAULT_REGIONS` 开关
+  （参数注册表 `circuit.regions_default`），`build_circuit(regions)`
+  按需装配；管线侧为通用 `extra_pops`/`extra_edges` 规范（拓扑序
+  步进、电导突触、延迟齐全），**关闭的区域零计算零内存**；导出支持
+  `--regions visual_bilateral,vpn_central`。新区域（嗅觉、味觉→MN9、
+  中央脑、VNC）只需写一个构建器并在注册表登记一行。
 
 ## 13. 测试与可复现性
 

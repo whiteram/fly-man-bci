@@ -154,6 +154,12 @@ def build_stack(circuit, cal, rng):
     # cascade is active -- zero cost.
     extra_pops = circuit.get("extra_pops") or {}
     extra_edges = circuit.get("extra_edges") or {}
+
+    def _res(v):
+        """Spec value: a number, or a CAL key name resolved per run (so
+        working-point grids overriding cal actually reach the region)."""
+        return cal[v] if isinstance(v, str) else v
+
     pop_index = {name: _indices(spec["ids"])
                  for name, spec in extra_pops.items()}
     for name, spec in extra_edges.items():
@@ -211,7 +217,7 @@ def build_stack(circuit, cal, rng):
             "mid_index": mid_index, "t45_index": t45_index,
             "extra_pops": extra_pops,
             "extra_ids": {n: s["ids"] for n, s in extra_pops.items()},
-            "extra_base": {n: np.full(len(s["ids"]), s["i_base"])
+            "extra_base": {n: np.full(len(s["ids"]), _res(s["i_base"]))
                            for n, s in extra_pops.items()},
             "extra_in": {n: [g for g, es in extra_edges.items()
                              if es["post"] == n]

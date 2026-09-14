@@ -140,10 +140,11 @@ def build_vpn_circuit(bi=None):
     circuit["extra_pops"] = {
         "VPN": {"ids": np.array(sorted(vmap.values()), dtype=np.int64),
                 "tau_ms": 10.0, "t_refrac_ms": 2.0,
-                "i_base": CAL["I_V_BASE"], "ou_sigma": CAL["OU_VPN_CB"]},
+                "i_base": "I_V_BASE",      # resolved from cal per run
+                "ou_sigma": CAL["OU_VPN_CB"]},
         "CB": {"ids": np.array(sorted(cmap.values()), dtype=np.int64),
                "tau_ms": 10.0, "t_refrac_ms": 2.0,
-               "i_base": CAL["I_C_BASE"], "ou_sigma": CAL["OU_VPN_CB"]},
+               "i_base": "I_C_BASE", "ou_sigma": CAL["OU_VPN_CB"]},
     }
     circuit["extra_edges"] = {
         "M2V": {"pre": ("MID", "T45"), "post": "VPN", "table": e_m2v,
