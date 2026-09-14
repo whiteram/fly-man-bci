@@ -70,8 +70,8 @@ V_L_DARK_TARGET_MV = -38.4
 # bright ~ -30 mV; the map (lo, hi) sets the tonic dark release and the
 # release ratio (r_bright / r_dark) -- the two levers that traded the
 # off-amplitude against the dark clamp in the single runs.
-SWEEP_G_UNIT = (1.6, 2.5, 4.0)
-SWEEP_RELEASE = ((-66.0, -26.0), (-62.0, -22.0), (-58.0, -18.0))
+SWEEP_G_UNIT = (0.16, 0.25, 0.40)
+SWEEP_RELEASE = ((-59.0, -25.0), (-57.0, -22.0), (-62.0, -22.0))
 DARK_WINDOW_MV = (V_L_DARK_TARGET_MV - 3.2, V_L_DARK_TARGET_MV + 3.2)
 LIGHT_DEPTH_WINDOW_MV = (10.0, 25.0)
 
@@ -155,6 +155,21 @@ def main():
     l_index = np.full(int(l_ids.max()) + 1, -1, dtype=np.int64)
     l_index[l_ids] = np.arange(n_l)
     pre_rows_sorted = np.array([r_row[int(b)] for b in pre[order]])
+    per_l_w = np.bincount(l_index[post[order]], weights=w_sorted,
+                          minlength=n_l)
+    l12_mask = np.isin(l_type, ("L1", "L2"))
+    w12 = per_l_w[l12_mask]
+    print("L1/L2 tetrad mass quantiles (synapses/cell): "
+          + str(np.round(np.percentile(w12, [10, 25, 50, 75, 90]), 1).tolist()))
+    # measurement set: INNERVATED L1/L2 (mass >= 50 synapses). Cells with
+    # no R input sit at v_K by construction and contribute no synaptic
+    # current; intracellular literature recordings are from innervated
+    # cartridge cells.
+    l12_meas = l12_mask & (per_l_w >= 50.0)
+    print(f"measurement set: {int(l12_meas.sum())} innervated L1/L2 cells; "
+          f"their mass quantiles "
+          + str(np.round(np.percentile(per_l_w[l12_meas],
+                                       [10, 50, 90]), 1).tolist()))
 
     def run_sim(g_unit, r_lo, r_hi):
         rng = np.random.default_rng(SEED)
@@ -175,7 +190,6 @@ def main():
                  "neurite": np.zeros((n_field, 2)),
                  "meanpos": np.zeros((n_field, 2))}
         phi_r = np.zeros((n_field, 2))
-        l12 = np.isin(l_type, ("L1", "L2"))
         v_l_trace = np.zeros(n_field)
         v_r_trace = np.zeros(n_field)
         for k in range(int(T_END / DT)):
@@ -199,7 +213,7 @@ def main():
                 phi_l["meanpos"][j] = mean_field.field(
                     pool.edge_currents(pop_l.v))
                 phi_r[j] = photo_field.field(np.full(n_r, i_photo))
-                v_l_trace[j] = float(pop_l.v[l12].mean())
+                v_l_trace[j] = float(np.median(pop_l.v[l12_meas]))
                 v_r_trace[j] = float(pop_r.v.mean())
         return phi_l, phi_r, v_l_trace, v_r_trace
 
@@ -256,7 +270,7 @@ def main():
                    "off_on_pass": anchor,
                    "vl": vl, "phi_l": phi_l_g, "phi_r": phi_r_g, "vr": vr}
             rows.append(row)
-            print(f"g={g:4.1f} r=({r_lo:.0f},{r_hi:.0f}) "
+            print(f"g={g:5.2f} r=({r_lo:.0f},{r_hi:.0f}) "
                   f"dark {v_dark:6.1f} depth {depth:5.1f} "
                   f"{'FEASIBLE' if feasible else '        '} "
                   f"off/on pass {anchor}", flush=True)
