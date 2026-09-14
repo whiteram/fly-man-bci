@@ -97,16 +97,29 @@ def standard_1020(anchors: dict, system: str = "1020") -> dict:
     cor = lambda phi: _sph_rotate(cz, L_cor, phi)    # +phi = A2 side
     # midline arc from Cz (50% of the nasion-inion arc); +phi = anterior
     # nasion 0% -> +90, Fpz 10% -> +72, Fz 30% -> +36, Cz 50% -> 0,
-    # Pz 70% -> -36, Oz 90% -> -72, inion 100% -> -90
+    # Pz 70% -> -36, Oz 90% -> -72, inion 100% -> -90 (spherical
+    # idealization with the nasion-inion arc = 180 deg)
     out = {
         "Cz": cz,
         "Fz": sag(36.0), "Pz": sag(-36.0),
         "Fpz": sag(72.0), "Oz": sag(-72.0),
         "Nasion": sag(90.0), "Inion": sag(-90.0),
-        "A1": cor(-90.0), "A2": cor(90.0),
         "C3": cor(-36.0), "C4": cor(36.0),
         "T7": cor(-72.0), "T8": cor(72.0),
     }
+    # A1/A2: keep the USER'S elevation (real earlobes sit below the
+    # nasion-inion plane -- snapping them onto the coronal great circle
+    # at 90 deg was over-correcting) but enforce exact mirror symmetry
+    # about the sagittal plane: the left-right axis IS the sagittal
+    # normal, so A1/A2 = Cz rotated toward +/-n_sag by the mean
+    # Cz-ear angle
+    n_sag = np.cross(cz, e_ant)
+    n_sag /= np.linalg.norm(n_sag)
+    L_s = n_sag if n_sag @ get["A1"] > n_sag @ get["A2"] else -n_sag
+    th = 0.5 * (np.arccos(np.clip(get["A1"] @ cz, -1, 1))
+                + np.arccos(np.clip(get["A2"] @ cz, -1, 1)))
+    out["A1"] = cz * np.cos(th) + L_s * np.sin(th)
+    out["A2"] = cz * np.cos(th) - L_s * np.sin(th)
     # lateral chains: Fp1 at 18 deg from Fpz toward T7, O1 at 18 deg
     # from Oz toward T7, then F7/P7 as arc midpoints, F3/P3 as
     # midpoints of the Fz/Pz spokes
