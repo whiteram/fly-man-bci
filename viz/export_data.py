@@ -151,9 +151,10 @@ def main():
     # the cascade is pinned near the inner skull wall, like the real
     # visual cortex at the occipital pole.
     # exp015: BOTH lobes in native geometry span 692 um -> 277 mm at
-    # x400, which does NOT fit; fit_scale_shift pins the junction
-    # extreme at the occipital pole and picks the largest scale that
-    # then fits (x400 for a single lobe, ~x200 for both lobes).
+    # x400, which does NOT fit; fit_scale_shift picks the largest scale
+    # that fits after placement (pole-pinned for the elongated single
+    # lobe, centered with the inter-eye axis on a diameter for the
+    # bilateral V: x400 vs ~x200).
     R_BRAIN, R_CSF, R_SKULL, R_SCALP = 7.8e4, 8.0e4, 8.5e4, 9.2e4
     SIGMAS = (0.33, 1.79, 0.013, 0.33)
     N_SCALP_ELEC = 17
@@ -161,9 +162,12 @@ def main():
     u_occ = t45_pos.mean(axis=0) - center     # toward the T4/T5 junction
     u_occ = u_occ / np.linalg.norm(u_occ)
     u_anchor = -u_occ                          # 0 deg = eye side
-    native_pts = np.vstack([p for pr, po in {**group_pairs,
-                                             "PHOTO": photo_pair}.items()
-                            for p in (pr, po)])
+    # NOTE: iterate .values() -- the pre-exp015 code unpacked .items()
+    # correctly as (name, (pr, po)); a bare `for pr, po in ...items()`
+    # silently binds the dict KEY to pr (a str) and the pair-tuple to po
+    all_pairs = {**group_pairs, "PHOTO": photo_pair}
+    native_pts = np.vstack([p for pair in all_pairs.values()
+                            for p in pair])
     SCALE, shift_vec, r_after = vp.fit_scale_shift(native_pts, center,
                                                    u_occ, R_BRAIN)
     margin = 0.98 * R_BRAIN - r_after
