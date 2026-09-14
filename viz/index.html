@@ -762,10 +762,12 @@ function drawScalpMap(i) {
   ctx.stroke();
   ctx.font = `${10 * dpr}px sans-serif`;
   ctx.fillStyle = "#8aa0b4"; ctx.textAlign = "right";
+  const enames = DATA.meta.scalp.elec_names || null;
   for (let e = 0; e < nE; e += 2) {
     const y = padT + (e + 0.5) / nE * plotH + 3 * dpr;
-    ctx.fillText(scalpDeg[e] != null ? Math.round(scalpDeg[e]) + "°"
-                 : "E" + e, padL - 5 * dpr, y);
+    ctx.fillText(enames ? enames[e]
+                 : (scalpDeg[e] != null ? Math.round(scalpDeg[e]) + "°"
+                    : "E" + e), padL - 5 * dpr, y);
   }
   ctx.textAlign = "left";
   // colorbar
@@ -1178,8 +1180,10 @@ fetch("data/viz_data.json?v=" + Date.now()).then(r => r.json()).then(d => {
   }
   const snr = DATA.meta && DATA.meta.bg_eeg && DATA.meta.bg_eeg.snr;
   if (snr) {
+    const bestTag = snr.best_elec_name
+      ? snr.best_elec_name : snr.best_elec_deg + "°";
     document.getElementById("snrinfo").innerHTML =
-      `叠加背景后：最强电极（${snr.best_elec_deg}°）上果蝇信号 ` +
+      `叠加背景后：最强电极（${bestTag}）上果蝇信号 ` +
       `${snr.sig_uv} μV vs 人脑背景 ${snr.bg_uv} μV（幅值比 ` +
       `${snr.amp_ratio}）——单次试验难以看出，d′=2 需约 ` +
       `<b>${snr.k_for_dprime2}</b> 次试验平均` +

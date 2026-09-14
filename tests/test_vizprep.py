@@ -3,9 +3,46 @@ bug must never survive a 12-minute run again)."""
 
 import numpy as np
 
-from ffbm.vizprep import (fit_scale_shift, generate_background_eeg,
-                          occipital_shift, scalp_electrode_dirs,
-                          scalp_electrode_dirs_capped, snr_metrics)
+from ffbm.vizprep import (ELEC_DEFAULTS, fit_scale_shift,
+                          generate_background_eeg, occipital_shift,
+                          scalp_electrode_dirs, scalp_electrode_dirs_capped,
+                          snr_metrics, standard_1020)
+
+
+def test_standard_1020_from_canonical_anchors():
+    # canonical anchors: head frame with up = +y, face = +z
+    # Cz at the pole would break the sag-circle fit, so tilt the frame:
+    # place Cz at (0, 1, 0) rotated 30 deg toward +z (anterior = +z)
+    cz = np.array([0.0, np.cos(np.radians(30.0)), np.sin(np.radians(30.0))])
+    ant = np.array([0.0, np.sin(np.radians(30.0)), -np.cos(np.radians(30.0))])
+    left = np.cross(cz, ant)
+    layout = standard_1020({
+        "CZ": cz,
+        "FZ": cz * np.cos(np.radians(36.0))
+              + ant * np.sin(np.radians(36.0)),
+        "OZ": cz * np.cos(np.radians(36.0))
+              - ant * np.sin(np.radians(36.0)),
+        "A1": np.cos(np.radians(90.0)) * cz - left * np.sin(np.radians(90.0)),
+        "A2": np.cos(np.radians(90.0)) * cz + left * np.sin(np.radians(90.0)),
+    }, system="1010")
+    deg = lambda a, b: np.degrees(np.arccos(np.clip(a @ b, -1, 1)))
+    assert abs(deg(layout["Fz"], layout["Cz"]) - 36.0) < 1e-6
+    assert abs(deg(layout["Cz"], layout["Pz"]) - 36.0) < 1e-6
+    assert abs(deg(layout["Pz"], layout["Oz"]) - 36.0) < 1e-6
+    assert abs(deg(layout["Cz"], layout["A1"]) - 90.0) < 1e-6
+    assert abs(deg(layout["Cz"], layout["A2"]) - 90.0) < 1e-6
+    # nasion is 90 deg from Cz toward the face: positive on the
+    # anterior axis of the test frame
+    assert layout["Nasion"] @ ant > 0.9
+    # mirror symmetry: C3/C4 equidistant from Cz and mirrored about the
+    # sagittal plane (spanned by Cz/ant -- check via equal arc + planarity)
+    assert abs(deg(layout["C3"], layout["Cz"])
+               - deg(layout["C4"], layout["Cz"])) < 1e-6
+    sag_normal = np.cross(layout["Cz"], ant)
+    assert abs(layout["C3"] @ sag_normal + layout["C4"] @ sag_normal) < 1e-9
+    # 10-10 extras present
+    for k in ("FCz", "CPz", "F1", "C1", "P1", "FC3", "CP3", "FC5", "CP5"):
+        assert k in layout
 
 
 def test_electrode_dirs_capped_excludes_face_and_neck():

@@ -36,6 +36,156 @@ def scalp_electrode_dirs(n_elec: int, anchor: np.ndarray) -> np.ndarray:
     return dirs[np.argsort(ang, kind="stable")]
 
 
+def _sph_rotate(v: np.ndarray, axis: np.ndarray, deg: float) -> np.ndarray:
+    """Rodrigues rotation of unit vector v around axis by deg."""
+    th = np.radians(deg)
+    c, s = np.cos(th), np.sin(th)
+    return (v * c + np.cross(axis, v) * s
+            + axis * np.dot(axis, v) * (1.0 - c))
+
+
+def _sph_mid(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Midpoint direction of the great-circle arc a -> b."""
+    return a + b
+
+
+def standard_1020(anchors: dict, system: str = "1020") -> dict:
+    """Standard 10-20 / 10-10 electrode directions from hand-placed
+    anchors (Cz, Fz, Oz, A1, A2 unit vectors, any consistent head frame).
+
+    Regularization (10-20 construction, Jasper 1958):
+      - the sagittal great circle is fit through Cz with the anterior
+        tangent from Fz - Oz; Fz/Oz snap to +/-36 deg around Cz
+        (Fz-Cz = Cz-Oz = 36 deg), Fpz/Iz to +/-72 deg, nasion/inion to
+        +/-90 deg;
+      - the coronal great circle through Cz (perpendicular to the
+        sagittal one) carries A1/A2 at +/-90 deg (exactly mirrored),
+        C3/C4 at +/-36 deg, T7/T8 at +/-72 deg;
+      - the lateral chains are built by the 10-20 arc rules: Fp1 at 18
+        deg from Fpz toward T7, O1 at 18 deg from Oz toward T7, F7/P7
+        as arc midpoints (Fp1-T7 / O1-T7), F3/P3 as midpoints of
+        Fz-F7 / Pz-P7 (mirrored on the right);
+      - system="1010" adds the 10-10 midpoint subdivisions (FCz, CPz,
+        F1/F2, C1/C2, P1/P2, FC3-6, CP3-6, AF3/AF4/AFz, PO3/PO4/POz).
+
+    Returns dict name -> unit vector in the SAME frame as the anchors.
+    """
+    get = {k.upper(): np.asarray(v, dtype=np.float64)
+           for k, v in anchors.items()}
+    for k in ("CZ", "FZ", "OZ", "A1", "A2"):
+        if k not in get:
+            raise ValueError(f"missing anchor {k}")
+    cz = get["CZ"] / np.linalg.norm(get["CZ"])
+    a_raw = get["FZ"] - get["OZ"]
+    a_raw /= np.linalg.norm(a_raw)
+    e_ant = a_raw - (a_raw @ cz) * cz
+    e_ant /= np.linalg.norm(e_ant)          # anterior tangent at Cz
+
+    # left axis: normal of the sagittal plane, signed toward A1
+    L = np.cross(cz, e_ant)
+    L /= np.linalg.norm(L)
+    if L @ get["A1"] < L @ get["A2"]:
+        L = -L
+    # sagittal rotations around +L move Cz toward the ANTERIOR?
+    probe = _sph_rotate(cz, L, 10.0)
+    L_sag = L if probe @ e_ant > 0 else -L
+    # coronal rotations around the anterior axis toward A2?
+    probe = _sph_rotate(cz, e_ant, 10.0)
+    L_cor = e_ant if probe @ get["A2"] > probe @ get["A1"] else -e_ant
+
+    sag = lambda phi: _sph_rotate(cz, L_sag, phi)    # +phi = anterior
+    cor = lambda phi: _sph_rotate(cz, L_cor, phi)    # +phi = A2 side
+    # midline arc from Cz (50% of the nasion-inion arc); +phi = anterior
+    # nasion 0% -> +90, Fpz 10% -> +72, Fz 30% -> +36, Cz 50% -> 0,
+    # Pz 70% -> -36, Oz 90% -> -72, inion 100% -> -90
+    out = {
+        "Cz": cz,
+        "Fz": sag(36.0), "Pz": sag(-36.0),
+        "Fpz": sag(72.0), "Oz": sag(-72.0),
+        "Nasion": sag(90.0), "Inion": sag(-90.0),
+        "A1": cor(-90.0), "A2": cor(90.0),
+        "C3": cor(-36.0), "C4": cor(36.0),
+        "T7": cor(-72.0), "T8": cor(72.0),
+    }
+    # lateral chains: Fp1 at 18 deg from Fpz toward T7, O1 at 18 deg
+    # from Oz toward T7, then F7/P7 as arc midpoints, F3/P3 as
+    # midpoints of the Fz/Pz spokes
+    def slerp_deg(a, b, deg):
+        total = np.degrees(np.arccos(np.clip(a @ b, -1, 1)))
+        t = deg / max(total, 1e-9)
+        return (a * np.sin((1 - t) * np.radians(total))
+                + b * np.sin(t * np.radians(total))) \
+            / np.sin(np.radians(total))
+
+    def mid(a, b):
+        m = a + b
+        return m / np.linalg.norm(m)
+
+    fp1 = slerp_deg(out["Fpz"], out["T7"], 18.0)
+    fp2 = slerp_deg(out["Fpz"], out["T8"], 18.0)
+    o1 = slerp_deg(out["Oz"], out["T7"], 18.0)
+    o2 = slerp_deg(out["Oz"], out["T8"], 18.0)
+    out.update({
+        "Fp1": fp1, "Fp2": fp2, "O1": o1, "O2": o2,
+        "F7": mid(fp1, out["T7"]), "F8": mid(fp2, out["T8"]),
+        "P7": mid(o1, out["T7"]), "P8": mid(o2, out["T8"]),
+        "F3": mid(out["Fz"], mid(fp1, out["T7"])),
+        "F4": mid(out["Fz"], mid(fp2, out["T8"])),
+        "P3": mid(out["Pz"], mid(o1, out["T7"])),
+        "P4": mid(out["Pz"], mid(o2, out["T8"])),
+    })
+    if system == "1010":
+        out.update({
+            "FCz": mid(out["Fz"], out["Cz"]),
+            "CPz": mid(out["Cz"], out["Pz"]),
+            "AFz": mid(out["Fpz"], out["Fz"]),
+            "POz": mid(out["Pz"], out["Oz"]),
+            "F1": mid(out["Fz"], out["F3"]),
+            "F2": mid(out["Fz"], out["F4"]),
+            "C1": mid(out["Cz"], out["C3"]),
+            "C2": mid(out["Cz"], out["C4"]),
+            "P1": mid(out["Pz"], out["P3"]),
+            "P2": mid(out["Pz"], out["P4"]),
+            "FC3": mid(out["F3"], out["C3"]),
+            "FC4": mid(out["F4"], out["C4"]),
+            "CP3": mid(out["C3"], out["P3"]),
+            "CP4": mid(out["C4"], out["P4"]),
+            "FC5": mid(out["F7"], out["C3"]),
+            "FC6": mid(out["F8"], out["C4"]),
+            "CP5": mid(out["C3"], out["P7"]),
+            "CP6": mid(out["C4"], out["P8"]),
+            "AF3": mid(out["Fpz"], out["F3"]),
+            "AF4": mid(out["Fpz"], out["F4"]),
+            "PO3": mid(out["P3"], out["O1"]),
+            "PO4": mid(out["P4"], out["O2"]),
+        })
+    return {k: v / np.linalg.norm(v) for k, v in out.items()}
+
+
+def regularize_report(anchors: dict) -> dict:
+    """Diagnostics for hand-placed anchors: raw arc distances and the
+    corrections standard_1020 applies (degrees moved per anchor)."""
+    std = standard_1020(anchors)
+    get = {k.upper(): np.asarray(v, dtype=np.float64)
+           for k, v in anchors.items()}
+    for k in get:
+        get[k] = get[k] / np.linalg.norm(get[k])
+    def ang(a, b):
+        return float(np.degrees(np.arccos(np.clip(a @ b, -1, 1))))
+    report = {"raw_arcs_deg": {
+        "Fz_Cz": round(ang(get["FZ"], get["CZ"]), 1),
+        "Cz_Oz": round(ang(get["CZ"], get["OZ"]), 1),
+        "A1_Cz": round(ang(get["A1"], get["CZ"]), 1),
+        "Cz_A2": round(ang(get["CZ"], get["A2"]), 1),
+        "A1_A2": round(ang(get["A1"], get["A2"]), 1)},
+        "corrections_deg": {}}
+    for name, ukey in (("Cz", "CZ"), ("Fz", "FZ"), ("Oz", "OZ"),
+                       ("A1", "A1"), ("A2", "A2")):
+        report["corrections_deg"][name] = round(
+            ang(get[ukey], std[name]), 1)
+    return report
+
+
 def scalp_electrode_dirs_capped(n_elec: int, face_axis: np.ndarray,
                                 neck_axis: np.ndarray | None = None,
                                 face_excl_deg: float | None = None,

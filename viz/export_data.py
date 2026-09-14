@@ -68,6 +68,11 @@ def main():
                     help="comma-separated active regions "
                          f"(known: {','.join(freg.known_regions())}); "
                          "default = params registry regions_default")
+    ap.add_argument("--elec-layout", type=str, default=None,
+                    help="JSON file mapping electrode names to unit "
+                         "directions (standard_1020 output or the "
+                         "electrode-editor export); overrides the "
+                         "capped Fibonacci layout")
     args = ap.parse_args()
     regions = ({r.strip(): True for r in args.regions.split(",")}
                if args.regions else None)
@@ -232,6 +237,18 @@ def main():
     scalp_dirs = vp.scalp_electrode_dirs_capped(
         N_SCALP_ELEC, u_anchor, neck_dir)
     scalp_ang = np.degrees(np.arccos(np.clip(scalp_dirs @ u_anchor, -1, 1)))
+    elec_names = None
+    if args.elec_layout:
+        layout = json.loads(Path(args.elec_layout).read_text(
+            encoding="utf-8"))
+        layout.pop("Nasion", None)
+        layout.pop("Inion", None)
+        elec_names = list(layout.keys())
+        scalp_dirs = np.array([layout[k] for k in elec_names])
+        scalp_ang = np.degrees(np.arccos(
+            np.clip(scalp_dirs @ u_anchor, -1, 1)))
+        print(f"electrode layout: {len(elec_names)} named channels "
+              f"from {args.elec_layout}")
     coef_scalp = {name: [] for name in
                   list(group_pairs) + ["PHOTO"]}
     import time as _time
@@ -245,10 +262,10 @@ def main():
                 r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
                 sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0]
                 * reweight.get(name, 1.0))
-        print(f"scalp kernel {k + 1}/{N_SCALP_ELEC} "
+        print(f"scalp kernel {k + 1}/{len(scalp_dirs)} "
               f"({_time.time() - _t0:.0f} s)", flush=True)
     coef_scalp = {k: np.vstack(v) for k, v in coef_scalp.items()}
-    print(f"scalp kernels built (S=400, 4-sphere, {N_SCALP_ELEC} electrodes, "
+    print(f"scalp kernels built (S=400, 4-sphere, {len(scalp_dirs)} electrodes, "
           f"{_time.time() - _t0:.0f} s)")
 
     # ---- simulation via the shared pipeline (ffbm.pipeline) ----
@@ -338,7 +355,7 @@ def main():
     is_t5 = np.array([str(s).startswith("T5") for s in t45_type])
     n_field = int(T_END / DT) // 2
     phi = np.zeros((n_field, 3))
-    phi_scalp = np.zeros((n_field, N_SCALP_ELEC))
+    phi_scalp = np.zeros((n_field, len(scalp_dirs)))
     rate = {k: np.zeros(n_field) for k in
             ("R", "L", "MID", "T4", "T5")}
     stim = np.zeros(n_field)
@@ -370,7 +387,7 @@ def main():
                 if name in ker:
                     acc += ker[name].coef[i] @ y_of(name)
             phi[j, i] = acc * 1e-12
-        acc_s = np.zeros(N_SCALP_ELEC)
+        acc_s = np.zeros(len(scalp_dirs))
         for name in list(group_pairs) + ["PHOTO"]:
             y = y_of(name)
             keep = kernel_keep.get(name)
@@ -405,8 +422,13 @@ def main():
     bg = vp.generate_background_eeg(scalp_dirs, u_anchor, n_field)
     snr = vp.snr_metrics(phi_scalp.T * 1e6, bg, 1500, 4500)
     snr["best_elec_deg"] = round(float(scalp_ang[snr["best_elec"]]), 1)
+    snr["best_elec_name"] = (elec_names[snr["best_elec"]]
+                             if elec_names else None)
+    best_tag = (snr["best_elec_name"]
+                if snr["best_elec_name"]
+                else f"{snr['best_elec_deg']:.0f} deg")
     print(f"background EEG: fly signal {snr['sig_uv']:.2f} uV vs bg "
-          f"{snr['bg_uv']:.2f} uV at {snr['best_elec_deg']:.0f} deg -> "
+          f"{snr['bg_uv']:.2f} uV at {best_tag} -> "
           f"d'=2 needs ~{snr['k_for_dprime2']} trials "
           f"(band {snr['band_hz'][0]:.0f}-{snr['band_hz'][1]:.0f} Hz: "
           f"~{snr['k_for_dprime2_band']})")
@@ -446,7 +468,7 @@ def main():
                       "radii_um": [7.8e4, 8.0e4, 8.5e4, 9.2e4],
                       "sigmas": list(SIGMAS),
                       "shift_um": [round(float(x), 1) for x in shift_vec],
-                      "n_elec": N_SCALP_ELEC,
+                      "n_elec": len(scalp_dirs),
                       "elec_dist_um": 0.985 * 9.2e4,
                       "elec_dir": [round(float(x), 4) for x in u_anchor],
                       "neck_dir": (None if neck_dir is None else
@@ -454,7 +476,8 @@ def main():
                       "elec_dirs": [[round(float(x), 4) for x in d]
                                     for d in scalp_dirs],
                       "elec_deg": [round(float(a), 1)
-                                   for a in scalp_ang]},
+                                   for a in scalp_ang],
+                      "elec_names": elec_names},
             "regions": active,
             "amplitude_calibration": {"geometry": "neurite",
                                       "factor": 1.7,
