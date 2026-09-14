@@ -263,18 +263,19 @@ function initScene() {
 
   // ghost human head form (fly-man narrative): the open-source
   // LeePerrySmith head scan (Lee Perry-Smith / Infinite-Realities,
-  // CC-BY via three.js examples) rendered as a fresnel ghost, oriented
-  // face -> elec_dir, neck -> neck_dir so the VNC cord sits inside a
-  // real neck. Procedural fallback if the model fails to load.
-  // Local frame: +z = face, +y = up, model loads Y-up facing +z.
+  // CC-BY via three.js examples) rendered as a fresnel ghost.
+  // Frame is SCENE-ALIGNED so calibration axes are screen axes:
+  // local +z = face (toward the electrode anchor, horizontal),
+  // local +y = world up, neck straight down (the VNC cord pokes
+  // out of the neck bottom). Procedural fallback if load fails.
   headForm = new THREE.Group();
   {
-    const faceAxis = new THREE.Vector3(
+    const anchor = new THREE.Vector3(
         ...(DATA.meta.scalp.elec_dir || [1, 0, 0])).normalize();
-    const down = new THREE.Vector3(
-        ...(DATA.meta.scalp.neck_dir || [0, -1, 0])).normalize();
-    const up = down.clone().multiplyScalar(-1);
-    up.addScaledVector(faceAxis, -up.dot(faceAxis)).normalize();
+    const faceAxis = anchor.clone()
+        .addScaledVector(new THREE.Vector3(0, 1, 0),
+                         -anchor.y).normalize();     // horizontal face dir
+    const up = new THREE.Vector3(0, 1, 0);
     const right = new THREE.Vector3().crossVectors(up, faceAxis).normalize();
     headForm.quaternion.setFromRotationMatrix(
         new THREE.Matrix4().makeBasis(right, up, faceAxis));
@@ -320,24 +321,32 @@ function initScene() {
       headForm.add(new THREE.Mesh(lathe, skinMat()));
     };
 
-    // calibration: initial values from the model's raw anatomical
-    // landmarks (face = +y, width = x), fine-tuned live with the
-    // head-calibration panel (persisted in localStorage, exportable
-    // as hyperparameters)
+    // calibration: rotation sliders are WORLD-AXIS extrinsic rotations
+    // applied on top of the face-forward seed (model +y -> local +z),
+    // so at the default view: 俯仰 = screen-horizontal axis,
+    // 偏航 = vertical axis, 翻滚 = view axis. Persisted in localStorage,
+    // exportable as hyperparameters.
     const CALIB_DEFAULTS = {
       scale: 1.0,           // x model units -> um, refined at load
-      rotX: 90, rotY: 0, rotZ: 0,      // deg; +90 brings face +y -> +z
+      rotX: 0, rotY: 0, rotZ: 0,       // deg, world axes (see above)
       offF: 0, offU: 0, offR: 0,       // mm along face / up / right
     };
     let calib = { ...CALIB_DEFAULTS,
-      ...(JSON.parse(localStorage.getItem("headFormCalib") || "{}")) };
+      ...(JSON.parse(localStorage.getItem("headFormCalib_v2") || "{}")) };
+    const qSeed = new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(1, 0, 0), Math.PI / 2);
 
     const applyCalib = (wrap, off, s0) => {
       const s = calib.scale * s0;
       wrap.scale.setScalar(s);
-      wrap.rotation.set(THREE.MathUtils.degToRad(calib.rotX),
-                        THREE.MathUtils.degToRad(calib.rotY),
-                        THREE.MathUtils.degToRad(calib.rotZ));
+      const d = THREE.MathUtils.degToRad;
+      const qx = new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0), d(calib.rotX));
+      const qy = new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 1, 0), d(calib.rotY));
+      const qz = new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1), d(calib.rotZ));
+      wrap.quaternion.copy(qz).multiply(qx).multiply(qy).multiply(qSeed);
       const mm = 1000;
       off.position.copy(
         faceAxis.clone().multiplyScalar(calib.offF * mm)
@@ -365,6 +374,29 @@ function initScene() {
   }
   scene.add(headForm);
 
+  // 6-direction camera snap (head-relative: front/back/left/right/
+  // top/bottom of the head form) + default 3/4 view
+  window.snapHeadView = dir => {
+    const R = R_SCALP_UM;
+    const dirs = {
+      front: [0, 0, 1], back: [0, 0, -1], left: [-1, 0, 0],
+      right: [1, 0, 0], top: [0, 1, 0], bottom: [0, -1, 0],
+      iso: null };
+    let p;
+    if (dir === "iso") {
+      const f = new THREE.Vector3(...(DATA.meta.scalp.elec_dir || [1, 0, 0]))
+          .normalize();
+      p = f.multiplyScalar(2.1 * R).add(new THREE.Vector3(0, 0.8 * R, 0));
+    } else {
+      p = new THREE.Vector3(...dirs[dir]).multiplyScalar(2.0 * R)
+          .applyQuaternion(headForm.quaternion);
+    }
+    camera.position.copy(p);
+    camera.lookAt(0, 0, 0);
+    controls.target.set(0, 0, 0);
+    controls.update();
+  };
+
   // ---- head-form calibration panel (sliders; values persist in
   // localStorage and can be exported as a JSON hyperparameter snippet)
   function buildHeadPanel() {
@@ -377,13 +409,16 @@ function initScene() {
         "padding:8px 10px;font-size:12px;line-height:1.5;z-index:5";
     const rows = [
       ["scale", "缩放", 0.5, 2.0, 0.01],
-      ["rotX", "旋转X", -180, 180, 1],
-      ["rotY", "旋转Y", -180, 180, 1],
-      ["rotZ", "旋转Z", -180, 180, 1],
+      ["rotX", "俯仰（横轴）", -180, 180, 1],
+      ["rotY", "偏航（竖轴）", -180, 180, 1],
+      ["rotZ", "翻滚（视线轴）", -180, 180, 1],
       ["offF", "平移·面轴 mm", -100, 100, 1],
       ["offU", "平移·上轴 mm", -100, 100, 1],
       ["offR", "平移·右轴 mm", -100, 100, 1],
     ];
+    const views = [["front", "正面"], ["back", "背面"], ["left", "左侧"],
+                   ["right", "右侧"], ["top", "头顶"], ["bottom", "下巴"],
+                   ["iso", "复位"]];
     div.innerHTML = "<b>人头校准</b> <span style='color:#64788c'>" +
         "(值自动保存，导出后填入超参数)</span><br>" + rows.map(
       ([k, label, lo, hi, st]) =>
@@ -392,21 +427,29 @@ function initScene() {
                 value="${c.calib[k]}" data-k="${k}"
                 style="width:150px;vertical-align:middle">
          <span data-v="${k}">${c.calib[k]}</span></label>`).join("") +
+      "<div style='margin-top:4px'>视角：" + views.map(
+        ([v, label]) => `<button data-view="${v}"
+         style="padding:2px 6px;font-size:11px">${label}</button>`).join("") +
+      "</div>" +
       `<button id="hcal-reset" style="margin-top:4px">重置</button>
        <button id="hcal-copy">复制JSON</button>
        <button id="hcal-close">收起</button>`;
     document.getElementById("scene-wrap").appendChild(div);
     const apply = () => c.applyCalib(c.wrap, c.off, c.s0);
+    div.addEventListener("click", e => {
+      const v = e.target.dataset && e.target.dataset.view;
+      if (v) snapHeadView(v);
+    });
     div.addEventListener("input", e => {
       const k = e.target.dataset && e.target.dataset.k;
       if (!k) return;
       c.calib[k] = +e.target.value;
       div.querySelector(`[data-v="${k}"]`).textContent = c.calib[k];
       apply();
-      localStorage.setItem("headFormCalib", JSON.stringify(c.calib));
+      localStorage.setItem("headFormCalib_v2", JSON.stringify(c.calib));
     });
     div.querySelector("#hcal-reset").onclick = () => {
-      localStorage.removeItem("headFormCalib");
+      localStorage.removeItem("headFormCalib_v2");
       location.reload();
     };
     div.querySelector("#hcal-copy").onclick = async () => {
