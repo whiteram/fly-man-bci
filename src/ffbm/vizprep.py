@@ -11,8 +11,10 @@ from __future__ import annotations
 import numpy as np
 
 from .params import bg_defaults as _params_bg
+from .params import elec_defaults as _params_elec
 
 BG_DEFAULTS = _params_bg()
+ELEC_DEFAULTS = _params_elec()
 
 
 def scalp_electrode_dirs(n_elec: int, anchor: np.ndarray) -> np.ndarray:
@@ -31,6 +33,44 @@ def scalp_electrode_dirs(n_elec: int, anchor: np.ndarray) -> np.ndarray:
     fib = np.delete(fib, int(np.argmax(fib @ anchor)), axis=0)
     dirs = np.vstack([anchor[None, :], fib])
     ang = np.degrees(np.arccos(np.clip(dirs @ anchor, -1, 1)))
+    return dirs[np.argsort(ang, kind="stable")]
+
+
+def scalp_electrode_dirs_capped(n_elec: int, face_axis: np.ndarray,
+                                neck_axis: np.ndarray | None = None,
+                                face_excl_deg: float | None = None,
+                                neck_excl_deg: float | None = None
+                                ) -> np.ndarray:
+    """Quasi-uniform scalp electrode directions on the CAP region only.
+
+    Candidates come from a long Fibonacci stream; directions inside the
+    FACE cone (angle to face_axis < face_excl_deg) or the NECK cone
+    (angle to neck_axis < neck_excl_deg) are rejected -- nothing lands
+    on the eyes/mouth or below the ears. Rows sorted by angle from the
+    face axis (row 0 = most frontal allowed electrode). Defaults come
+    from the params registry (head_model.elec_*_excl_deg)."""
+    p = ELEC_DEFAULTS
+    if face_excl_deg is None:
+        face_excl_deg = p["face_excl_deg"]
+    if neck_excl_deg is None:
+        neck_excl_deg = p["neck_excl_deg"]
+    face = np.asarray(face_axis, dtype=np.float64)
+    neck = (None if neck_axis is None
+            else np.asarray(neck_axis, dtype=np.float64))
+    n_cand = max(600, 60 * n_elec)
+    i = np.arange(n_cand) + 0.5
+    az = np.pi * (1.0 + 5.0 ** 0.5) * i
+    z = 1.0 - 2.0 * i / n_cand
+    r = np.sqrt(np.maximum(0.0, 1.0 - z * z))
+    cand = np.stack([r * np.cos(az), r * np.sin(az), z], axis=1)
+    ok = np.degrees(np.arccos(np.clip(cand @ face, -1, 1))) >= face_excl_deg
+    if neck is not None:
+        ok &= (np.degrees(np.arccos(np.clip(cand @ neck, -1, 1)))
+               >= neck_excl_deg)
+    dirs = cand[ok][:n_elec]
+    if len(dirs) < n_elec:
+        raise ValueError("exclusion cones too wide for the electrode count")
+    ang = np.degrees(np.arccos(np.clip(dirs @ face, -1, 1)))
     return dirs[np.argsort(ang, kind="stable")]
 
 

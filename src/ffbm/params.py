@@ -173,6 +173,13 @@ SECTIONS: dict = {
         "occipital_margin_frac": (0.98, "of r_brain", "chosen",
                                   "安全边距（实际余量 1.5 mm）"),
         "n_elec": (17, "count", "chosen", "头皮电极数（10-20 系统量级）"),
+        "elec_face_excl_deg": (38.0, "deg", "chosen",
+                               "电极面孔排除锥（相对面轴的最小角；排除眼/鼻/嘴，"
+                               "保留额极 Fpz 一带的帽区——55° 会把额区最佳电极"
+                               "也排除掉，d'=2 试验数从 ~128 涨到 ~3784）"),
+        "elec_neck_excl_deg": (40.0, "deg", "chosen",
+                               "电极颈部排除锥（相对颈轴的最小角；电极不落在"
+                               "耳下颈部）"),
         "kernel_n_terms": (60, "terms", "numerical",
                            "勒让德截断；网络深度处误差 2.5e-10"),
         "_note_deferred": "**DEFERRED（当前最大不确定项）**：回流电流几何——"
@@ -301,6 +308,12 @@ def bg_defaults() -> dict:
             "sensor_uv": b["sensor_uv"][0],
             "envelope_period_ms": b["envelope_period_ms"][0],
             "seed": 2026}
+
+
+def elec_defaults() -> dict:
+    h = SECTIONS["head_model"]
+    return {"face_excl_deg": h["elec_face_excl_deg"][0],
+            "neck_excl_deg": h["elec_neck_excl_deg"][0]}
 
 
 _STATUS_ZH = {"dataset": "数据集", "literature": "文献", "calibrated": "校准",

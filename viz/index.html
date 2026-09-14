@@ -105,6 +105,7 @@
 
 <script src="vendor/three.min.js"></script>
 <script src="vendor/OrbitControls.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
 <script>
 const RATE_ROWS = [
   { key: "R",   label: "R1-R6",  color: "#a855f7" },
@@ -133,6 +134,7 @@ function scalpScale() {
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
 let netGroup, humanHead, eyeDirVec, shellMeshes = [], scalpElecMeshes = [];
 let connMeshes = [];
+let headForm = null;
 let stimLight, scene;
 let scalpTopo = null, topoWeights = null, NET_SCALE = 400;
 
@@ -213,7 +215,7 @@ function initScene() {
       new THREE.Float32BufferAttribute(arr.flat(), 3));
     const mesh = new THREE.LineSegments(geo,
       new THREE.LineBasicMaterial({color: connColors[key],
-                                   transparent: true, opacity: 0.15}));
+                                   transparent: true, opacity: 0.05}));
     netGroup.add(mesh);
     connMeshes.push({mesh, ends: [cenLayerIdx, vncLayerIdx]});
   }
@@ -258,6 +260,165 @@ function initScene() {
     humanHead.add(mesh);
     shellMeshes.push(mesh);
   });
+
+  // ghost human head form (fly-man narrative): the open-source
+  // LeePerrySmith head scan (Lee Perry-Smith / Infinite-Realities,
+  // CC-BY via three.js examples) rendered as a fresnel ghost, oriented
+  // face -> elec_dir, neck -> neck_dir so the VNC cord sits inside a
+  // real neck. Procedural fallback if the model fails to load.
+  // Local frame: +z = face, +y = up, model loads Y-up facing +z.
+  headForm = new THREE.Group();
+  {
+    const faceAxis = new THREE.Vector3(
+        ...(DATA.meta.scalp.elec_dir || [1, 0, 0])).normalize();
+    const down = new THREE.Vector3(
+        ...(DATA.meta.scalp.neck_dir || [0, -1, 0])).normalize();
+    const up = down.clone().multiplyScalar(-1);
+    up.addScaledVector(faceAxis, -up.dot(faceAxis)).normalize();
+    const right = new THREE.Vector3().crossVectors(up, faceAxis).normalize();
+    headForm.quaternion.setFromRotationMatrix(
+        new THREE.Matrix4().makeBasis(right, up, faceAxis));
+
+    const R = R_SCALP_UM;
+    const skinMat = () => new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(0xf0b98a) },
+                  uPower: { value: 3.0 }, uStrength: { value: 0.30 } },
+      vertexShader: rimVert, fragmentShader: rimFrag,
+      transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending });
+
+    const buildProceduralFallback = () => {
+      const geo = new THREE.SphereGeometry(1, 128, 96);
+      const pa = geo.attributes.position;
+      const bump = (x, y, z, cx, cy, cz, sx, sy, sz, amp) =>
+        amp * Math.exp(-0.5 * (((x - cx) / sx) ** 2 + ((y - cy) / sy) ** 2
+                               + ((z - cz) / sz) ** 2));
+      for (let i = 0; i < pa.count; i++) {
+        const x = pa.getX(i), y = pa.getY(i), z = pa.getZ(i);
+        let r = 1.0;
+        r += bump(x, y, z,  0.00, -0.08, 0.99, 0.32, 0.42, 0.35, 0.065);
+        r += bump(x, y, z,  0.00,  0.17, 0.90, 0.90, 0.22, 0.45, 0.028);
+        r += bump(x, y, z, -0.33,  0.07, 0.94, 0.30, 0.22, 0.30, -0.035);
+        r += bump(x, y, z,  0.33,  0.07, 0.94, 0.30, 0.22, 0.30, -0.035);
+        r += bump(x, y, z,  0.00, -0.30, 0.95, 0.42, 0.16, 0.30, 0.012);
+        r += bump(x, y, z,  0.00, -0.48, 0.82, 0.45, 0.30, 0.40, 0.025);
+        r += bump(x, y, z, -0.99,  0.02, 0.05, 0.16, 0.30, 0.30, 0.045);
+        r += bump(x, y, z,  0.99,  0.02, 0.05, 0.16, 0.30, 0.30, 0.045);
+        if (y < -0.25) {
+          const t = Math.min(1, (-0.25 - y) / 0.6);
+          r -= 0.05 * t * t;
+        }
+        pa.setXYZ(i, x * r * R * 1.005, y * r * R * 1.005, z * r * R * 1.005);
+      }
+      geo.computeVertexNormals();
+      headForm.add(new THREE.Mesh(geo, skinMat()));
+      const prof = [[0.40, -0.55], [0.385, -0.95], [0.375, -1.25],
+                    [0.40, -1.50], [0.52, -1.66], [0.78, -1.80]]
+        .map(([rad, h]) => new THREE.Vector2(rad * R, h * R));
+      const lathe = new THREE.LatheGeometry(prof, 48);
+      lathe.computeVertexNormals();
+      headForm.add(new THREE.Mesh(lathe, skinMat()));
+    };
+
+    // calibration: initial values from the model's raw anatomical
+    // landmarks (face = +y, width = x), fine-tuned live with the
+    // head-calibration panel (persisted in localStorage, exportable
+    // as hyperparameters)
+    const CALIB_DEFAULTS = {
+      scale: 1.0,           // x model units -> um, refined at load
+      rotX: 90, rotY: 0, rotZ: 0,      // deg; +90 brings face +y -> +z
+      offF: 0, offU: 0, offR: 0,       // mm along face / up / right
+    };
+    let calib = { ...CALIB_DEFAULTS,
+      ...(JSON.parse(localStorage.getItem("headFormCalib") || "{}")) };
+
+    const applyCalib = (wrap, off, s0) => {
+      const s = calib.scale * s0;
+      wrap.scale.setScalar(s);
+      wrap.rotation.set(THREE.MathUtils.degToRad(calib.rotX),
+                        THREE.MathUtils.degToRad(calib.rotY),
+                        THREE.MathUtils.degToRad(calib.rotZ));
+      const mm = 1000;
+      off.position.copy(
+        faceAxis.clone().multiplyScalar(calib.offF * mm)
+        .add(up.clone().multiplyScalar(calib.offU * mm))
+        .add(right.clone().multiplyScalar(calib.offR * mm)));
+    };
+
+    new THREE.GLTFLoader().load("models/LeePerrySmith.glb", gltf => {
+      const obj = gltf.scene.children[0] || gltf.scene;
+      obj.traverse(o => { if (o.isMesh) o.material = skinMat(); });
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = new THREE.Vector3(); box.getSize(size);
+      // data-driven scale seed: model width (x) spans the brain-sphere
+      // diameter by default; the panel refines from here
+      const s0 = 2 * 0.78e5 / size.x;
+      const wrap = new THREE.Group();
+      wrap.add(obj);
+      const off = new THREE.Group();
+      off.add(wrap);
+      headForm.add(off);
+      applyCalib(wrap, off, s0);
+      window.__headCalib = { wrap, off, s0, calib, applyCalib };
+      buildHeadPanel();
+    }, undefined, () => { buildProceduralFallback(); });
+  }
+  scene.add(headForm);
+
+  // ---- head-form calibration panel (sliders; values persist in
+  // localStorage and can be exported as a JSON hyperparameter snippet)
+  function buildHeadPanel() {
+    if (document.getElementById("headpanel")) return;
+    const c = window.__headCalib;
+    const div = document.createElement("div");
+    div.id = "headpanel";
+    div.style.cssText = "position:absolute;bottom:34px;left:10px;" +
+        "background:#0d131ccc;border:1px solid #1c2733;border-radius:6px;" +
+        "padding:8px 10px;font-size:12px;line-height:1.5;z-index:5";
+    const rows = [
+      ["scale", "缩放", 0.5, 2.0, 0.01],
+      ["rotX", "旋转X", -180, 180, 1],
+      ["rotY", "旋转Y", -180, 180, 1],
+      ["rotZ", "旋转Z", -180, 180, 1],
+      ["offF", "平移·面轴 mm", -100, 100, 1],
+      ["offU", "平移·上轴 mm", -100, 100, 1],
+      ["offR", "平移·右轴 mm", -100, 100, 1],
+    ];
+    div.innerHTML = "<b>人头校准</b> <span style='color:#64788c'>" +
+        "(值自动保存，导出后填入超参数)</span><br>" + rows.map(
+      ([k, label, lo, hi, st]) =>
+        `<label style="display:block">${label}
+         <input type="range" min="${lo}" max="${hi}" step="${st}"
+                value="${c.calib[k]}" data-k="${k}"
+                style="width:150px;vertical-align:middle">
+         <span data-v="${k}">${c.calib[k]}</span></label>`).join("") +
+      `<button id="hcal-reset" style="margin-top:4px">重置</button>
+       <button id="hcal-copy">复制JSON</button>
+       <button id="hcal-close">收起</button>`;
+    document.getElementById("scene-wrap").appendChild(div);
+    const apply = () => c.applyCalib(c.wrap, c.off, c.s0);
+    div.addEventListener("input", e => {
+      const k = e.target.dataset && e.target.dataset.k;
+      if (!k) return;
+      c.calib[k] = +e.target.value;
+      div.querySelector(`[data-v="${k}"]`).textContent = c.calib[k];
+      apply();
+      localStorage.setItem("headFormCalib", JSON.stringify(c.calib));
+    });
+    div.querySelector("#hcal-reset").onclick = () => {
+      localStorage.removeItem("headFormCalib");
+      location.reload();
+    };
+    div.querySelector("#hcal-copy").onclick = async () => {
+      await navigator.clipboard.writeText(
+          JSON.stringify(c.calib, null, 1));
+      div.querySelector("#hcal-copy").textContent = "已复制!";
+      setTimeout(() =>
+        div.querySelector("#hcal-copy").textContent = "复制JSON", 1200);
+    };
+    div.querySelector("#hcal-close").onclick = () => div.remove();
+    apply();
+  }
 
   // scalp electrode array: channel 0 (magenta) on the eye axis, the rest
   // quasi-uniform over the sphere
@@ -514,9 +675,8 @@ function drawScalpMap(i) {
   ctx.fillStyle = "#8aa0b4"; ctx.textAlign = "right";
   for (let e = 0; e < nE; e += 2) {
     const y = padT + (e + 0.5) / nE * plotH + 3 * dpr;
-    ctx.fillText(e === 0 ? "0° 眼轴"
-                 : (scalpDeg[e] != null ? Math.round(scalpDeg[e]) + "°" : "E" + e),
-                 padL - 5 * dpr, y);
+    ctx.fillText(scalpDeg[e] != null ? Math.round(scalpDeg[e]) + "°"
+                 : "E" + e, padL - 5 * dpr, y);
   }
   ctx.textAlign = "left";
   // colorbar
@@ -637,6 +797,8 @@ function buildLayerBox() {
      <span class="dot" style="background:linear-gradient(90deg,#a78bfa 33%,#34d399 33%,#34d399 66%,#fb923c 66%)"></span>连接采样</label>`,
     `<label><input type="checkbox" checked data-extra="elecs">
      <span class="dot" style="background:#f0abfc"></span>头皮电极</label>`,
+    `<label><input type="checkbox" checked data-extra="headform">
+     <span class="dot" style="background:#f0b98a"></span>人头形态</label>`,
     `<label><input type="checkbox" checked data-extra="topo">
      <span class="dot" style="background:linear-gradient(90deg,#60a5fa 50%,#f87171 50%)"></span>头皮电位着色</label>`,
     `<label><input type="checkbox" checked data-extra="shell0">
@@ -658,6 +820,8 @@ function buildLayerBox() {
       flowMeshes.forEach(m => m.visible = t.checked);
     else if (t.dataset.extra === "elecs")
       scalpElecMeshes.forEach(m => m.visible = t.checked);
+    else if (t.dataset.extra === "headform")
+      headForm.visible = t.checked;
     else if (t.dataset.extra === "topo") {
       scalpTopo.visible = t.checked;
       if (scalpTopo.userData.rim)

@@ -216,7 +216,21 @@ def main():
                     for name, (pr, po) in {**group_pairs,
                                            "PHOTO": photo_pair}.items()}
 
-    scalp_dirs = vp.scalp_electrode_dirs(N_SCALP_ELEC, u_anchor)
+    # neck axis (VNC direction) for the page's head form and the
+    # electrode neck-exclusion cone
+    extra_pops = circuit.get("extra_pops") or {}
+    if "VNC" in extra_pops:
+        vnc_pos = np.array([pp[b] for b in extra_pops["VNC"]["ids"]])
+        neck_dir = vnc_pos.mean(axis=0) - center
+        neck_dir = neck_dir / np.linalg.norm(neck_dir)
+    else:
+        neck_dir = None
+
+    # electrode array on the CAP region only: face and neck cones
+    # excluded (params head_model.elec_*_excl_deg); rows sorted by
+    # angle from the face axis
+    scalp_dirs = vp.scalp_electrode_dirs_capped(
+        N_SCALP_ELEC, u_anchor, neck_dir)
     scalp_ang = np.degrees(np.arccos(np.clip(scalp_dirs @ u_anchor, -1, 1)))
     coef_scalp = {name: [] for name in
                   list(group_pairs) + ["PHOTO"]}
@@ -435,6 +449,8 @@ def main():
                       "n_elec": N_SCALP_ELEC,
                       "elec_dist_um": 0.985 * 9.2e4,
                       "elec_dir": [round(float(x), 4) for x in u_anchor],
+                      "neck_dir": (None if neck_dir is None else
+                                   [round(float(x), 4) for x in neck_dir]),
                       "elec_dirs": [[round(float(x), 4) for x in d]
                                     for d in scalp_dirs],
                       "elec_deg": [round(float(a), 1)

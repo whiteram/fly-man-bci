@@ -5,7 +5,24 @@ import numpy as np
 
 from ffbm.vizprep import (fit_scale_shift, generate_background_eeg,
                           occipital_shift, scalp_electrode_dirs,
-                          snr_metrics)
+                          scalp_electrode_dirs_capped, snr_metrics)
+
+
+def test_electrode_dirs_capped_excludes_face_and_neck():
+    from ffbm.vizprep import ELEC_DEFAULTS
+    face = np.array([0.0, 0.0, 1.0])
+    neck = np.array([0.0, -1.0, 0.0])
+    d = scalp_electrode_dirs_capped(17, face, neck)
+    assert d.shape == (17, 3)
+    assert np.allclose(np.linalg.norm(d, axis=1), 1.0)
+    ang_face = np.degrees(np.arccos(np.clip(d @ face, -1, 1)))
+    ang_neck = np.degrees(np.arccos(np.clip(d @ neck, -1, 1)))
+    assert ang_face.min() >= ELEC_DEFAULTS["face_excl_deg"] - 1e-9
+    assert ang_neck.min() >= ELEC_DEFAULTS["neck_excl_deg"] - 1e-9
+    assert np.all(np.diff(ang_face) >= -1e-9)     # sorted frontal -> back
+    dd = d @ d.T
+    np.fill_diagonal(dd, -2)
+    assert dd.max() < 0.99
 
 
 def test_electrode_dirs_layout():
