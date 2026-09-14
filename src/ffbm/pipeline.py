@@ -21,7 +21,8 @@ from __future__ import annotations
 import numpy as np
 
 from .params import cal as _params_cal
-from .simulation import ColoredCurrentNoise, ExponentialSynapses, LIFPopulation
+from .simulation import (ColoredCurrentNoise, ExponentialSynapses,
+                        GradedSynapsePool, LIFPopulation)
 
 DT_MS = 0.5
 
@@ -57,8 +58,20 @@ def _indices(ids):
     return idx
 
 
+def _release(v, rmap):
+    lo, hi = rmap
+    return np.clip((v - lo) / (hi - lo), 0.0, 1.0)
+
+
 def build_stack(circuit, cal, rng):
-    """Synapses / populations / noises / bases for one trial."""
+    """Synapses / populations / noises / bases for one trial.
+
+    cal["LAMINA_MECHANISTIC"] switches the lamina to the exp013 real
+    biophysics: graded R1-6 (release rate from membrane potential) ->
+    histamine-gated Cl conductance on graded L1/L2 (E_cl = -70 mV,
+    depolarized leak v_K = -25 mV; I_L_BASE hack unused) -> graded
+    release onto Mi/Tm with dataset signs. The legacy branch keeps the
+    exp009 current-based proxy for regression."""
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids, l_ids = circuit["r_ids"], circuit["l_ids"]
     mid_ids, t45_ids = circuit["mid_ids"], circuit["t45_ids"]
@@ -68,10 +81,9 @@ def build_stack(circuit, cal, rng):
                                      _indices(t45_ids))
 
     e_rl = circuit["e_rl"].copy()
-    e_rl["weight"] = e_rl["weight"] * e_rl["sign"]
     e_lm = circuit["e_lm"].copy()
-    e_lm["weight"] = e_lm["weight"] * e_lm["sign"]
     e_mt = circuit["e_mt"]
+    mech = bool(cal.get("LAMINA_MECHANISTIC"))
 
     def edges(e_sub):
         return (e_sub["body_pre"].to_numpy(np.int64),
@@ -86,13 +98,38 @@ def build_stack(circuit, cal, rng):
                               cal["DELAY_JITTER_MS"], len(d)))
 
     syn = {}
-    for name, e_sub, tgt, n_t, gain, tau in (
-            ("RL", e_rl, l_index, n_l, cal["GAIN_RL"], cal["TAU_RL"]),
-            ("LM", e_lm, mid_index, n_mid, cal["GAIN_LM"], cal["TAU_LM"])):
-        syn[name] = ExponentialSynapses(
-            *edges(e_sub), e_sub["weight"].to_numpy(np.float32), tgt,
-            dt=DT_MS, gain=gain, tau_s=tau, n_post=n_t,
-            delay_ms=delays(e_sub))
+    if mech:
+        # graded pools take PRE-SORTED inputs in the kernel edge order;
+        # pre arrays are ROW indices (rows are monotone in body id, so
+        # the pool's internal lexsort is the identity and pool.y stays
+        # aligned with the per-edge forward kernels).
+        r_row = {int(b): i for i, b in enumerate(r_ids.tolist())}
+        l_row = {int(b): i for i, b in enumerate(l_ids.tolist())}
+        pre_rl, post_rl = edges(e_rl)
+        syn["RL"] = GradedSynapsePool(
+            np.array([r_row[int(b)] for b in pre_rl]), post_rl,
+            e_rl["weight"].to_numpy(np.float32), l_index, dt=DT_MS,
+            tau_s=cal["TAU_RL"], n_post=n_l,
+            g_unit=cal["G_UNIT_HIST_NS"], e_rev=cal["E_CL_MV"])
+        pre_lm, post_lm = edges(e_lm)
+        syn["LM"] = GradedSynapsePool(
+            np.array([l_row[int(b)] for b in pre_lm]), post_lm,
+            e_lm["weight"].to_numpy(np.float32), mid_index, dt=DT_MS,
+            tau_s=cal["TAU_LM"], n_post=n_mid,
+            g_unit=cal["G_UNIT_LM_NS"], e_rev=cal["E_REV_EXC"],
+            sign=e_lm["sign"].to_numpy(np.float32),
+            e_rev_inh=cal["E_REV_INH"])
+    else:
+        e_rl["weight"] = e_rl["weight"] * e_rl["sign"]
+        e_lm["weight"] = e_lm["weight"] * e_lm["sign"]
+        for name, e_sub, tgt, n_t, gain, tau in (
+                ("RL", e_rl, l_index, n_l, cal["GAIN_RL"], cal["TAU_RL"]),
+                ("LM", e_lm, mid_index, n_mid, cal["GAIN_LM"],
+                 cal["TAU_LM"])):
+            syn[name] = ExponentialSynapses(
+                *edges(e_sub), e_sub["weight"].to_numpy(np.float32), tgt,
+                dt=DT_MS, gain=gain, tau_s=tau, n_post=n_t,
+                delay_ms=delays(e_sub))
     for mt in cal["MID_TAU_S"]:
         e_sub = e_mt[mt]
         syn[f"MT_{mt}"] = ExponentialSynapses(
@@ -103,30 +140,41 @@ def build_stack(circuit, cal, rng):
             g_unit=cal["G_UNIT_MT"], e_rev_exc=cal["E_REV_EXC"],
             e_rev_inh=cal["E_REV_INH"])
 
-    pops = {name: LIFPopulation(n, DT_MS, tau_m=tm, t_refrac=tr,
-                                R_m=cal["RIN_GOHM"])
-            for name, (n, (tm, tr)) in {
-                "R": (n_r, cal["LIF"]["R"]), "L": (n_l, cal["LIF"]["L"]),
-                "MID": (n_mid, cal["LIF"]["MID"]),
-                "T45": (n_t45, cal["LIF"]["T45"])}.items()}
+    pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
+                               t_refrac=(1e9 if mech
+                                         else cal["LIF"]["R"][1]),
+                               R_m=cal["RIN_GOHM"], v_th=(1e9 if mech
+                                                          else -50.0)),
+            "L": LIFPopulation(n_l, DT_MS, tau_m=cal["LIF"]["L"][0],
+                               t_refrac=1e9, R_m=cal["RIN_GOHM"],
+                               v_th=1e9,
+                               v_rest=(cal["V_K_LMC_MV"] if mech
+                                       else -70.0)),
+            "MID": LIFPopulation(n_mid, DT_MS, tau_m=cal["LIF"]["MID"][0],
+                                 t_refrac=cal["LIF"]["MID"][1],
+                                 R_m=cal["RIN_GOHM"]),
+            "T45": LIFPopulation(n_t45, DT_MS, tau_m=cal["LIF"]["T45"][0],
+                                 t_refrac=cal["LIF"]["T45"][1],
+                                 R_m=cal["RIN_GOHM"])}
     noises = {k: ColoredCurrentNoise(n, DT_MS, rng, tau_n=cal["OU_TAU_MS"],
                                      sigma=cal["OU"][k])
               for k, n in (("R", n_r), ("L", n_l), ("MID", n_mid),
                            ("T45", n_t45))}
     t45_type = circuit["t45_type"]
-    is_t4 = np.array([str(s).startswith("T4") for s in t45_type])
-    is_t5 = np.array([str(s).startswith("T5") for s in t45_type])
+    is_t4 = np.array([str(x).startswith("T4") for x in t45_type])
+    is_t5 = np.array([str(x).startswith("T5") for x in t45_type])
     t45_base = np.zeros(n_t45)
     t45_base[is_t4] = cal["I_T4_BASE"]
-    return {"syn": syn, "pops": pops, "noises": noises,
+    return {"syn": syn, "pops": pops, "noises": noises, "mech": mech,
             "r_ids": r_ids, "l_ids": l_ids, "mid_ids": mid_ids,
             "n_r": n_r, "n_l": n_l, "n_mid": n_mid, "n_t45": n_t45,
             "is_t4": is_t4, "is_t5": is_t5, "l_index": l_index,
             "mid_index": mid_index, "t45_index": t45_index,
-            "l_base": np.full(n_l, cal["I_L_BASE"]),
+            "l_base": (np.zeros(n_l) if mech
+                       else np.full(n_l, cal["I_L_BASE"])),
             "mid_base": np.full(n_mid, cal["I_MID_BASE"]),
             "t45_base": t45_base,
-            "cal": cal}
+            "r_release": _release, "l_release": _release, "cal": cal}
 
 
 def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
@@ -146,13 +194,27 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
     for k in range(n_steps):
         t = k * DT_MS
         inc_f = photo.step(lum_inc_fn(t))
-        sp_r = pops["R"].step(cal["I_R_BASE"] + inc_f + noises["R"].step())
-        sp_l = pops["L"].step(st["l_base"]
-                              + syn["RL"].to_neuron_current()
-                              + noises["L"].step())
-        sp_mid = pops["MID"].step(st["mid_base"]
-                                  + syn["LM"].to_neuron_current()
-                                  + noises["MID"].step())
+        if st["mech"]:
+            sp_r = pops["R"].step(cal["I_R_BASE"] + inc_f
+                                  + noises["R"].step())
+            r_rl = st["r_release"](pops["R"].v, cal["R_RELEASE_MAP_MV"])
+            syn["RL"].step(r_rl)
+            di_l, dg_l = syn["RL"].to_neuron_drive()
+            sp_l = pops["L"].step(di_l + noises["L"].step(), dg_l)
+            r_lm = st["l_release"](pops["L"].v, cal["L_RELEASE_MAP_MV"])
+            syn["LM"].step(r_lm)
+            di_m, dg_m = syn["LM"].to_neuron_drive()
+            sp_mid = pops["MID"].step(st["mid_base"] + di_m
+                                      + noises["MID"].step(), dg_m)
+        else:
+            sp_r = pops["R"].step(cal["I_R_BASE"] + inc_f
+                                  + noises["R"].step())
+            sp_l = pops["L"].step(st["l_base"]
+                                  + syn["RL"].to_neuron_current()
+                                  + noises["L"].step())
+            sp_mid = pops["MID"].step(st["mid_base"]
+                                      + syn["LM"].to_neuron_current()
+                                      + noises["MID"].step())
         i_t45 = st["t45_base"] + noises["T45"].step()
         g_t45 = np.zeros(st["n_t45"])
         for mt in cal["MID_TAU_S"]:
@@ -160,8 +222,9 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
             i_t45 += di
             g_t45 += dg
         sp_t45 = pops["T45"].step(i_t45, g_t45)
-        syn["RL"].step(st["r_ids"][sp_r])
-        syn["LM"].step(st["l_ids"][sp_l])
+        if not st["mech"]:
+            syn["RL"].step(st["r_ids"][sp_r])
+            syn["LM"].step(st["l_ids"][sp_l])
         spiked_mid = st["mid_ids"][sp_mid]
         for mt in cal["MID_TAU_S"]:
             syn[f"MT_{mt}"].step(spiked_mid)

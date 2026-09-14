@@ -119,7 +119,9 @@ class GradedSynapsePool:
     def __init__(self, pre: np.ndarray, post: np.ndarray,
                  weight: np.ndarray, post_index: np.ndarray, dt: float,
                  tau_s: float = 5.0, n_post: int | None = None,
-                 g_unit: float = 0.02, e_rev: float = -38.0):
+                 g_unit: float = 0.02, e_rev: float = -38.0,
+                 sign: np.ndarray | None = None,
+                 e_rev_inh: float = -80.0):
         order = np.lexsort((pre, post))
         self.pre_local_of_edge = np.argsort(pre[order], kind="stable")
         # per-edge presynaptic index into the caller's r_pre array
@@ -128,7 +130,14 @@ class GradedSynapsePool:
         self.post_local = post_index[post[order]]
         self.n_edges = len(order)
         self.g_unit = g_unit
-        self.e_rev = float(e_rev)
+        if sign is not None:            # mixed signs -> per-edge E_rev
+            sign_sorted = np.asarray(sign)[order]
+            self.e_rev_edge = np.where(sign_sorted > 0, e_rev,
+                                       e_rev_inh).astype(np.float32)
+            self._mixed = True
+        else:
+            self.e_rev_edge = np.float32(e_rev)
+            self._mixed = False
 
         from scipy.sparse import csr_matrix
         n_post = (n_post if n_post is not None
@@ -150,12 +159,13 @@ class GradedSynapsePool:
 
     def edge_currents(self, v_post: np.ndarray) -> np.ndarray:
         """Per-edge transmembrane current (pA) for the field kernels."""
-        return self.g_unit * self.y * (self.e_rev - v_post[self.post_local])
+        return self.g_unit * self.y * (self.e_rev_edge
+                                       - v_post[self.post_local])
 
     def to_neuron_drive(self) -> tuple[np.ndarray, np.ndarray]:
         """(i_indep, g_tot): I(v) = i_indep - g_tot*v, semi-implicit form."""
         gy = self.g_unit * self.y
-        return (self.csr @ (gy * self.e_rev), self.csr @ gy)
+        return (self.csr @ (gy * self.e_rev_edge), self.csr @ gy)
 
 
 class ExponentialSynapses:

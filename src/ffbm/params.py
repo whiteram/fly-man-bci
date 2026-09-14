@@ -172,6 +172,12 @@ SECTIONS: dict = {
         "g_unit_hist_ns": (0.25, "nS", "calibrated",
                            "每突触单位组胺电导峰值（exp013 二维扫描在"
                            "联合约束内选定；见该实验 outputs）"),
+        "l_release_map_mv": ([-58.0, -30.0], "mV", "calibrated",
+                             "L 输出端释放率映射 v_L→r_L（第 5 轮校准对象）；"
+                             "暗态 L（−38.8mV）释放 ~0.64，亮态（超极化）趋 0"),
+        "g_unit_lm_ns": (0.02, "nS", "calibrated",
+                         "L→Mi/Tm 分级电导（第 5 轮校准；E_rev 按数据集符号 "
+                         "0/−80mV）"),
         "release_map_mv": ([-59.0, -25.0], "mV", "calibrated",
                            "v_R→释放率线性映射 [lo, hi]；暗紧张释放约 0.1–0.2"),
         "_note": "exp013 已验证机制（暗电位/超极化方向/off 瞬变可达）；"
