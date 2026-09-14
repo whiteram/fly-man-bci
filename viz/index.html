@@ -184,25 +184,32 @@ function initScene() {
     flowMeshes.push(mesh);
   });
 
-  // human 4-sphere head: brain / CSF / skull / scalp wireframes,
-  // individually toggleable, with visible shells
+  // human 4-sphere head: each shell = translucent FILL + brighter
+  // wireframe overlay (a 1px 0.1-opacity wireframe alone is effectively
+  // invisible at this scale), individually toggleable
   humanHead = new THREE.Group();
   const meta = DATA.meta.scalp || { radii_um: [8e4, 8.5e4, 9.2e4],
                                     elec_dist_um: 9.06e4 };
   const eDir = new THREE.Vector3(...(meta.elec_dir || [1, 0, 0]));
   const R_SCALP_UM = meta.radii_um[meta.radii_um.length - 1] || 9.2e4;
   const shellNames = ["脑", "脑脊液", "颅骨", "头皮"];
-  const shellColors = [0x94a3b8, 0x38bdf8, 0xcbd5e1, 0xe879f9];
-  const shellOpacity = [0.10, 0.12, 0.10, 0.12];
+  const shellColors = [0x94a3b8, 0x38bdf8, 0xe2e8f0, 0xe879f9];
   meta.radii_um.forEach((rr, i) => {
+    const col = shellColors[i] || 0x94a3b8;
+    const grp = new THREE.Group();
+    const fill = new THREE.Mesh(
+      new THREE.SphereGeometry(rr, 48, 32),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true,
+                                    opacity: 0.035, depthWrite: false,
+                                    side: THREE.DoubleSide }));
     const wire = new THREE.Mesh(
-      new THREE.SphereGeometry(rr, 40, 26),
-      new THREE.MeshBasicMaterial({
-        color: shellColors[i] || 0x94a3b8, wireframe: true,
-        transparent: true, opacity: shellOpacity[i] || 0.1 }));
-    wire.userData.shellName = shellNames[i] || `层${i}`;
-    humanHead.add(wire);
-    shellMeshes.push(wire);
+      new THREE.SphereGeometry(rr * 1.0005, 28, 18),
+      new THREE.MeshBasicMaterial({ color: col, wireframe: true,
+                                    transparent: true, opacity: 0.30 }));
+    grp.add(fill, wire);
+    grp.userData.shellName = shellNames[i] || `层${i}`;
+    humanHead.add(grp);
+    shellMeshes.push(grp);
   });
 
   // scalp electrode array: channel 0 (magenta) on the eye axis, the rest
@@ -211,7 +218,7 @@ function initScene() {
   const eDist = meta.elec_dist_um || 9.06e4;
   eDirs.forEach((d, i) => {
     const s = new THREE.Mesh(
-      new THREE.SphereGeometry(i === 0 ? 1600 : 1000, 12, 8),
+      new THREE.SphereGeometry(i === 0 ? 3000 : 2000, 14, 10),
       new THREE.MeshBasicMaterial({ color: i === 0 ? 0xe879f9 : 0xf0abfc }));
     s.position.set(d[0] * eDist, d[1] * eDist, d[2] * eDist);
     humanHead.add(s);
@@ -564,10 +571,14 @@ function buildLayerBox() {
   const extras = [
     `<label><input type="checkbox" checked data-extra="flow">连接采样</label>`,
     `<label><input type="checkbox" checked data-extra="elecs">头皮电极</label>`,
-    `<label><input type="checkbox" checked data-extra="shell0">脑壳</label>`,
-    `<label><input type="checkbox" checked data-extra="shell1">脑脊液层</label>`,
-    `<label><input type="checkbox" checked data-extra="shell2">颅骨壳</label>`,
-    `<label><input type="checkbox" checked data-extra="shell3">头皮壳</label>`,
+    `<label><input type="checkbox" checked data-extra="shell0">
+     <span class="dot" style="background:#94a3b8"></span>脑壳</label>`,
+    `<label><input type="checkbox" checked data-extra="shell1">
+     <span class="dot" style="background:#38bdf8"></span>脑脊液层</label>`,
+    `<label><input type="checkbox" checked data-extra="shell2">
+     <span class="dot" style="background:#e2e8f0"></span>颅骨壳</label>`,
+    `<label><input type="checkbox" checked data-extra="shell3">
+     <span class="dot" style="background:#e879f9"></span>头皮壳</label>`,
   ];
   box.innerHTML = items.concat(extras).join("<br>");
   box.addEventListener("change", e => {
