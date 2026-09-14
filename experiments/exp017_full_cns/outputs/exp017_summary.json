@@ -1,0 +1,59 @@
+{
+ "working_point": {
+  "g_unit_cx_ns": 0.002,
+  "i_base": {
+   "OLR": 150.0,
+   "CEN": 150.0,
+   "VNC": 120.0
+  }
+ },
+ "regions": [
+  "visual_bilateral",
+  "vpn_central",
+  "ol_rest",
+  "central_brain",
+  "vnc"
+ ],
+ "rates_dark": {
+  "MID": 16.6,
+  "T4": 6.9,
+  "T5": 1.1,
+  "OLR": 1.9,
+  "CEN": 11.4,
+  "VNC": 3.4
+ },
+ "rates_flash": {
+  "MID": 11.3,
+  "T4": 7.0,
+  "T5": 0.8,
+  "OLR": 1.7,
+  "CEN": 11.4,
+  "VNC": 3.4
+ },
+ "amplitude": {
+  "scale_b_full_cns": 202.5,
+  "scale_a_ref_bilateral": 202.0,
+  "elec_deg": [
+   0.0,
+   90.0,
+   147.0
+  ],
+  "phi_flash_std_uv_a_bilateral": [
+   0.02,
+   0.0354,
+   0.0217
+  ],
+  "phi_flash_std_uv_b_full_cns": [
+   0.0406,
+   0.0381,
+   0.0191
+  ],
+  "ratio_full_over_bilateral": [
+   2.032,
+   1.077,
+   0.881
+  ],
+  "note": "VNC groups simulated but excluded from scalp kernels (forward=False); arm A reused from exp016_summary.json (same seeds/machinery)"
+ },
+ "timing_s": 3654.0
+}

@@ -139,8 +139,21 @@ def main():
     group_pairs = {"RL": pairs(e_rl), "LM": pairs(e_lm)}
     for mt in exp005.MID_TYPES:
         group_pairs[f"MT_{mt}"] = pairs(e_mt[mt])
+    # kernel-pair cap for the big extra-region groups: the aggregate is
+    # linear in the per-edge currents, so a stratified subsample only
+    # adds sampling noise (~1/sqrt(n) at n=300k); without the cap the
+    # 17-electrode kernel build alone costs ~4.5 h
+    KERNEL_PAIR_CAP = 300_000
+    rng_k = np.random.default_rng(7)
+    reweight = {name: 1.0 for name in group_pairs}
     for gname, espec in (circuit.get("extra_edges") or {}).items():
-        group_pairs[gname] = pairs(espec["table"])
+        pr, po = pairs(espec["table"])
+        if len(pr) > KERNEL_PAIR_CAP:
+            keep = np.sort(rng_k.choice(len(pr), KERNEL_PAIR_CAP,
+                                        replace=False))
+            reweight[gname] = len(pr) / KERNEL_PAIR_CAP   # unbiased
+            pr, po = pr[keep], po[keep]
+        group_pairs[gname] = (pr, po)
     # rhabdome dipole per R toward its OWN eye (mirror the left eye axis
     # across the midline for the right lobe)
     xhat = np.array([1.0, 0.0, 0.0])
@@ -151,6 +164,8 @@ def main():
 
     ker = {}
     for name, (pr, po) in group_pairs.items():
+        if reweight.get(name, 1.0) != 1.0:
+            continue   # legacy fly-head reference: visual cascade only
         ker[name] = SealedHeadPairField(
             pr, po, electrodes, center=center, r1=r1, r2=1.3 * r1,
             sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
@@ -209,7 +224,8 @@ def main():
                 pr_s, po_s, elec_k[None, :],
                 center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
                 r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
-                sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0])
+                sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0]
+                * reweight.get(name, 1.0))
         print(f"scalp kernel {k + 1}/{N_SCALP_ELEC} "
               f"({_time.time() - _t0:.0f} s)", flush=True)
     coef_scalp = {k: np.vstack(v) for k, v in coef_scalp.items()}
@@ -332,7 +348,8 @@ def main():
         for i in range(3):
             acc = 0.0
             for name in list(group_pairs) + ["PHOTO"]:
-                acc += ker[name].coef[i] @ y_of(name)
+                if name in ker:
+                    acc += ker[name].coef[i] @ y_of(name)
             phi[j, i] = acc * 1e-12
         acc_s = np.zeros(N_SCALP_ELEC)
         for name in list(group_pairs) + ["PHOTO"]:
