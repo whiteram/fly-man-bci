@@ -30,10 +30,16 @@
   #overlay { position: absolute; inset: 0; pointer-events: none;
              background: radial-gradient(circle at 30% 40%, #ffd97a22, transparent 60%);
              opacity: 0; transition: opacity 60ms; }
-  #layerbox { position: absolute; top: 10px; left: 10px; background: #0d131ccc;
+  #layerbox { position: absolute; top: 10px; left: 46px;
+              background: #0d131ccc;
               border: 1px solid #1c2733; border-radius: 6px; padding: 8px 10px;
               font-size: 12px; line-height: 1.9; }
   #layerbox label { cursor: pointer; }
+  .scnbtn { position: absolute; background: #16212ecc; color: #dbe4ee;
+            border: 1px solid #2a3a4d; border-radius: 5px;
+            padding: 3px 8px; font-size: 12px; cursor: pointer;
+            z-index: 6; }
+  .scnbtn:hover { background: #1e2d3d; }
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%;
          margin-right: 6px; vertical-align: middle; }
   #hint { position: absolute; bottom: 8px; left: 10px; font-size: 11px;
@@ -257,6 +263,9 @@ function initScene() {
       }));
     mesh.userData.shellName = shellNames[i] || `层${i}`;
     mesh.renderOrder = i;
+    // scalp shell defaults to hidden: the ghost head form IS the scalp
+    // visual; the mathematical shell is available via the toggle
+    if (i === meta.radii_um.length - 1) mesh.visible = false;
     humanHead.add(mesh);
     shellMeshes.push(mesh);
   });
@@ -395,7 +404,7 @@ function initScene() {
       headForm.add(off);
       applyCalib(wrap, off, s0);
       window.__headCalib = { wrap, off, s0, calib, applyCalib };
-      buildHeadPanel();
+      // panel opens on demand via the "人头校准" scene button
     }, undefined, () => { buildProceduralFallback(); });
   }
   scene.add(headForm);
@@ -887,7 +896,7 @@ function buildLayerBox() {
      <span class="dot" style="background:#38bdf8"></span>脑脊液层</label>`,
     `<label><input type="checkbox" checked data-extra="shell2">
      <span class="dot" style="background:#e2e8f0"></span>颅骨壳</label>`,
-    `<label><input type="checkbox" checked data-extra="shell3">
+    `<label><input type="checkbox" data-extra="shell3">
      <span class="dot" style="background:#f0b98a"></span>头皮壳</label>`,
   ];
   box.innerHTML = items.concat(extras).join("<br>");
@@ -912,6 +921,213 @@ function buildLayerBox() {
   });
 }
 
+// ---------- scene buttons: layerbox collapse + calibration + ----------
+// electrode editing
+function addSceneButtons() {
+  const wrap = document.getElementById("scene-wrap");
+  const mk = (text, title, x, y, fn) => {
+    const b = document.createElement("button");
+    b.className = "scnbtn"; b.textContent = text; b.title = title;
+    b.style.left = x + "px"; b.style.top = y + "px";
+    b.onclick = fn;
+    wrap.appendChild(b);
+    return b;
+  };
+  // collapse/expand the layerbox ("hide to the left")
+  const box = document.getElementById("layerbox");
+  const tgl = mk("⏴", "收起/展开图层面板", 10, 12, () => {
+    const hidden = box.style.display === "none";
+    box.style.display = hidden ? "" : "none";
+    tgl.textContent = hidden ? "⏴" : "⏵";
+  });
+  tgl.style.zIndex = 8;
+  mk("人头校准", "打开人头位置校准面板", 10, 44, () => buildHeadPanel());
+  mk("电极编辑", "进入标准电极位拖拽编辑模式", 10, 76,
+    () => toggleElecEdit());
+}
+
+// ---------- electrode editing: drag named balls on the scalp sphere
+// to mark standard 10-20 positions (Cz Fz A1 A2 Oz ...); export the
+// layout as JSON for the pipeline calibration ----------
+let elecEdit = null;
+
+function makeTextSprite(text) {
+  const cv = document.createElement("canvas");
+  cv.width = 128; cv.height = 64;
+  const ctx = cv.getContext("2d");
+  ctx.font = "bold 40px Microsoft YaHei, sans-serif";
+  ctx.fillStyle = "#ffd166";
+  ctx.strokeStyle = "#0a0e14"; ctx.lineWidth = 6;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.strokeText(text, 64, 32);
+  ctx.fillText(text, 64, 32);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(cv), transparent: true,
+    depthTest: false }));
+  sp.scale.set(9000, 4500, 1);
+  return sp;
+}
+
+function globeRadius() {
+  return (DATA.meta.scalp.radii_um.slice(-1)[0] || 9.2e4) * 1.04;
+}
+
+function addElecBall(name, dirArr) {
+  const R = globeRadius();
+  let d = dirArr ? new THREE.Vector3(...dirArr).normalize() : null;
+  if (!d) {   // default spot: front of the cap, staggered per count
+    const anchor = new THREE.Vector3(
+        ...(DATA.meta.scalp.elec_dir || [1, 0, 0])).normalize();
+    const up = new THREE.Vector3(0, 1, 0);
+    d = anchor.clone().multiplyScalar(Math.cos(0.5))
+        .addScaledVector(up, Math.sin(0.5)).normalize();
+    d.applyAxisAngle(up, 0.5 * elecEdit.balls.length);
+  }
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(3200, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xff5577 }));
+  mesh.position.copy(d).multiplyScalar(R);
+  const label = makeTextSprite(name);
+  label.position.copy(d).multiplyScalar(R + 6500);
+  humanHead.add(mesh); humanHead.add(label);
+  elecEdit.balls.push({ name, mesh, label, dir: d });
+}
+
+function saveElecLayout() {
+  localStorage.setItem("elecLayout", JSON.stringify(
+    elecEdit.balls.map(b => [b.name,
+      [+b.dir.x.toFixed(5), +b.dir.y.toFixed(5), +b.dir.z.toFixed(5)]])));
+}
+
+function buildElecPanel() {
+  if (document.getElementById("elecpanel")) return;
+  const div = document.createElement("div");
+  div.id = "elecpanel";
+  div.style.cssText = "position:absolute;bottom:34px;right:10px;" +
+      "background:#0d131cee;border:1px solid #2a3a4d;border-radius:6px;" +
+      "padding:8px 10px;font-size:12px;line-height:1.7;z-index:7;" +
+      "width:230px";
+  div.innerHTML = "<b>标准电极位编辑</b><br>" +
+      "<span style='color:#8aa0b4'>输入名称（如 Cz/Fz/A1/A2/Oz）添加，" +
+      "然后在球面上拖动红球到标准位置。建议开着“人头形态”层操作。</span><br>" +
+      `<input id="elec-name" placeholder="电极名" ` +
+      `style="width:90px;background:#16212e;color:#dbe4ee;` +
+      `border:1px solid #2a3a4d;border-radius:4px;padding:2px 6px">
+       <button id="elec-add" style="padding:2px 8px">添加</button>
+       <button id="elec-undo" style="padding:2px 8px">撤销</button><br>` +
+      "<span id='elec-count' style='color:#7dd3fc'></span><br>" +
+      "<button id='elec-copy' style='margin-top:4px'>复制JSON</button> " +
+      "<button id='elec-clear'>清空</button> " +
+      "<button id='elec-exit' style='float:right'>退出编辑</button>";
+  document.getElementById("scene-wrap").appendChild(div);
+  const refresh = () => {
+    document.getElementById("elec-count").textContent =
+      `已放置 ${elecEdit.balls.length} 个`;
+  };
+  const add = () => {
+    const inp = document.getElementById("elec-name");
+    const name = (inp.value || "").trim().toUpperCase();
+    if (!name) return;
+    addElecBall(name, null);
+    saveElecLayout(); inp.value = ""; refresh();
+  };
+  div.querySelector("#elec-add").onclick = add;
+  div.querySelector("#elec-name").onkeydown = e => {
+    if (e.key === "Enter") add(); };
+  div.querySelector("#elec-undo").onclick = () => {
+    const b = elecEdit.balls.pop();
+    if (b) { humanHead.remove(b.mesh); humanHead.remove(b.label);
+             saveElecLayout(); refresh(); }
+  };
+  div.querySelector("#elec-clear").onclick = () => {
+    elecEdit.balls.forEach(b => {
+      humanHead.remove(b.mesh); humanHead.remove(b.label); });
+    elecEdit.balls = []; saveElecLayout(); refresh();
+  };
+  div.querySelector("#elec-copy").onclick = async () => {
+    await navigator.clipboard.writeText(JSON.stringify(
+      elecEdit.balls.map(b => [b.name,
+        [+b.dir.x.toFixed(5), +b.dir.y.toFixed(5),
+         +b.dir.z.toFixed(5)]])));
+    div.querySelector("#elec-copy").textContent = "已复制!";
+    setTimeout(() =>
+      div.querySelector("#elec-copy").textContent = "复制JSON", 1200);
+  };
+  div.querySelector("#elec-exit").onclick = () => toggleElecEdit();
+  refresh();
+}
+
+function onElecDown(e) {
+  if (!elecEdit) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1);
+  elecEdit.ray.setFromCamera(ndc, camera);
+  const meshes = elecEdit.balls.map(b => b.mesh);
+  const hit = elecEdit.ray.intersectObjects(meshes)[0];
+  if (hit) {
+    elecEdit.dragging = elecEdit.balls.find(
+      b => b.mesh === hit.object) || null;
+    controls.enabled = false;
+  }
+}
+
+function onElecMove(e) {
+  if (!elecEdit || !elecEdit.dragging) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1);
+  elecEdit.ray.setFromCamera(ndc, camera);
+  const hit = elecEdit.ray.intersectObject(elecEdit.sphere)[0];
+  if (!hit) return;
+  const b = elecEdit.dragging;
+  const R = globeRadius();
+  b.dir.copy(hit.point).normalize();
+  b.mesh.position.copy(b.dir).multiplyScalar(R);
+  b.label.position.copy(b.dir).multiplyScalar(R + 6500);
+}
+
+function onElecUp() {
+  if (!elecEdit) return;
+  elecEdit.dragging = null;
+  controls.enabled = true;
+  saveElecLayout();
+}
+
+function toggleElecEdit() {
+  if (elecEdit) {   // exit
+    renderer.domElement.removeEventListener("pointerdown", onElecDown);
+    renderer.domElement.removeEventListener("pointermove", onElecMove);
+    renderer.domElement.removeEventListener("pointerup", onElecUp);
+    elecEdit.balls.forEach(b => {
+      humanHead.remove(b.mesh); humanHead.remove(b.label); });
+    scene.remove(elecEdit.sphere);
+    scalpElecMeshes.forEach(m => m.visible = true);
+    const p = document.getElementById("elecpanel");
+    if (p) p.remove();
+    elecEdit = null;
+    return;
+  }
+  // enter
+  elecEdit = { balls: [], ray: new THREE.Raycaster(), dragging: null,
+               sphere: null };
+  const R = globeRadius();
+  elecEdit.sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(R, 64, 40),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0,
+                                  depthWrite: false }));
+  scene.add(elecEdit.sphere);
+  scalpElecMeshes.forEach(m => m.visible = false);
+  const saved = JSON.parse(localStorage.getItem("elecLayout") || "[]");
+  saved.forEach(([name, d]) => addElecBall(name, d));
+  renderer.domElement.addEventListener("pointerdown", onElecDown);
+  renderer.domElement.addEventListener("pointermove", onElecMove);
+  renderer.domElement.addEventListener("pointerup", onElecUp);
+  buildElecPanel();
+}
+
 function initUI() {
   document.getElementById("play").onclick = function () {
     playing = !playing;
@@ -929,6 +1145,7 @@ function initUI() {
     bgOn = this.checked;
   };
   buildLayerBox();
+  addSceneButtons();
 }
 
 // ---------- boot ----------
