@@ -131,7 +131,7 @@ function scalpScale() {
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
 let netGroup, humanHead, eyeDirVec, shellMeshes = [], scalpElecMeshes = [];
 let stimLight, scene;
-let scalpTopo = null, topoWeights = null;
+let scalpTopo = null, topoWeights = null, NET_SCALE = 400;
 
 function initScene() {
   const canvas = document.getElementById("scene");
@@ -303,13 +303,16 @@ function initScene() {
   scene.add(humanHead);
 
   // camera: from the occipital (-eye) side, where the shifted network
-  // (T4/T5 pole) sits under the scalp; network pre-scaled x400 and
-  // shifted occipitally (human view is the only view)
+  // (T4/T5 pole) sits under the scalp; network pre-scaled by the
+  // thought-experiment scale and shifted per the export meta (bilateral
+  // drops to ~x202 -- the page must read it, not hardcode 400)
   const eye = new THREE.Vector3(...DATA.electrodes_pos[0]);
   eyeDirVec = eye.clone().normalize();
-  netGroup.scale.set(400, 400, 400);
-  if (DATA.meta.scalp && DATA.meta.scalp.shift_um) {
-    const sv = DATA.meta.scalp.shift_um;
+  const scalpMeta = DATA.meta.scalp || {};
+  NET_SCALE = scalpMeta.scale || 400;
+  netGroup.scale.set(NET_SCALE, NET_SCALE, NET_SCALE);
+  if (scalpMeta.shift_um) {
+    const sv = scalpMeta.shift_um;
     netGroup.position.set(sv[0], sv[1], sv[2]);
   }
   const rCam = R_SCALP_UM;
@@ -555,7 +558,7 @@ function tick() {
     const target = DATA.rates[k][i] / 90;     // normalize to ~1 at peak
     SMOOTH[k] += (Math.min(target, 1.4) - SMOOTH[k]) * 0.12;
   });
-  const sizeScale = 400;                     // human view only
+  const sizeScale = NET_SCALE;              // matches the cloud scale
   layerMeshes.forEach((m, li) => {
     const a = SMOOTH[LAYER_KEYS[li]];
     m.material.color.copy(m.userData.base)
