@@ -90,8 +90,10 @@
       释放率%——真实 LMC 不放电）→ 头皮 17 电极脑电（中，果蝇网络 ×400
       放进四层人脑壳、贴枕极，粉点为电极，头皮球面按电位实时着色，
       幅值含回流几何判定 ×1.7 标定）。果蝇自己的头壳外放不了电极
-      （角质层绝缘，外部场严格为零）。左上开关可单独显示/隐藏每层、
-      连接、电极与四个球壳（灰=脑、蓝=脑脊液、白=颅骨、粉=头皮）。
+      （角质层绝缘，外部场严格为零）。左上开关可单独显示/隐藏：每层
+      神经元、连接采样（紫/绿/橙 = R→L / L→Mi,Tm / Mi→T4,T5 三段突触
+      采样）、头皮电极、头皮电位着色（红正蓝负，随时间实时变化）与
+      四个球壳（灰=脑、蓝=脑脊液、白=颅骨、粉=头皮）。
     </div>
   </div>
 </div>
@@ -167,7 +169,7 @@ function initScene() {
   // flow edges grouped by source stage (0: R->L, 1: L->Mi/Tm, 2: Mi->T4/T5)
   const groups = [[], [], []];
   DATA.flow_edges.forEach(e => groups[e[6]].push(e));
-  const stageColors = ["#7c5cbf", "#3ba7a0", "#c2703f"];
+  const stageColors = ["#a78bfa", "#34d399", "#fb923c"];
   const stagePreKey = ["R", "L", "MID"];
   groups.forEach((edges, gi) => {
     const arr = [];
@@ -176,7 +178,7 @@ function initScene() {
     geo.setAttribute("position", new THREE.Float32BufferAttribute(arr, 3));
     const mat = new THREE.LineBasicMaterial({
       color: new THREE.Color(stageColors[gi]), transparent: true,
-      opacity: 0.06,
+      opacity: 0.14,
     });
     const mesh = new THREE.LineSegments(geo, mat);
     mesh.userData.preKey = stagePreKey[gi];
@@ -190,7 +192,6 @@ function initScene() {
   humanHead = new THREE.Group();
   const meta = DATA.meta.scalp || { radii_um: [8e4, 8.5e4, 9.2e4],
                                     elec_dist_um: 9.06e4 };
-  const eDir = new THREE.Vector3(...(meta.elec_dir || [1, 0, 0]));
   const R_SCALP_UM = meta.radii_um[meta.radii_um.length - 1] || 9.2e4;
   const shellNames = ["脑", "脑脊液", "颅骨", "头皮"];
   const shellColors = [0x94a3b8, 0x38bdf8, 0xe2e8f0, 0xe879f9];
@@ -225,11 +226,6 @@ function initScene() {
     humanHead.add(s);
     scalpElecMeshes.push(s);
   });
-  // label on the occipital (camera-start) side so it is actually readable
-  const sl = makeLabel("人脑头皮电极 ×17", "#e879f9", 5600);
-  sl.position.copy(eDir.clone().multiplyScalar(-(R_SCALP_UM + 15000)))
-    .add(new THREE.Vector3(0, R_SCALP_UM * 0.22, 0));
-  humanHead.add(sl);
 
   // scalp surface colored by interpolated electrode potential (topomap)
   const topoGeo = new THREE.SphereGeometry(R_SCALP_UM * 0.996, 64, 40);
@@ -277,24 +273,6 @@ function initScene() {
   stimLight.position.copy(eye.clone().multiplyScalar(3));
 
   window.addEventListener("resize", onResize);
-}
-
-function makeLabel(text, color, worldH) {
-  const cv = document.createElement("canvas");
-  cv.width = 256; cv.height = 96;
-  let ctx = cv.getContext("2d");
-  ctx.font = "44px Microsoft YaHei, sans-serif";
-  const tw = Math.ceil(ctx.measureText("◉ " + text).width) + 12;
-  if (tw > cv.width) { cv.width = tw; ctx = cv.getContext("2d"); }
-  ctx.font = "44px Microsoft YaHei, sans-serif";
-  ctx.fillStyle = color;
-  ctx.textAlign = "center";
-  ctx.fillText("◉ " + text, cv.width / 2, 60);
-  const tex = new THREE.CanvasTexture(cv);
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex,
-                                                     transparent: true }));
-  if (worldH) sprite.scale.set(worldH * cv.width / cv.height, worldH, 1);
-  return sprite;
 }
 
 function onResize() {
@@ -537,7 +515,7 @@ function tick() {
     m.material.size = (5.0 + 3.5 * a) * sizeScale;
   });
   flowMeshes.forEach(m => {
-    m.material.opacity = 0.04 + 0.16 * SMOOTH[m.userData.preKey];
+    m.material.opacity = 0.14 + 0.30 * SMOOTH[m.userData.preKey];
   });
 
   // stimulus: overlay + light + R layer boost
@@ -571,8 +549,12 @@ function buildLayerBox() {
      <span class="dot" style="background:${l.color}"></span>${l.name}
      <span style="color:#5b7186">(${l.n})</span></label>`);
   const extras = [
-    `<label><input type="checkbox" checked data-extra="flow">连接采样</label>`,
-    `<label><input type="checkbox" checked data-extra="elecs">头皮电极</label>`,
+    `<label><input type="checkbox" checked data-extra="flow">
+     <span class="dot" style="background:linear-gradient(90deg,#a78bfa 33%,#34d399 33%,#34d399 66%,#fb923c 66%)"></span>连接采样</label>`,
+    `<label><input type="checkbox" checked data-extra="elecs">
+     <span class="dot" style="background:#f0abfc"></span>头皮电极</label>`,
+    `<label><input type="checkbox" checked data-extra="topo">
+     <span class="dot" style="background:linear-gradient(90deg,#60a5fa 50%,#f87171 50%)"></span>头皮电位着色</label>`,
     `<label><input type="checkbox" checked data-extra="shell0">
      <span class="dot" style="background:#94a3b8"></span>脑壳</label>`,
     `<label><input type="checkbox" checked data-extra="shell1">
@@ -591,6 +573,8 @@ function buildLayerBox() {
       flowMeshes.forEach(m => m.visible = t.checked);
     else if (t.dataset.extra === "elecs")
       scalpElecMeshes.forEach(m => m.visible = t.checked);
+    else if (t.dataset.extra === "topo")
+      scalpTopo.visible = t.checked;
     else if (t.dataset.extra.startsWith("shell"))
       shellMeshes[+t.dataset.extra.slice(5)].visible = t.checked;
   });
