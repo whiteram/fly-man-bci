@@ -56,10 +56,13 @@
   <div id="panel">
     <h1>果蝇视觉系统 · 从神经放电到脑电</h1>
     <div class="sub">
-      MaleCNS v1.0 真实连接组（左叶 1.9 万神经元 / 167 万突触）放大 ×400
-      放进人脑四球壳（脑/脑脊液/颅骨/头皮，网络贴枕极）· 自然视觉刺激 →
-      光转导 → R1-R6 → L1-L3 → Mi/Tm → T4/T5（突触电流）→ 四球壳前向核
-      → 头皮 17 电极脑电。机制板层版（R/L 为分级电位细胞）。
+      MaleCNS v1.0 真实连接组（<b>双侧视叶</b> 3.7 万神经元 / 298 万突触，
+      exp015）放大 <b><span id="scalenote">×—</span></b> 放进人脑四球壳
+      （脑/脑脊液/颅骨/头皮）——单叶可 ×400，双叶原生几何 692μm 在 ×400
+      下宽 277mm 装不进脑球，尺度自动收缩以保持真实相对几何 ·
+      自然视觉刺激 → 光转导 → R1-R6 → L1-L3 → Mi/Tm → T4/T5
+      （突触电流）→ 四球壳前向核 → 头皮 17 电极脑电。
+      机制板层版（R/L 为分级电位细胞，双叶各自朝本侧眼）。
     </div>
     <div id="controls">
       <button id="play">⏸ 暂停</button>
@@ -87,13 +90,13 @@
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
       展示链路：自然视觉刺激（上）→ 五层神经元活动（下，R/L 行为分级
-      释放率%——真实 LMC 不放电）→ 头皮 17 电极脑电（中，果蝇网络 ×400
-      放进四层人脑壳、贴枕极，粉色圆片=贴附式头皮电极，头皮球面按电位
-      实时着色，幅值含回流几何判定 ×1.7 标定）。果蝇自己的头壳外放不了电极
-      （角质层绝缘，外部场严格为零）。左上开关可单独显示/隐藏：每层
-      神经元、连接采样（紫/绿/橙 = R→L / L→Mi,Tm / Mi→T4,T5 三段突触
-      采样）、头皮电极、头皮电位着色（红正蓝负，随时间实时变化）与
-      四个球壳（灰=脑、蓝=脑脊液、白=颅骨、肤色=头皮）。
+      释放率%——真实 LMC 不放电）→ 头皮 17 电极脑电（中，果蝇<b>双侧视叶
+      </b>网络放进四层人脑壳、长轴沿头球直径，粉色圆片=贴附式头皮电极，
+      头皮球面按电位实时着色，幅值含回流几何判定 ×1.7 标定）。果蝇自己的
+      头壳外放不了电极（角质层绝缘，外部场严格为零）。左上开关可单独
+      显示/隐藏：每层神经元、连接采样（紫/绿/橙 = R→L / L→Mi,Tm /
+      Mi→T4,T5 三段突触采样）、头皮电极、头皮电位着色（红正蓝负，随时间
+      实时变化）与四个球壳（灰=脑、蓝=脑脊液、白=颅骨、肤色=头皮）。
     </div>
   </div>
 </div>
@@ -650,6 +653,9 @@ function initUI() {
 // ---------- boot ----------
 fetch("data/viz_data.json").then(r => r.json()).then(d => {
   DATA = d;
+  if (DATA.meta.scalp && DATA.meta.scalp.scale)
+    document.getElementById("scalenote").textContent =
+      "×" + Math.round(DATA.meta.scalp.scale);
   if (DATA.phi_scalp_all_uV) {
     scalpAll = DATA.phi_scalp_all_uV;
     scalpDeg = (DATA.meta.scalp && DATA.meta.scalp.elec_deg) || [];

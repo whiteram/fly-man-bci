@@ -254,8 +254,10 @@ def main():
         "calibration": calib,
         "amplitude": {
             "note": "bilateral does NOT fit at x400 (native span 692 um "
-                    "-> 277 mm); each circuit uses fit_scale_shift with "
-                    "the T4/T5 junction pinned at the occipital pole",
+                    "-> 277 mm); each circuit uses fit_scale_shift "
+                    "(max feasible scale; pole-pinned for the elongated "
+                    "single lobe, centered for the wider-than-long "
+                    "bilateral V)",
             "scale_left": round(ker_l["scale"], 1),
             "scale_bilateral": round(ker_b["scale"], 1),
             "elec_deg": elec_deg,

@@ -1,8 +1,13 @@
-"""Shared simulation pipeline for the left-lobe cascade.
+"""Shared simulation pipeline for the visual cascade.
 
 Single code path used by viz/export_data.py AND
 scripts/calibrate_working_point.py -- until this module existed the two
 scripts each maintained a copy of the loop and had already begun to drift.
+
+Circuit: exp015 both-lobe cascade (the exp005 left-lobe dict is still
+accepted -- the interface is identical); exp016 VPN -> central-brain
+layers are OPTIONAL and built only when the circuit dict carries
+vpn_ids/cb_ids.
 
 Mechanism stack (see docs/TECHNICAL.md §5):
   - OU background noise (ColoredCurrentNoise) on all four populations,
