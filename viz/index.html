@@ -93,7 +93,7 @@
       （角质层绝缘，外部场严格为零）。左上开关可单独显示/隐藏：每层
       神经元、连接采样（紫/绿/橙 = R→L / L→Mi,Tm / Mi→T4,T5 三段突触
       采样）、头皮电极、头皮电位着色（红正蓝负，随时间实时变化）与
-      四个球壳（灰=脑、蓝=脑脊液、白=颅骨、粉=头皮）。
+      四个球壳（灰=脑、蓝=脑脊液、白=颅骨、肤色=头皮）。
     </div>
   </div>
 </div>
@@ -195,7 +195,7 @@ function initScene() {
                                     elec_dist_um: 9.06e4 };
   const R_SCALP_UM = meta.radii_um[meta.radii_um.length - 1] || 9.2e4;
   const shellNames = ["脑", "脑脊液", "颅骨", "头皮"];
-  const shellColors = [0x94a3b8, 0x38bdf8, 0xe2e8f0, 0xe879f9];
+  const shellColors = [0x94a3b8, 0x38bdf8, 0xe2e8f0, 0xf0b98a];
   const rimVert = `
     varying vec3 vN; varying vec3 vV;
     void main() {
@@ -209,7 +209,7 @@ function initScene() {
     varying vec3 vN; varying vec3 vV;
     void main() {
       float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), uPower);
-      gl_FragColor = vec4(uColor, uStrength * (f + 0.02));
+      gl_FragColor = vec4(uColor, uStrength * f);
     }`;
   meta.radii_um.forEach((rr, i) => {
     const mesh = new THREE.Mesh(
@@ -217,8 +217,8 @@ function initScene() {
       new THREE.ShaderMaterial({
         uniforms: {
           uColor: { value: new THREE.Color(shellColors[i] || 0x94a3b8) },
-          uPower: { value: 2.6 },
-          uStrength: { value: 1.0 - 0.07 * i },
+          uPower: { value: 3.0 },
+          uStrength: { value: 0.50 - 0.06 * i },
         },
         vertexShader: rimVert, fragmentShader: rimFrag,
         transparent: true, depthWrite: false, side: THREE.DoubleSide,
@@ -264,7 +264,7 @@ function initScene() {
   topoGeo.setAttribute("color",
     new THREE.BufferAttribute(new Float32Array(nV * 3), 3));
   scalpTopo = new THREE.Mesh(topoGeo, new THREE.MeshBasicMaterial(
-    { vertexColors: true, transparent: true, opacity: 0.62,
+    { vertexColors: true, transparent: true, opacity: 0.88,
       depthWrite: false }));
   humanHead.add(scalpTopo);
 
@@ -302,7 +302,7 @@ function onResize() {
 // t=-1 blue, t=0 dark (blends with background), t=+1 red
 function divColor(t, out) {
   const mid = [12, 18, 30];
-  const end = t < 0 ? [96, 165, 250] : [248, 113, 113];
+  const end = t < 0 ? [109, 176, 255] : [255, 118, 118];
   const u = Math.min(1, Math.abs(t));
   out[0] = Math.round(mid[0] + (end[0] - mid[0]) * u);
   out[1] = Math.round(mid[1] + (end[1] - mid[1]) * u);
@@ -578,7 +578,7 @@ function buildLayerBox() {
     `<label><input type="checkbox" checked data-extra="shell2">
      <span class="dot" style="background:#e2e8f0"></span>颅骨壳</label>`,
     `<label><input type="checkbox" checked data-extra="shell3">
-     <span class="dot" style="background:#e879f9"></span>头皮壳</label>`,
+     <span class="dot" style="background:#f0b98a"></span>头皮壳</label>`,
   ];
   box.innerHTML = items.concat(extras).join("<br>");
   box.addEventListener("change", e => {
