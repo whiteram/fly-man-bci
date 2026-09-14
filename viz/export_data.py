@@ -266,13 +266,18 @@ def main():
     def record(j, k, t, st, inc_f, sp):
         syn, pops = st["syn"], st["pops"]
         i_photo = cal["I_R_BASE"] + inc_f
+        mech = st["mech"]
 
         def y_of(name):
             if name == "PHOTO":
                 return i_photo
-            if name.startswith("MT_"):
-                return syn[name].edge_currents(pops["T45"].v)
-            return syn[name].y
+            # graded pools and conductance MT both expose per-edge
+            # v-dependent currents; legacy current-mode RL/LM return y
+            if name == "RL":
+                return syn[name].edge_currents(pops["L"].v)
+            if name == "LM":
+                return syn[name].edge_currents(pops["MID"].v)
+            return syn[name].edge_currents(pops["T45"].v)
 
         for i in range(3):
             acc = 0.0
@@ -283,8 +288,14 @@ def main():
         for name in list(group_pairs) + ["PHOTO"]:
             acc_s += coef_scalp[name] @ y_of(name)
         phi_scalp[j] = acc_s * 1e-12
-        rate["R"][j] = sp["R"].sum() * 1000.0 / n_r
-        rate["L"][j] = sp["L"].sum() * 1000.0 / n_l
+        if mech:   # graded R/L: display their release rates (%) instead
+            rate["R"][j] = float(st["r_release"](
+                pops["R"].v, cal["R_RELEASE_MAP_MV"]).mean()) * 100.0
+            rate["L"][j] = float(st["l_release"](
+                pops["L"].v, cal["L_RELEASE_MAP_MV"]).mean()) * 100.0
+        else:
+            rate["R"][j] = sp["R"].sum() * 1000.0 / n_r
+            rate["L"][j] = sp["L"].sum() * 1000.0 / n_l
         rate["MID"][j] = sp["MID"].sum() * 1000.0 / n_mid
         rate["T4"][j] = sp["T45"][is_t4].sum() * 1000.0 / is_t4.sum()
         rate["T5"][j] = sp["T45"][is_t5].sum() * 1000.0 / is_t5.sum()
@@ -293,6 +304,12 @@ def main():
     print(f"simulating {T_END / 1000:.1f} s ...")
     fp.simulate(circuit, cal, lambda t: I_LUM * (luminance(t) - 1.0),
                 SEED, T_END, on_sample=record)
+
+    # absolute-amplitude calibration: the return-current geometry was
+    # discriminated to NEURITE (exp013): all scalp amplitudes scale by
+    # the neurite/mean-position kernel-norm ratio 1.7. The three
+    # fly-head internal electrodes stay in raw pipeline units.
+    phi_scalp = phi_scalp * 1.7
 
     # ---- background human EEG + SNR (shared helpers, unit-tested) ----
     bg = vp.generate_background_eeg(scalp_dirs, u_eye, n_field)
@@ -345,6 +362,10 @@ def main():
                                     for d in scalp_dirs],
                       "elec_deg": [round(float(a), 1)
                                    for a in scalp_ang]},
+            "amplitude_calibration": {"geometry": "neurite",
+                                      "factor": 1.7,
+                                      "source": "exp013 discrimination "
+                                                "(8:0:0 over 25 configs)"},
             "calibration": {**cal, "source":
                             "ffbm.pipeline CAL (round-3 winner; see "
                             "scripts/outputs/working_point_calibration_r3.json)"},
