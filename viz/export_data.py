@@ -491,6 +491,34 @@ def main():
              "color": layer_colors.get(pname, "#8b9dc3"),
              "n": len(pos_x), "static": True})
 
+    # cervical-connective axon lines: for a sample of descending
+    # (CEN->VNC) and ascending (VNC->CEN) neurons, soma -> centroid of
+    # their ACTUAL postsynaptic cells on the other side (data-driven
+    # approximation of the axon path through the neck)
+    conn = {"cen_vnc": [], "vnc_cen": []}
+    extra_pops = circuit.get("extra_pops") or {}
+    if {"CEN", "VNC"} <= set(extra_pops) \
+            and {"VNC_C", "ASC_R"} <= set(circuit.get("extra_edges") or {}):
+        pos_of = {}
+        for pop_spec in extra_pops.values():
+            for b in pop_spec["ids"]:
+                pos_of[b] = np.asarray(pp[b], dtype=np.float64)
+        rng_c = np.random.default_rng(11)
+        for gname, key in (("VNC_C", "cen_vnc"), ("ASC_R", "vnc_cen")):
+            e = circuit["extra_edges"][gname]["table"]
+            gb = e.groupby("body_pre")["body_post"].apply(
+                lambda s: s.to_numpy())
+            pres = np.array(gb.index.to_numpy())
+            if len(pres) > 200:
+                pres = rng_c.choice(pres, 200, replace=False)
+            for pb in pres:
+                tgt = np.mean([pos_of[b] for b in gb[pb]], axis=0)
+                conn[key].append(np.round(np.concatenate(
+                    [pos_of[pb] - center, tgt - center]), 1).tolist())
+        print(f"cervical connective lines: "
+              f"{len(conn['cen_vnc'])} descending + "
+              f"{len(conn['vnc_cen'])} ascending")
+    data["connective"] = conn
     data["positions"] = positions
     path = OUT / "viz_data.json"
     path.write_text(json.dumps(data, separators=(",", ":")))

@@ -132,6 +132,7 @@ function scalpScale() {
 // ---------- 3D scene (human-head view only) ----------
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
 let netGroup, humanHead, eyeDirVec, shellMeshes = [], scalpElecMeshes = [];
+let connMeshes = [];
 let stimLight, scene;
 let scalpTopo = null, topoWeights = null, NET_SCALE = 400;
 
@@ -195,6 +196,29 @@ function initScene() {
   // nearly transparent center + a soft glowing silhouette ring. Nested
   // shells then read as clean concentric rings from any angle, instead of
   // overlapping wireframe grids. Individually toggleable.
+  // cervical-connective axon lines (descending CEN->VNC / ascending
+  // VNC->CEN): visible only when BOTH end layers (central brain, VNC)
+  // are on -- hiding either end hides the cable
+  connMeshes = [];
+  const connSpec = DATA.connective || {};
+  const connColors = {cen_vnc: 0x5eead4, vnc_cen: 0xfbbf24};
+  const cenLayerIdx = DATA.meta.layers.findIndex(
+    l => l.name.includes("中央脑"));
+  const vncLayerIdx = DATA.meta.layers.findIndex(
+    l => l.name.includes("VNC"));
+  for (const [key, arr] of Object.entries(connSpec)) {
+    if (!arr || !arr.length) continue;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position",
+      new THREE.Float32BufferAttribute(arr.flat(), 3));
+    const mesh = new THREE.LineSegments(geo,
+      new THREE.LineBasicMaterial({color: connColors[key],
+                                   transparent: true, opacity: 0.5}));
+    netGroup.add(mesh);
+    connMeshes.push({mesh, ends: [cenLayerIdx, vncLayerIdx]});
+  }
+  updateConnVisibility();
+
   humanHead = new THREE.Group();
   const meta = DATA.meta.scalp || { radii_um: [8e4, 8.5e4, 9.2e4],
                                     elec_dist_um: 9.06e4 };
@@ -326,6 +350,13 @@ function initScene() {
   stimLight.position.copy(eye.clone().multiplyScalar(3));
 
   window.addEventListener("resize", onResize);
+}
+
+function updateConnVisibility() {
+  connMeshes.forEach(c => {
+    c.mesh.visible = c.ends.every(
+      i => i >= 0 && layerMeshes[i] && layerMeshes[i].visible);
+  });
 }
 
 function onResize() {
@@ -622,7 +653,8 @@ function buildLayerBox() {
     const t = e.target;
     if (t.dataset.layer !== undefined)
       layerMeshes[+t.dataset.layer].visible = t.checked;
-    else if (t.dataset.extra === "flow")
+    updateConnVisibility();
+    if (t.dataset.extra === "flow")
       flowMeshes.forEach(m => m.visible = t.checked);
     else if (t.dataset.extra === "elecs")
       scalpElecMeshes.forEach(m => m.visible = t.checked);
