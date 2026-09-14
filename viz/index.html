@@ -233,7 +233,7 @@ function initScene() {
   // scalp electrode array: channel 0 (magenta) on the eye axis, the rest
   // quasi-uniform over the sphere
   const eDirs = meta.elec_dirs || [meta.elec_dir || [1, 0, 0]];
-  const eDist = meta.elec_dist_um || 9.06e4;
+  const eDist = R_SCALP_UM * 1.055;   // drawn on the outer topomap globe
   eDirs.forEach((d, i) => {
     const s = new THREE.Mesh(
       new THREE.SphereGeometry(i === 0 ? 3000 : 2000, 14, 10),
@@ -243,8 +243,10 @@ function initScene() {
     scalpElecMeshes.push(s);
   });
 
-  // scalp surface colored by interpolated electrode potential (topomap)
-  const topoGeo = new THREE.SphereGeometry(R_SCALP_UM * 0.996, 64, 40);
+  // scalp potential topomap: an outer "display globe" clearly separated
+  // from (outside) the scalp shell rim, so the red/blue map reads as the
+  // frontmost layer
+  const topoGeo = new THREE.SphereGeometry(R_SCALP_UM * 1.04, 64, 40);
   const tPos = topoGeo.attributes.position;
   const nV = tPos.count, nE = eDirs.length;
   topoWeights = new Float32Array(nV * nE);
@@ -264,9 +266,22 @@ function initScene() {
   topoGeo.setAttribute("color",
     new THREE.BufferAttribute(new Float32Array(nV * 3), 3));
   scalpTopo = new THREE.Mesh(topoGeo, new THREE.MeshBasicMaterial(
-    { vertexColors: true, transparent: true, opacity: 0.88,
+    { vertexColors: true, transparent: true, opacity: 0.80,
       depthWrite: false }));
   humanHead.add(scalpTopo);
+  // faint silhouette so the display globe stays outlined even when the
+  // interpolated potential is ~0 (dark blue on dark background)
+  const topoRim = new THREE.Mesh(
+    new THREE.SphereGeometry(R_SCALP_UM * 1.0425, 64, 40),
+    new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(0x64748b) },
+                  uPower: { value: 3.0 }, uStrength: { value: 0.40 } },
+      vertexShader: rimVert, fragmentShader: rimFrag,
+      transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending }));
+  topoRim.renderOrder = 10;
+  humanHead.add(topoRim);
+  scalpTopo.userData.rim = topoRim;
 
   scene.add(humanHead);
 
@@ -589,8 +604,11 @@ function buildLayerBox() {
       flowMeshes.forEach(m => m.visible = t.checked);
     else if (t.dataset.extra === "elecs")
       scalpElecMeshes.forEach(m => m.visible = t.checked);
-    else if (t.dataset.extra === "topo")
+    else if (t.dataset.extra === "topo") {
       scalpTopo.visible = t.checked;
+      if (scalpTopo.userData.rim)
+        scalpTopo.userData.rim.visible = t.checked;
+    }
     else if (t.dataset.extra.startsWith("shell"))
       shellMeshes[+t.dataset.extra.slice(5)].visible = t.checked;
   });
