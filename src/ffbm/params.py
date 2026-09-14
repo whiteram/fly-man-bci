@@ -169,13 +169,14 @@ SECTIONS: dict = {
                              "−38.4 ± 3.2 mV）"),
         "light_depth_window_mv": ([10.0, 25.0], "mV", "literature",
                                   "光反应深度窗（Laughlin/Hardie 经典值）"),
-        "g_unit_hist_ns": (0.25, "nS", "calibrated",
-                           "每突触单位组胺电导峰值（exp013 二维扫描在"
-                           "联合约束内选定；见该实验 outputs）"),
+        "g_unit_hist_ns": (0.16, "nS", "calibrated",
+                           "每突触单位组胺电导峰值；第 5 轮按主管线（左叶）"
+                           "突触质量重定标（exp013 双叶电路为 0.25——电导与每"
+                           "细胞突触量成反比）"),
         "l_release_map_mv": ([-58.0, -30.0], "mV", "calibrated",
                              "L 输出端释放率映射 v_L→r_L（第 5 轮校准对象）；"
                              "暗态 L（−38.8mV）释放 ~0.64，亮态（超极化）趋 0"),
-        "g_unit_lm_ns": (0.02, "nS", "calibrated",
+        "g_unit_lm_ns": (0.04, "nS", "calibrated",
                          "L→Mi/Tm 分级电导（第 5 轮校准；E_rev 按数据集符号 "
                          "0/−80mV）"),
         "release_map_mv": ([-59.0, -25.0], "mV", "calibrated",
@@ -191,6 +192,7 @@ SECTIONS: dict = {
 def cal() -> dict:
     """Assemble the pipeline CAL dict from the registry (single source)."""
     wp = SECTIONS["working_point"]
+    lam = SECTIONS["lamina_mechanistic"]
     lif = SECTIONS["neuron_lif"]
     syn = SECTIONS["synapses"]
     dly = SECTIONS["delays"]
@@ -215,6 +217,13 @@ def cal() -> dict:
                 for k in ("R", "L", "MID", "T45")},
         "RIN_GOHM": lif["r_in"][0],
         "MID_TAU_S": {k: v[0] for k, v in syn["mt_tau_s_ms"].items()},
+        "LAMINA_MECHANISTIC": True,
+        "E_CL_MV": lam["e_cl_mv"][0],
+        "V_K_LMC_MV": lam["v_k_lmc_mv"][0],
+        "G_UNIT_HIST_NS": lam["g_unit_hist_ns"][0],
+        "R_RELEASE_MAP_MV": list(lam["release_map_mv"][0]),
+        "L_RELEASE_MAP_MV": list(lam["l_release_map_mv"][0]),
+        "G_UNIT_LM_NS": lam["g_unit_lm_ns"][0],
     }
 
 

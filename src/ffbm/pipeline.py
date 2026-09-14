@@ -146,8 +146,10 @@ def build_stack(circuit, cal, rng):
                                R_m=cal["RIN_GOHM"], v_th=(1e9 if mech
                                                           else -50.0)),
             "L": LIFPopulation(n_l, DT_MS, tau_m=cal["LIF"]["L"][0],
-                               t_refrac=1e9, R_m=cal["RIN_GOHM"],
-                               v_th=1e9,
+                               t_refrac=(1e9 if mech
+                                         else cal["LIF"]["L"][1]),
+                               R_m=cal["RIN_GOHM"],
+                               v_th=(1e9 if mech else -50.0),
                                v_rest=(cal["V_K_LMC_MV"] if mech
                                        else -70.0)),
             "MID": LIFPopulation(n_mid, DT_MS, tau_m=cal["LIF"]["MID"][0],
@@ -165,6 +167,7 @@ def build_stack(circuit, cal, rng):
     is_t5 = np.array([str(x).startswith("T5") for x in t45_type])
     t45_base = np.zeros(n_t45)
     t45_base[is_t4] = cal["I_T4_BASE"]
+    t45_base[is_t5] = cal.get("I_T5_BASE", 0.0)
     return {"syn": syn, "pops": pops, "noises": noises, "mech": mech,
             "r_ids": r_ids, "l_ids": l_ids, "mid_ids": mid_ids,
             "n_r": n_r, "n_l": n_l, "n_mid": n_mid, "n_t45": n_t45,

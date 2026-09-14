@@ -130,7 +130,9 @@
 | v_k_lmc_mv | -25.0 | mV | 校准 | LMC 漏通道翻转电位（去极化侧），同一反解 |
 | l_dark_target_mv | -38.4 | mV | 文献 | L1/2 暗静息（Rusanen & Weckström 2016: −38.4 ± 3.2 mV） |
 | light_depth_window_mv | [10.0, 25.0] | mV | 文献 | 光反应深度窗（Laughlin/Hardie 经典值） |
-| g_unit_hist_ns | 0.25 | nS | 校准 | 每突触单位组胺电导峰值（exp013 二维扫描在联合约束内选定；见该实验 outputs） |
+| g_unit_hist_ns | 0.16 | nS | 校准 | 每突触单位组胺电导峰值；第 5 轮按主管线（左叶）突触质量重定标（exp013 双叶电路为 0.25——电导与每细胞突触量成反比） |
+| l_release_map_mv | [-58.0, -30.0] | mV | 校准 | L 输出端释放率映射 v_L→r_L（第 5 轮校准对象）；暗态 L（−38.8mV）释放 ~0.64，亮态（超极化）趋 0 |
+| g_unit_lm_ns | 0.04 | nS | 校准 | L→Mi/Tm 分级电导（第 5 轮校准；E_rev 按数据集符号 0/−80mV） |
 | release_map_mv | [-59.0, -25.0] | mV | 校准 | v_R→释放率线性映射 [lo, hi]；暗紧张释放约 0.1–0.2 |
 
 > exp013 已验证机制（暗电位/超极化方向/off 瞬变可达）；主管线采纳 = R 分级 + 组胺分级释放 + L 分级 + L→Mi/Tm 分级释放，替换 exp009 双反号代理与 I_L_BASE hack，需第 5 轮校准与 ON/OFF 复验。
