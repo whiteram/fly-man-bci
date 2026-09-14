@@ -472,17 +472,18 @@ def main():
         "phi_scalp_all_uV": np.round(phi_scalp.T * 1e6, 3).tolist(),
         "phi_scalp_bg_uV": np.round(bg, 2).tolist(),
     }
-    # extra-region layers for the point cloud (VNC excluded: it sits
-    # outside the head sphere in the thought experiment)
+    # extra-region layers for the point cloud. VNC IS shown (its true
+    # native geometry makes it stick out of the head sphere at x202 --
+    # the honest picture of "the fly CNS does not fit in a human head");
+    # it only stays out of the kernels/fit (forward=False)
     layer_names = {"VPN": "VPN 投射神经元", "CB": "中央脑目标(exp016)",
-                   "OLR": "其余视叶", "CEN": "中央脑"}
+                   "OLR": "其余视叶", "CEN": "中央脑",
+                   "VNC": "腹索 VNC（仅动力学·不投影）"}
     layer_colors = {"VPN": "#f472b6", "CB": "#c084fc", "OLR": "#8b9dc3",
-                    "CEN": "#fbbf24"}
+                    "CEN": "#fbbf24", "VNC": "#5eead4"}
     positions = [pts(r_pos), pts(l_pos), pts(mid_pos),
                  pts(t45_pos[is_t4]), pts(t45_pos[is_t5])]
     for pname, spec in (circuit.get("extra_pops") or {}).items():
-        if pname == "VNC":
-            continue
         pos_x = np.array([pp[b] for b in spec["ids"]])
         positions.append(np.round(pos_x - center, 1).tolist())
         data["meta"]["layers"].append(
