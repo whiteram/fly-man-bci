@@ -49,22 +49,29 @@ def _sph_mid(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return a + b
 
 
-def standard_1020(anchors: dict, system: str = "1020") -> dict:
+def standard_1020(anchors: dict, system: str = "1020",
+                  ni_arc_deg: float = 180.0) -> dict:
     """Standard 10-20 / 10-10 electrode directions from hand-placed
     anchors (Cz, Fz, Oz, A1, A2 unit vectors, any consistent head frame).
 
     Regularization (10-20 construction, Jasper 1958):
       - the sagittal great circle is fit through Cz with the anterior
-        tangent from Fz - Oz; Fz/Oz snap to +/-36 deg around Cz
-        (Fz-Cz = Cz-Oz = 36 deg), Fpz/Iz to +/-72 deg, nasion/inion to
-        +/-90 deg;
+        tangent from Fz - Oz; the midline electrodes are placed at the
+        10-20 PERCENTAGES of the nasion-inion arc: Fz at 30%, Cz at 50%,
+        Pz at 70%, Oz at 90%, Fpz at 10%; ni_arc_deg is that arc in
+        degrees -- 180 is the spherical idealization (nasion/inion on
+        the ear-line plane); a real head/ghost-head mesh measures
+        ~250-260 deg (both landmarks below the ear-line plane), which
+        stretches the midline so Oz lands ON the occiput as seen;
       - the coronal great circle through Cz (perpendicular to the
-        sagittal one) carries A1/A2 at +/-90 deg (exactly mirrored),
-        C3/C4 at +/-36 deg, T7/T8 at +/-72 deg;
-      - the lateral chains are built by the 10-20 arc rules: Fp1 at 18
-        deg from Fpz toward T7, O1 at 18 deg from Oz toward T7, F7/P7
-        as arc midpoints (Fp1-T7 / O1-T7), F3/P3 as midpoints of
-        Fz-F7 / Pz-P7 (mirrored on the right);
+        sagittal one) carries C3/C4 at 20% of the LPA-RPA arc on either
+        side of Cz (=36 deg at ni_arc=180) and T7/T8 at 40% (=72 deg);
+      - A1/A2 keep the USER'S elevation (earlobes sit below the
+        N-I plane), mirrored exactly about the sagittal plane;
+      - the lateral chains are built by the arc rules scaled to the
+        same ni_arc: Fp1 at 10% of ni_arc from Fpz toward T7, O1 at
+        10% from Oz toward T7, F7/P7 as arc midpoints (Fp1-T7 /
+        O1-T7), F3/P3 as midpoints of Fz-F7 / Pz-P7 (mirrored right);
       - system="1010" adds the 10-10 midpoint subdivisions (FCz, CPz,
         F1/F2, C1/C2, P1/P2, FC3-6, CP3-6, AF3/AF4/AFz, PO3/PO4/POz).
 
@@ -95,15 +102,16 @@ def standard_1020(anchors: dict, system: str = "1020") -> dict:
 
     sag = lambda phi: _sph_rotate(cz, L_sag, phi)    # +phi = anterior
     cor = lambda phi: _sph_rotate(cz, L_cor, phi)    # +phi = A2 side
-    # midline arc from Cz (50% of the nasion-inion arc); +phi = anterior
-    # nasion 0% -> +90, Fpz 10% -> +72, Fz 30% -> +36, Cz 50% -> 0,
-    # Pz 70% -> -36, Oz 90% -> -72, inion 100% -> -90 (spherical
-    # idealization with the nasion-inion arc = 180 deg)
+    # midline arc from Cz; percentages of ni_arc_deg. +phi = anterior.
+    # Cz is the 50% mark; the nasion sits at +ni_arc/2, the inion at
+    # -ni_arc/2 (ni_arc > 180 when both landmarks sit below the
+    # ear-line plane, as on a real head / the ghost-head mesh)
+    ni = ni_arc_deg
     out = {
         "Cz": cz,
-        "Fz": sag(36.0), "Pz": sag(-36.0),
-        "Fpz": sag(72.0), "Oz": sag(-72.0),
-        "Nasion": sag(90.0), "Inion": sag(-90.0),
+        "Fz": sag(0.20 * ni), "Pz": sag(-0.20 * ni),
+        "Fpz": sag(0.40 * ni), "Oz": sag(-0.40 * ni),
+        "Nasion": sag(0.50 * ni), "Inion": sag(-0.50 * ni),
         "C3": cor(-36.0), "C4": cor(36.0),
         "T7": cor(-72.0), "T8": cor(72.0),
     }
@@ -120,9 +128,11 @@ def standard_1020(anchors: dict, system: str = "1020") -> dict:
                 + np.arccos(np.clip(get["A2"] @ cz, -1, 1)))
     out["A1"] = cz * np.cos(th) + L_s * np.sin(th)
     out["A2"] = cz * np.cos(th) - L_s * np.sin(th)
-    # lateral chains: Fp1 at 18 deg from Fpz toward T7, O1 at 18 deg
-    # from Oz toward T7, then F7/P7 as arc midpoints, F3/P3 as
+    # lateral chains: Fp1 at 10% of ni_arc from Fpz toward T7, O1 at
+    # 10% from Oz toward T7, then F7/P7 as arc midpoints, F3/P3 as
     # midpoints of the Fz/Pz spokes
+    fp_off = 0.10 * ni
+
     def slerp_deg(a, b, deg):
         total = np.degrees(np.arccos(np.clip(a @ b, -1, 1)))
         t = deg / max(total, 1e-9)
@@ -134,10 +144,10 @@ def standard_1020(anchors: dict, system: str = "1020") -> dict:
         m = a + b
         return m / np.linalg.norm(m)
 
-    fp1 = slerp_deg(out["Fpz"], out["T7"], 18.0)
-    fp2 = slerp_deg(out["Fpz"], out["T8"], 18.0)
-    o1 = slerp_deg(out["Oz"], out["T7"], 18.0)
-    o2 = slerp_deg(out["Oz"], out["T8"], 18.0)
+    fp1 = slerp_deg(out["Fpz"], out["T7"], fp_off)
+    fp2 = slerp_deg(out["Fpz"], out["T8"], fp_off)
+    o1 = slerp_deg(out["Oz"], out["T7"], fp_off)
+    o2 = slerp_deg(out["Oz"], out["T8"], fp_off)
     out.update({
         "Fp1": fp1, "Fp2": fp2, "O1": o1, "O2": o2,
         "F7": mid(fp1, out["T7"]), "F8": mid(fp2, out["T8"]),
