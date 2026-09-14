@@ -23,11 +23,17 @@ import numpy as np  # noqa: F401  (kept for downstream imports)
 # name: (value, unit, status, note)
 SECTIONS: dict = {
     "circuit": {
-        "_title": "电路（双侧视叶五层级联，exp015）",
+        "_title": "电路（区域可选装配，exp015 起）",
         "lobes": ("both", "L/R", "chosen",
                   "exp015 起双叶接入（原生几何、同侧连线；跨叶边=0 实测）"
                   "——右眼 R1-6 追踪不完整（1,112 vs 左 2,265），受支配 "
                   "L1/2 突触质量中位数两侧一致（148 vs 153），工作点直接迁移"),
+        "regions_default": ({"visual_bilateral": True, "vpn_central": False},
+                            "-", "chosen",
+                            "ffbm.regions 区域开关默认值：每个脑区独立启停，"
+                            "关闭的区域不构建种群/突触/前向核（零计算零内存）。"
+                            "已知区域见 ffbm.regions.known_regions()；"
+                            "导出可用 --regions 覆盖"),
         "lobe_split_iters": (20, "iterations", "numerical",
                              "x 轴 2-means 收敛轮数（20 轮内必然收敛）"),
         "rhabd_offset_um": (23.5, "um", "calibrated",
@@ -131,8 +137,9 @@ SECTIONS: dict = {
         "positions": ("soma", "-", "assumed",
                       "VPN/CB 用胞体位置近似突触位置（syn-points 13 GB "
                       "未做子集扫描；偶极长度因此保守偏短）"),
-        "_note": "电路为可选扩展：仅当 circuit 带 vpn_ids/cb_ids 键时"
-                 "build_stack 才构建这两层（exp016 评估用，未进主管线导出）。",
+        "_note": "区域为可选扩展：由 ffbm.regions 的区域开关装配，开启时"
+                 "电路带 extra_pops/extra_edges 规范、build_stack 才构建"
+                 "这两层（exp016 评估判决为信号贡献可忽略，默认关闭）。",
     },
     "head_model": {
         "_title": "人脑四球壳 + 电极（思想实验几何）",

@@ -11,7 +11,7 @@ Positions for VPN/CB cells are SOMA locations (same um frame as the
 synapse sites; verified site-soma distance 16-90 um on Mi1), injected
 into the circuit's pre_pos/post_pos maps so the standard delay/kernel
 machinery works unchanged. These layers are OPTIONAL for the pipeline:
-they are built only because this dict carries vpn_ids/cb_ids.
+they are built only because this dict carries extra_pops/extra_edges.
 
 Run from repository root:
     python experiments/exp016_vpn_central/circuit2.py    # report
@@ -136,8 +136,21 @@ def build_vpn_circuit(bi=None):
     circuit = dict(bi)
     circuit["pre_pos"] = pp
     circuit["post_pos"] = qq
-    circuit["vpn_ids"] = np.array(sorted(vmap.values()), dtype=np.int64)
-    circuit["cb_ids"] = np.array(sorted(cmap.values()), dtype=np.int64)
+    # generic optional-region specs consumed by ffbm.pipeline.build_stack
+    circuit["extra_pops"] = {
+        "VPN": {"ids": np.array(sorted(vmap.values()), dtype=np.int64),
+                "tau_ms": 10.0, "t_refrac_ms": 2.0,
+                "i_base": CAL["I_V_BASE"], "ou_sigma": CAL["OU_VPN_CB"]},
+        "CB": {"ids": np.array(sorted(cmap.values()), dtype=np.int64),
+               "tau_ms": 10.0, "t_refrac_ms": 2.0,
+               "i_base": CAL["I_C_BASE"], "ou_sigma": CAL["OU_VPN_CB"]},
+    }
+    circuit["extra_edges"] = {
+        "M2V": {"pre": ("MID", "T45"), "post": "VPN", "table": e_m2v,
+                "tau_s": CAL["TAU_V_MS"], "g_unit": CAL["G_UNIT_M2V"]},
+        "V2C": {"pre": ("VPN",), "post": "CB", "table": e_v2c,
+                "tau_s": CAL["TAU_V_MS"], "g_unit": CAL["G_UNIT_V2C"]},
+    }
     circuit["vpn_type"] = np.array([str(types.get(b, "?"))
                                     for b in vpn_ids])
     circuit["e_m2v"] = e_m2v
@@ -149,8 +162,10 @@ if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     c = build_vpn_circuit()
     pp, qq = c["pre_pos"], c["post_pos"]
-    pts = np.vstack([np.array([pp[b] for b in c["vpn_ids"]]),
-                     np.array([qq[b] for b in c["cb_ids"]])])
+    pts = np.vstack([np.array([pp[b] for b in
+                               c["extra_pops"]["VPN"]["ids"]]),
+                     np.array([qq[b] for b in
+                               c["extra_pops"]["CB"]["ids"]])])
     print(f"VPN/CB cloud span: "
           f"{np.round(pts.max(0) - pts.min(0), 1)} um, "
           f"r_max {np.linalg.norm(pts - pts.mean(0), axis=1).max():.1f} um")

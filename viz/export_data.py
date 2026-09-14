@@ -29,10 +29,11 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "experiments" / "exp015_bilateral"))
 
 from ffbm import pipeline as fp
+from ffbm import regions as freg
 from ffbm import vizprep as vp
 from ffbm.forward import FourSpherePairField, SealedHeadPairField
 
-from circuit import build_bilateral_circuit, exp005
+from circuit import exp005
 
 OUT = ROOT / "viz" / "data"
 DT = exp005.DT
@@ -60,10 +61,22 @@ N_FLOW_EDGES = 1400
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser(
+        description="export viz data for a chosen region set")
+    ap.add_argument("--regions", type=str, default=None,
+                    help="comma-separated active regions "
+                         f"(known: {','.join(freg.known_regions())}); "
+                         "default = params registry regions_default")
+    args = ap.parse_args()
+    regions = ({r.strip(): True for r in args.regions.split(",")}
+               if args.regions else None)
+
     OUT.mkdir(parents=True, exist_ok=True)
-    # exp015: BOTH optic lobes (per-cell wiring mirror-symmetric, working
-    # point transferred unchanged -- see experiments/exp015_bilateral)
-    circuit = build_bilateral_circuit()
+    # region-optional assembly (ffbm.regions): OFF regions are absent
+    # from the circuit -- no populations, synapses or kernels built
+    circuit, active = freg.build_circuit(regions)
+    print(f"regions: {', '.join(active)}")
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]
@@ -126,6 +139,8 @@ def main():
     group_pairs = {"RL": pairs(e_rl), "LM": pairs(e_lm)}
     for mt in exp005.MID_TYPES:
         group_pairs[f"MT_{mt}"] = pairs(e_mt[mt])
+    for gname, espec in (circuit.get("extra_edges") or {}).items():
+        group_pairs[gname] = pairs(espec["table"])
     # rhabdome dipole per R toward its OWN eye (mirror the left eye axis
     # across the midline for the right lobe)
     xhat = np.array([1.0, 0.0, 0.0])
@@ -294,6 +309,9 @@ def main():
     stim = np.zeros(n_field)
     cal = dict(fp.CAL)
 
+    extra_post = {g: s["post"] for g, s in
+                  (circuit.get("extra_edges") or {}).items()}
+
     def record(j, k, t, st, inc_f, sp):
         syn, pops = st["syn"], st["pops"]
         i_photo = cal["I_R_BASE"] + inc_f
@@ -308,7 +326,8 @@ def main():
                 return syn[name].edge_currents(pops["L"].v)
             if name == "LM":
                 return syn[name].edge_currents(pops["MID"].v)
-            return syn[name].edge_currents(pops["T45"].v)
+            post = extra_post.get(name, "T45")
+            return syn[name].edge_currents(pops[post].v)
 
         for i in range(3):
             acc = 0.0
@@ -394,6 +413,7 @@ def main():
                                     for d in scalp_dirs],
                       "elec_deg": [round(float(a), 1)
                                    for a in scalp_ang]},
+            "regions": active,
             "amplitude_calibration": {"geometry": "neurite",
                                       "factor": 1.7,
                                       "source": "exp013 discrimination "

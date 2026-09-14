@@ -60,9 +60,9 @@ def kernel_stack_v(circuit, elec_deg):
     t45_pos = np.array([pp[b] for b in circuit["t45_ids"]])
     l_pos = np.array([qq[b] for b in circuit["l_ids"]])
     mid_pos = np.array([pp[b] for b in circuit["mid_ids"]])
-    vpn_pos = np.array([pp[b] for b in circuit["vpn_ids"]])
+    vpn_pos = np.array([pp[b] for b in circuit["extra_pops"]["VPN"]["ids"]])
     center = np.vstack([r_pos, l_pos, mid_pos, t45_pos, vpn_pos,
-                        np.array([qq[b] for b in circuit["cb_ids"]])
+                        np.array([qq[b] for b in circuit["extra_pops"]["CB"]["ids"]])
                         ]).mean(axis=0)
     u_occ = t45_pos.mean(axis=0) - center
     u_occ = u_occ / np.linalg.norm(u_occ)
@@ -117,8 +117,8 @@ def measure_v(circuit, cal, ker, seed):
     """exp015 measure + VPN/CB rates and M2V/V2C currents."""
     n_r = len(circuit["r_ids"])
     n_mid = len(circuit["mid_ids"])
-    n_vpn = len(circuit["vpn_ids"])
-    n_cb = len(circuit["cb_ids"])
+    n_vpn = len(circuit["extra_pops"]["VPN"]["ids"])
+    n_cb = len(circuit["extra_pops"]["CB"]["ids"])
     is_t4 = np.array([str(s).startswith("T4") for s in circuit["t45_type"]])
     is_t5 = np.array([str(s).startswith("T5") for s in circuit["t45_type"]])
     n_out = int(T_END / fp.DT_MS) // 2
@@ -167,8 +167,8 @@ def measure_v(circuit, cal, ker, seed):
 
 def dark_rates(circuit, cal, seed=42, t_end=1500.0):
     """Short dark run for the (I_V, I_C) working-point grid."""
-    n_vpn = len(circuit["vpn_ids"])
-    n_cb = len(circuit["cb_ids"])
+    n_vpn = len(circuit["extra_pops"]["VPN"]["ids"])
+    n_cb = len(circuit["extra_pops"]["CB"]["ids"])
     cnt = {"VPN": 0, "CB": 0}
 
     def record(j, k, t, st, inc_f, sp):

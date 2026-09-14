@@ -254,18 +254,20 @@ class ExponentialSynapses:
         self.deliv_starts = starts.astype(np.int64)
         self.deliv_counts = counts.astype(np.int64)
 
-        # per-edge transmission delays (ring buffer, in steps)
+        # per-edge transmission delays (ring buffer, in steps); an empty
+        # edge group (a region selection with no surviving edges) is
+        # legal and stays non-delayed
         self.delayed = False
         if delay_ms is not None:
             bins = np.clip(
                 np.round(np.asarray(delay_ms, dtype=np.float64)[order] / dt
                          ).astype(np.int64), 0, None)
             self.delay_bins = bins
-            self.buf_len = int(bins.max()) + 1
+            self.buf_len = int(bins.max()) + 1 if len(bins) else 1
             self.buffer = np.zeros((self.buf_len, self.n_edges),
                                    dtype=np.float32)
             self.ptr = 0
-            self.delayed = bins.max() > 0
+            self.delayed = bool(len(bins) and bins.max() > 0)
 
         self.decay = np.exp(-dt / tau_s)
         self.y = np.zeros(self.n_edges, dtype=np.float32)

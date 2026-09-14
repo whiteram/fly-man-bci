@@ -5,9 +5,9 @@ scripts/calibrate_working_point.py -- until this module existed the two
 scripts each maintained a copy of the loop and had already begun to drift.
 
 Circuit: exp015 both-lobe cascade (the exp005 left-lobe dict is still
-accepted -- the interface is identical); exp016 VPN -> central-brain
-layers are OPTIONAL and built only when the circuit dict carries
-vpn_ids/cb_ids.
+accepted -- the interface is identical); extra regions are OPTIONAL and
+built only when the circuit dict carries extra_pops/extra_edges specs
+(see ffbm.regions for assembly and the region on/off config).
 
 Mechanism stack (see docs/TECHNICAL.md §5):
   - OU background noise (ColoredCurrentNoise) on all four populations,
@@ -145,28 +145,26 @@ def build_stack(circuit, cal, rng):
             g_unit=cal["G_UNIT_MT"], e_rev_exc=cal["E_REV_EXC"],
             e_rev_inh=cal["E_REV_INH"])
 
-    # exp016 optional visual-downstream layers: VPNs (LC/LPLC classes)
-    # and their central-brain targets, built only when the circuit
-    # carries the extra keys; ACh (excitatory) throughout
-    vpn_ids = circuit.get("vpn_ids")
-    if vpn_ids is not None:
-        cb_ids = circuit["cb_ids"]
-        n_vpn, n_cb = len(vpn_ids), len(cb_ids)
-        vpn_index = _indices(vpn_ids)
-        cb_index = _indices(cb_ids)
-        e_m2v = circuit["e_m2v"]
-        e_v2c = circuit["e_v2c"]
-        syn["M2V"] = ExponentialSynapses(
-            *edges(e_m2v), e_m2v["weight"].to_numpy(np.float32), vpn_index,
-            dt=DT_MS, gain=1.0, tau_s=cal["TAU_V_MS"], n_post=n_vpn,
-            delay_ms=delays(e_m2v), conductance=True,
-            g_unit=cal["G_UNIT_M2V"], e_rev_exc=cal["E_REV_EXC"],
-            e_rev_inh=cal["E_REV_INH"])
-        syn["V2C"] = ExponentialSynapses(
-            *edges(e_v2c), e_v2c["weight"].to_numpy(np.float32), cb_index,
-            dt=DT_MS, gain=1.0, tau_s=cal["TAU_V_MS"], n_post=n_cb,
-            delay_ms=delays(e_v2c), conductance=True,
-            g_unit=cal["G_UNIT_V2C"], e_rev_exc=cal["E_REV_EXC"],
+    # optional extra regions (ffbm.regions assembly): each entry in
+    # circuit["extra_pops"] is a population spec {ids, tau_ms,
+    # t_refrac_ms, i_base, ou_sigma}; each entry in circuit
+    # ["extra_edges"] is a spike-driven conductance edge group
+    # {pre: (pop names), post: pop name, table, tau_s, g_unit}. Both
+    # dicts are absent (or empty) when no region beyond the visual
+    # cascade is active -- zero cost.
+    extra_pops = circuit.get("extra_pops") or {}
+    extra_edges = circuit.get("extra_edges") or {}
+    pop_index = {name: _indices(spec["ids"])
+                 for name, spec in extra_pops.items()}
+    for name, spec in extra_edges.items():
+        e_sub = spec["table"]
+        post = spec["post"]
+        syn[name] = ExponentialSynapses(
+            *edges(e_sub), e_sub["weight"].to_numpy(np.float32),
+            pop_index[post], dt=DT_MS, gain=1.0, tau_s=spec["tau_s"],
+            n_post=len(extra_pops[post]["ids"]),
+            delay_ms=delays(e_sub), conductance=True,
+            g_unit=spec["g_unit"], e_rev_exc=cal["E_REV_EXC"],
             e_rev_inh=cal["E_REV_INH"])
 
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
@@ -191,20 +189,14 @@ def build_stack(circuit, cal, rng):
                                      sigma=cal["OU"][k])
               for k, n in (("R", n_r), ("L", n_l), ("MID", n_mid),
                            ("T45", n_t45))}
-    if vpn_ids is not None:
-        n_vpn, n_cb = len(vpn_ids), len(circuit["cb_ids"])
-        pops["VPN"] = LIFPopulation(n_vpn, DT_MS,
-                                    tau_m=cal["LIF"]["MID"][0],
-                                    t_refrac=cal["LIF"]["MID"][1],
-                                    R_m=cal["RIN_GOHM"])
-        pops["CB"] = LIFPopulation(n_cb, DT_MS, tau_m=cal["LIF"]["MID"][0],
-                                   t_refrac=cal["LIF"]["MID"][1],
+    for name, spec in extra_pops.items():
+        n_x = len(spec["ids"])
+        pops[name] = LIFPopulation(n_x, DT_MS, tau_m=spec["tau_ms"],
+                                   t_refrac=spec["t_refrac_ms"],
                                    R_m=cal["RIN_GOHM"])
-        noises["VPN"] = ColoredCurrentNoise(
-            n_vpn, DT_MS, rng, tau_n=cal["OU_TAU_MS"],
-            sigma=cal["OU_VPN_CB"])
-        noises["CB"] = ColoredCurrentNoise(
-            n_cb, DT_MS, rng, tau_n=cal["OU_TAU_MS"], sigma=cal["OU_VPN_CB"])
+        noises[name] = ColoredCurrentNoise(
+            n_x, DT_MS, rng, tau_n=cal["OU_TAU_MS"],
+            sigma=spec["ou_sigma"])
     t45_type = circuit["t45_type"]
     is_t4 = np.array([str(x).startswith("T4") for x in t45_type])
     is_t5 = np.array([str(x).startswith("T5") for x in t45_type])
@@ -217,17 +209,18 @@ def build_stack(circuit, cal, rng):
             "n_r": n_r, "n_l": n_l, "n_mid": n_mid, "n_t45": n_t45,
             "is_t4": is_t4, "is_t5": is_t5, "l_index": l_index,
             "mid_index": mid_index, "t45_index": t45_index,
-            "vpn_ids": (None if vpn_ids is None else vpn_ids),
-            "cb_ids": circuit.get("cb_ids"),
+            "extra_pops": extra_pops,
+            "extra_ids": {n: s["ids"] for n, s in extra_pops.items()},
+            "extra_base": {n: np.full(len(s["ids"]), s["i_base"])
+                           for n, s in extra_pops.items()},
+            "extra_in": {n: [g for g, es in extra_edges.items()
+                             if es["post"] == n]
+                         for n in extra_pops},
+            "extra_pre": {g: es["pre"] for g, es in extra_edges.items()},
             "l_base": (np.zeros(n_l) if mech
                        else np.full(n_l, cal["I_L_BASE"])),
             "mid_base": np.full(n_mid, cal["I_MID_BASE"]),
             "t45_base": t45_base,
-            "v_base": (None if vpn_ids is None
-                       else np.full(len(vpn_ids), cal["I_V_BASE"])),
-            "c_base": (None if vpn_ids is None
-                       else np.full(len(circuit["cb_ids"]),
-                                    cal["I_C_BASE"])),
             "r_release": _release, "l_release": _release, "cal": cal}
 
 
@@ -276,26 +269,43 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
             i_t45 += di
             g_t45 += dg
         sp_t45 = pops["T45"].step(i_t45, g_t45)
-        sp_v = sp_cb = None
-        if "M2V" in syn:
-            di_v, dg_v = syn["M2V"].to_neuron_drive()
-            sp_v = pops["VPN"].step(st["v_base"] + di_v
-                                    + noises["VPN"].step(), dg_v)
-            di_c, dg_c = syn["V2C"].to_neuron_drive()
-            sp_cb = pops["CB"].step(st["c_base"] + di_c
-                                    + noises["CB"].step(), dg_c)
+        # optional extra regions, stepped in declaration (dependency)
+        # order: each pop consumes this step's drive from its incoming
+        # edge groups, so a chain MID->VPN->CB propagates within the
+        # same step like the core cascade does
+        sp_extra = {}
+        for name in st["extra_pops"]:
+            i_x = st["extra_base"][name] + noises[name].step()
+            g_x = np.zeros(len(st["extra_ids"][name]))
+            for grp in st["extra_in"][name]:
+                di, dg = syn[grp].to_neuron_drive()
+                i_x += di
+                g_x += dg
+            sp_extra[name] = pops[name].step(i_x, g_x)
         if not st["mech"]:
             syn["RL"].step(st["r_ids"][sp_r])
             syn["LM"].step(st["l_ids"][sp_l])
         spiked_mid = st["mid_ids"][sp_mid]
         for mt in cal["MID_TAU_S"]:
             syn[f"MT_{mt}"].step(spiked_mid)
-        if "M2V" in syn:
-            syn["M2V"].step(np.concatenate(
-                [spiked_mid, st["t45_ids"][sp_t45]]))
-            syn["V2C"].step(st["vpn_ids"][sp_v])
+
+        def spiked_ids(pop, sp_r_=sp_r, sp_l_=sp_l, sp_mid_=sp_mid,
+                       sp_t45_=sp_t45, sp_extra_=sp_extra):
+            if pop == "R":
+                return st["r_ids"][sp_r_]
+            if pop == "L":
+                return st["l_ids"][sp_l_]
+            if pop == "MID":
+                return st["mid_ids"][sp_mid_]
+            if pop == "T45":
+                return st["t45_ids"][sp_t45_]
+            return st["extra_ids"][pop][sp_extra_[pop]]
+
+        for grp, pre_names in st["extra_pre"].items():
+            syn[grp].step(np.concatenate(
+                [spiked_ids(p) for p in pre_names]))
         if k % 2 == 0 and on_sample is not None:
             on_sample(k // 2, k, t, st, inc_f,
                       {"R": sp_r, "L": sp_l, "MID": sp_mid,
-                       "T45": sp_t45, "VPN": sp_v, "CB": sp_cb})
+                       "T45": sp_t45, **sp_extra})
     return st
