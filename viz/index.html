@@ -130,8 +130,14 @@ let drawnUpTo = { eeg: 0, rates: 0 };
 const SMOOTH = { R: 0, L: 0, MID: 0, T4: 0, T5: 0 };
 let scalpAll = null, scalpVmax = 1, scalpDeg = [];
 let bgAll = null, scalpMix = null, scalpVmaxBg = 1, bgOn = false;
+// electrode edit preview: moved-channel traces are interpolated from the
+// other channels (approximate until a re-export bakes them in)
+let editTraces = null;
 
-function scalpData() { return bgOn && scalpMix ? scalpMix : scalpAll; }
+function scalpData() {
+  if (editTraces) return editTraces;
+  return bgOn && scalpMix ? scalpMix : scalpAll;
+}
 function scalpScale() {
   return bgOn && scalpMix ? scalpVmaxBg : scalpVmax;
 }
@@ -995,6 +1001,46 @@ function addElecBall(name, dirArr) {
   elecEdit.balls.push({ name, mesh, label, dir: d });
 }
 
+// drag-preview: a moved channel's trace is interpolated from the OTHER
+// channels' exact traces (spherical distance weights) -- approximate
+// until a re-export with --elec-layout bakes the new positions in
+function interpTrace(idx, dirNew) {
+  const src = DATA.phi_scalp_all_uV;
+  const dirs = DATA.meta.scalp.elec_dirs;
+  const n = src[idx].length;
+  const dNew = dirNew.clone ? dirNew : new THREE.Vector3(...dirNew);
+  let wsum = 0;
+  const acc = new Float64Array(n);
+  for (let j = 0; j < dirs.length; j++) {
+    if (j === idx) continue;
+    const w = Math.max(0, dNew.dot(new THREE.Vector3(...dirs[j])) - 0.2) ** 3 + 1e-6;
+    wsum += w;
+    const tr = src[j];
+    for (let t = 0; t < n; t++) acc[t] += w * tr[t];
+  }
+  const out = new Array(n);
+  for (let t = 0; t < n; t++) out[t] = acc[t] / wsum;
+  return out;
+}
+
+function stdDir(i) {
+  return new THREE.Vector3(...DATA.meta.scalp.elec_dirs[i]);
+}
+
+function applyStdDir(i, dir) {
+  const mesh = scalpElecMeshes[i];
+  const R = globeRadius(), embed = 300, hDisk = 1400;
+  const UP = new THREE.Vector3(0, 1, 0);
+  mesh.position.copy(dir).multiplyScalar(R - embed + hDisk / 2);
+  mesh.quaternion.setFromUnitVectors(UP, dir);
+}
+
+function saveStdLayout() {
+  localStorage.setItem("stdElecLayout", JSON.stringify(
+    elecEdit.std.map((s, i) => [DATA.meta.scalp.elec_names[i],
+      [+s.dir.x.toFixed(5), +s.dir.y.toFixed(5), +s.dir.z.toFixed(5)]])));
+}
+
 function saveElecLayout() {
   localStorage.setItem("elecLayout", JSON.stringify(
     elecEdit.balls.map(b => [b.name,
@@ -1008,30 +1054,26 @@ function buildElecPanel() {
   div.style.cssText = "position:absolute;bottom:34px;right:10px;" +
       "background:#0d131cee;border:1px solid #2a3a4d;border-radius:6px;" +
       "padding:8px 10px;font-size:12px;line-height:1.7;z-index:7;" +
-      "width:230px";
+      "width:250px";
   div.innerHTML = "<b>标准电极位编辑</b><br>" +
-      "<span style='color:#8aa0b4'>输入名称（如 Cz/Fz/A1/A2/Oz）添加，" +
-      "然后在球面上拖动红球到标准位置。建议开着“人头形态”层操作。</span><br>" +
-      `<input id="elec-name" placeholder="电极名" ` +
+      "<span style='color:#8aa0b4'>直接拖动头上的电极片微调位置；" +
+      "波形为插值预览（近似）。调好后复制 JSON 给管线重新生成精确数据。" +
+      "需要新锚点时输入名称添加红球。</span><br>" +
+      `<input id="elec-name" placeholder="新锚点名" ` +
       `style="width:90px;background:#16212e;color:#dbe4ee;` +
       `border:1px solid #2a3a4d;border-radius:4px;padding:2px 6px">
        <button id="elec-add" style="padding:2px 8px">添加</button>
        <button id="elec-undo" style="padding:2px 8px">撤销</button><br>` +
-      "<span id='elec-count' style='color:#7dd3fc'></span><br>" +
       "<button id='elec-copy' style='margin-top:4px'>复制JSON</button> " +
-      "<button id='elec-clear'>清空</button> " +
+      "<button id='elec-stdreset'>恢复标准位</button> " +
       "<button id='elec-exit' style='float:right'>退出编辑</button>";
   document.getElementById("scene-wrap").appendChild(div);
-  const refresh = () => {
-    document.getElementById("elec-count").textContent =
-      `已放置 ${elecEdit.balls.length} 个`;
-  };
   const add = () => {
     const inp = document.getElementById("elec-name");
     const name = (inp.value || "").trim().toUpperCase();
     if (!name) return;
     addElecBall(name, null);
-    saveElecLayout(); inp.value = ""; refresh();
+    saveElecLayout(); inp.value = "";
   };
   div.querySelector("#elec-add").onclick = add;
   div.querySelector("#elec-name").onkeydown = e => {
@@ -1039,24 +1081,28 @@ function buildElecPanel() {
   div.querySelector("#elec-undo").onclick = () => {
     const b = elecEdit.balls.pop();
     if (b) { humanHead.remove(b.mesh); humanHead.remove(b.label);
-             saveElecLayout(); refresh(); }
-  };
-  div.querySelector("#elec-clear").onclick = () => {
-    elecEdit.balls.forEach(b => {
-      humanHead.remove(b.mesh); humanHead.remove(b.label); });
-    elecEdit.balls = []; saveElecLayout(); refresh();
+             saveElecLayout(); }
   };
   div.querySelector("#elec-copy").onclick = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(
-      elecEdit.balls.map(b => [b.name,
-        [+b.dir.x.toFixed(5), +b.dir.y.toFixed(5),
-         +b.dir.z.toFixed(5)]])));
+    await navigator.clipboard.writeText(JSON.stringify([
+      ...elecEdit.std.map((s, i) => [DATA.meta.scalp.elec_names[i],
+        [+s.dir.x.toFixed(5), +s.dir.y.toFixed(5), +s.dir.z.toFixed(5)]]),
+      ...elecEdit.balls.map(b => [b.name,
+        [+b.dir.x.toFixed(5), +b.dir.y.toFixed(5), +b.dir.z.toFixed(5)]])
+    ]));
     div.querySelector("#elec-copy").textContent = "已复制!";
     setTimeout(() =>
       div.querySelector("#elec-copy").textContent = "复制JSON", 1200);
   };
+  div.querySelector("#elec-stdreset").onclick = () => {
+    localStorage.removeItem("stdElecLayout");
+    elecEdit.std.forEach((s, i) => {
+      s.dir.copy(stdDir(i));
+      applyStdDir(i, s.dir);
+      editTraces[i] = DATA.phi_scalp_all_uV[i].slice();
+    });
+  };
   div.querySelector("#elec-exit").onclick = () => toggleElecEdit();
-  refresh();
 }
 
 function onElecDown(e) {
@@ -1066,11 +1112,20 @@ function onElecDown(e) {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1);
   elecEdit.ray.setFromCamera(ndc, camera);
-  const meshes = elecEdit.balls.map(b => b.mesh);
-  const hit = elecEdit.ray.intersectObjects(meshes)[0];
+  const stdHit = elecEdit.ray.intersectObjects(scalpElecMeshes)[0];
+  if (stdHit) {
+    const idx = scalpElecMeshes.indexOf(stdHit.object);
+    elecEdit.dragging = { type: "std", idx,
+                          dir: elecEdit.std[idx].dir };
+    controls.enabled = false;
+    return;
+  }
+  const hit = elecEdit.ray.intersectObjects(
+      elecEdit.balls.map(b => b.mesh))[0];
   if (hit) {
-    elecEdit.dragging = elecEdit.balls.find(
-      b => b.mesh === hit.object) || null;
+    elecEdit.dragging = { type: "ball",
+                          ball: elecEdit.balls.find(
+                              b => b.mesh === hit.object) };
     controls.enabled = false;
   }
 }
@@ -1084,46 +1139,68 @@ function onElecMove(e) {
   elecEdit.ray.setFromCamera(ndc, camera);
   const hit = elecEdit.ray.intersectObject(elecEdit.sphere)[0];
   if (!hit) return;
-  const b = elecEdit.dragging;
+  const d = elecEdit.dragging;
   const R = globeRadius();
-  b.dir.copy(hit.point).normalize();
-  b.mesh.position.copy(b.dir).multiplyScalar(R);
-  b.label.position.copy(b.dir).multiplyScalar(R + 6500);
+  if (d.type === "std") {
+    const idx = d.idx;
+    d.dir.copy(hit.point).normalize();
+    applyStdDir(idx, d.dir);
+    editTraces[idx] = interpTrace(idx, d.dir);
+  } else {
+    const b = d.ball;
+    b.dir.copy(hit.point).normalize();
+    b.mesh.position.copy(b.dir).multiplyScalar(R);
+    b.label.position.copy(b.dir).multiplyScalar(R + 6500);
+  }
 }
 
 function onElecUp() {
   if (!elecEdit) return;
+  if (elecEdit.dragging && elecEdit.dragging.type === "std")
+    saveStdLayout();
+  if (elecEdit.dragging && elecEdit.dragging.type === "ball")
+    saveElecLayout();
   elecEdit.dragging = null;
   controls.enabled = true;
-  saveElecLayout();
 }
 
 function toggleElecEdit() {
-  if (elecEdit) {   // exit
+  if (elecEdit) {   // exit: std electrodes stay at their moved spots
     renderer.domElement.removeEventListener("pointerdown", onElecDown);
     renderer.domElement.removeEventListener("pointermove", onElecMove);
     renderer.domElement.removeEventListener("pointerup", onElecUp);
     elecEdit.balls.forEach(b => {
       humanHead.remove(b.mesh); humanHead.remove(b.label); });
     scene.remove(elecEdit.sphere);
-    scalpElecMeshes.forEach(m => m.visible = true);
     const p = document.getElementById("elecpanel");
     if (p) p.remove();
     elecEdit = null;
     return;
   }
-  // enter
+  // enter: standard 45 electrodes become drag targets; moved-channel
+  // traces switch to live interpolation previews
   elecEdit = { balls: [], ray: new THREE.Raycaster(), dragging: null,
-               sphere: null };
+               sphere: null, std: [] };
   const R = globeRadius();
   elecEdit.sphere = new THREE.Mesh(
     new THREE.SphereGeometry(R, 64, 40),
     new THREE.MeshBasicMaterial({ transparent: true, opacity: 0,
                                   depthWrite: false }));
   scene.add(elecEdit.sphere);
-  scalpElecMeshes.forEach(m => m.visible = false);
-  const saved = JSON.parse(localStorage.getItem("elecLayout") || "[]");
-  saved.forEach(([name, d]) => addElecBall(name, d));
+  const names = DATA.meta.scalp.elec_names;
+  elecEdit.std = names.map((name, i) => ({ name, dir: stdDir(i), idx: i }));
+  if (!editTraces)
+    editTraces = DATA.phi_scalp_all_uV.map(tr => tr.slice());
+  const saved = JSON.parse(localStorage.getItem("stdElecLayout") || "[]");
+  saved.forEach(([name, d]) => {
+    const i = names.indexOf(name);
+    if (i < 0) return;
+    elecEdit.std[i].dir.set(...d);
+    applyStdDir(i, elecEdit.std[i].dir);
+    editTraces[i] = interpTrace(i, elecEdit.std[i].dir);
+  });
+  const savedBalls = JSON.parse(localStorage.getItem("elecLayout") || "[]");
+  savedBalls.forEach(([name, d]) => addElecBall(name, d));
   renderer.domElement.addEventListener("pointerdown", onElecDown);
   renderer.domElement.addEventListener("pointermove", onElecMove);
   renderer.domElement.addEventListener("pointerup", onElecUp);
