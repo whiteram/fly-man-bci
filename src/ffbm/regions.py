@@ -56,11 +56,16 @@ DEFAULT_REGIONS = {"visual_bilateral": True, "vpn_central": False,
 
 
 def _load(module_file: Path, attr: str):
+    """Load (and cache in sys.modules) so several region builders from
+    the same module share their heavy tables."""
+    import sys
     name = f"_{module_file.stem}_{module_file.parent.name}"
-    spec = importlib.util.spec_from_file_location(name, module_file)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return getattr(mod, attr)
+    if name not in sys.modules:
+        spec = importlib.util.spec_from_file_location(name, module_file)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[name] = mod
+        spec.loader.exec_module(mod)
+    return getattr(sys.modules[name], attr)
 
 
 def known_regions() -> list:

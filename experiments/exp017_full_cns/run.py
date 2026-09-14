@@ -40,7 +40,7 @@ SIGMAS = (0.33, 1.79, 0.013, 0.33)
 X1P7 = 1.7
 ELEC_DEG = [0.0, 90.0, 147.0]
 G_GRID = (0.002, 0.004, 0.008)
-I_GRID = (30.0, 60.0, 120.0, 240.0)
+I_GRID = (30.0, 60.0, 120.0, 150.0, 180.0, 210.0, 240.0)
 REGIONS = ("OLR", "CEN", "VNC")
 I_KEYS = {"OLR": "I_OLR_BASE", "CEN": "I_CEN_BASE", "VNC": "I_VNC_BASE"}
 RATE_LO, RATE_HI = 1.0, 10.0
@@ -153,7 +153,8 @@ def measure(circuit, cal, ker, seed, t_dark=T_DARK, t_end=T_END):
     fp.simulate(circuit, cal,
                 lambda t: LEVEL_PA if t_dark <= t < t_end else 0.0,
                 seed=seed, t_end_ms=t_end, on_sample=record)
-    phi = phi * X1P7 * 1e-12
+    if phi is not None:
+        phi = phi * X1P7 * 1e-12
 
     def w(t0, t1):
         m = slice(int(t0), int(t1))
@@ -161,7 +162,8 @@ def measure(circuit, cal, ker, seed, t_dark=T_DARK, t_end=T_END):
 
     fl = slice(int(t_dark + 300.0), int(t_end))
     return {"dark": w(500.0, t_dark), "flash": w(t_dark + 300.0, t_end),
-            "phi_flash_std_uv": phi[fl].std(axis=0) * 1e6}
+            "phi_flash_std_uv": (phi[fl].std(axis=0) * 1e6
+                                 if phi is not None else None)}
 
 
 def main():
@@ -183,7 +185,7 @@ def main():
         cal_g["G_UNIT_CX"] = g
         chosen = {}
         for reg in REGIONS:
-            pick = None
+            pick, best_d = None, None
             for iv in I_GRID:
                 c = dict(cal_g)
                 c[I_KEYS[reg]] = iv
@@ -197,7 +199,11 @@ def main():
                       f"{rate:.2f} Hz", flush=True)
                 if RATE_LO <= rate <= RATE_HI and pick is None:
                     pick = iv
-            chosen[reg] = pick if pick is not None else I_GRID[-1]
+                # fallback: closest to the window's geometric centre
+                d = abs(np.log(max(rate, 1e-3) / 3.0))
+                if best_d is None or d < best_d:
+                    best_d, best_iv = d, iv
+            chosen[reg] = pick if pick is not None else best_iv
         # stability: 6 s dark at the chosen point
         c = dict(cal_g)
         for reg in REGIONS:

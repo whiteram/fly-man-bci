@@ -436,8 +436,7 @@ def main():
                 {"name": "髓质", "color": "#22c55e"},
             ],
         },
-        "positions": [pts(r_pos), pts(l_pos), pts(mid_pos),
-                      pts(t45_pos[is_t4]), pts(t45_pos[is_t5])],
+        "positions": None,      # filled after extra-region layers below
         "electrodes_pos": np.round(electrodes - center, 1).tolist(),
         "flow_edges": flow,
         "t_ms": np.arange(n_field).tolist(),
@@ -447,6 +446,24 @@ def main():
         "phi_scalp_all_uV": np.round(phi_scalp.T * 1e6, 3).tolist(),
         "phi_scalp_bg_uV": np.round(bg, 2).tolist(),
     }
+    # extra-region layers for the point cloud (VNC excluded: it sits
+    # outside the head sphere in the thought experiment)
+    layer_names = {"VPN": "VPN 投射神经元", "OLR": "其余视叶",
+                   "CEN": "中央脑"}
+    layer_colors = {"VPN": "#f472b6", "OLR": "#8b9dc3", "CEN": "#fbbf24"}
+    positions = [pts(r_pos), pts(l_pos), pts(mid_pos),
+                 pts(t45_pos[is_t4]), pts(t45_pos[is_t5])]
+    for pname, spec in (circuit.get("extra_pops") or {}).items():
+        if pname == "VNC":
+            continue
+        pos_x = np.array([pp[b] for b in spec["ids"]])
+        positions.append(np.round(pos_x - center, 1).tolist())
+        data["meta"]["layers"].append(
+            {"name": layer_names.get(pname, pname),
+             "color": layer_colors.get(pname, "#8b9dc3"),
+             "n": len(pos_x), "static": True})
+
+    data["positions"] = positions
     path = OUT / "viz_data.json"
     path.write_text(json.dumps(data, separators=(",", ":")))
     print(f"wrote {path} ({path.stat().st_size / 1e6:.1f} MB)")
