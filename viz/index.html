@@ -244,12 +244,15 @@ function initScene() {
   const UP = new THREE.Vector3(0, 1, 0);
   eDirs.forEach((d, i) => {
     const dir = new THREE.Vector3(d[0], d[1], d[2]).normalize();
-    const rDisk = i === 0 ? 3400 : 2600, hDisk = 1400, embed = 300;
+    // mounting sphere clearly outside the topomap globe, so the disks do
+    // not sit on the flickering color layer
+    const rDisk = i === 0 ? 3400 : 2600, hDisk = 1400;
+    const eGap = 2600, embed = 300;
     const s = new THREE.Mesh(
       new THREE.CylinderGeometry(rDisk, rDisk, hDisk, 20),
       new THREE.MeshLambertMaterial({ color: i === 0 ? 0xe879f9 : 0xf0abfc }));
     s.quaternion.setFromUnitVectors(UP, dir);
-    s.position.copy(dir.clone().multiplyScalar(globeR - embed + hDisk / 2));
+    s.position.copy(dir.clone().multiplyScalar(globeR + eGap - embed + hDisk / 2));
     humanHead.add(s);
     scalpElecMeshes.push(s);
   });
