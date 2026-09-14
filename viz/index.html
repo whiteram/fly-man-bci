@@ -84,8 +84,8 @@
     </div>
     <div class="chart-title">刺激亮度（各时段颜色见右上）</div>
     <canvas id="stim" class="chart" height="64"></canvas>
-    <div class="chart-title">人脑头皮电极阵列 ×17（行按与眼轴夹角 0°→180° 排列，
-      蓝− 红+）
+    <div class="chart-title"><span id="elec-title">人脑头皮电极阵列</span>
+      （行按国际标准通道排列，蓝− 红+）
       <label style="float:right;font-weight:normal;cursor:pointer">
         <input type="checkbox" id="zoom"> 近 2 s 放大</label>
       <label style="float:right;font-weight:normal;cursor:pointer;margin-right:12px">
@@ -1161,6 +1161,9 @@ fetch("data/viz_data.json?v=" + Date.now()).then(r => r.json()).then(d => {
   if (DATA.meta.scalp && DATA.meta.scalp.scale)
     document.getElementById("scalenote").textContent =
       "×" + Math.round(DATA.meta.scalp.scale);
+  if (DATA.meta.scalp && DATA.meta.scalp.elec_names)
+    document.getElementById("elec-title").textContent =
+      `人脑头皮电极阵列 ×${DATA.meta.scalp.elec_names.length} · 10-10 标准`;
   if (DATA.phi_scalp_all_uV) {
     scalpAll = DATA.phi_scalp_all_uV;
     scalpDeg = (DATA.meta.scalp && DATA.meta.scalp.elec_deg) || [];
