@@ -654,7 +654,7 @@ function initUI() {
 }
 
 // ---------- boot ----------
-fetch("data/viz_data.json").then(r => r.json()).then(d => {
+fetch("data/viz_data.json?v=" + Date.now()).then(r => r.json()).then(d => {
   DATA = d;
   // layer keys: the 5 cascade layers carry rate traces; extra-region
   // layers (VPN/OLR/CEN...) are static point clouds (no rate rows)

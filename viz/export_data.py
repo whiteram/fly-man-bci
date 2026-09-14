@@ -146,12 +146,16 @@ def main():
     KERNEL_PAIR_CAP = 300_000
     rng_k = np.random.default_rng(7)
     reweight = {name: 1.0 for name in group_pairs}
+    kernel_keep = {name: None for name in group_pairs}
     for gname, espec in (circuit.get("extra_edges") or {}).items():
+        if not espec.get("forward", True):
+            continue         # VNC etc.: simulated, no scalp kernels
         pr, po = pairs(espec["table"])
         if len(pr) > KERNEL_PAIR_CAP:
             keep = np.sort(rng_k.choice(len(pr), KERNEL_PAIR_CAP,
                                         replace=False))
             reweight[gname] = len(pr) / KERNEL_PAIR_CAP   # unbiased
+            kernel_keep[gname] = keep
             pr, po = pr[keep], po[keep]
         group_pairs[gname] = (pr, po)
     # rhabdome dipole per R toward its OWN eye (mirror the left eye axis
@@ -163,8 +167,9 @@ def main():
     photo_pair = (r_pos, r_pos + 23.5 * rh_dir)
 
     ker = {}
+    core_groups = {"RL", "LM"} | {f"MT_{m}" for m in exp005.MID_TYPES}
     for name, (pr, po) in group_pairs.items():
-        if reweight.get(name, 1.0) != 1.0:
+        if name not in core_groups:
             continue   # legacy fly-head reference: visual cascade only
         ker[name] = SealedHeadPairField(
             pr, po, electrodes, center=center, r1=r1, r2=1.3 * r1,
@@ -353,7 +358,11 @@ def main():
             phi[j, i] = acc * 1e-12
         acc_s = np.zeros(N_SCALP_ELEC)
         for name in list(group_pairs) + ["PHOTO"]:
-            acc_s += coef_scalp[name] @ y_of(name)
+            y = y_of(name)
+            keep = kernel_keep.get(name)
+            if keep is not None:
+                y = y[keep]
+            acc_s += coef_scalp[name] @ y
         phi_scalp[j] = acc_s * 1e-12
         if mech:   # graded R/L: display their release rates (%) instead
             rate["R"][j] = float(st["r_release"](
@@ -465,9 +474,10 @@ def main():
     }
     # extra-region layers for the point cloud (VNC excluded: it sits
     # outside the head sphere in the thought experiment)
-    layer_names = {"VPN": "VPN 投射神经元", "OLR": "其余视叶",
-                   "CEN": "中央脑"}
-    layer_colors = {"VPN": "#f472b6", "OLR": "#8b9dc3", "CEN": "#fbbf24"}
+    layer_names = {"VPN": "VPN 投射神经元", "CB": "中央脑目标(exp016)",
+                   "OLR": "其余视叶", "CEN": "中央脑"}
+    layer_colors = {"VPN": "#f472b6", "CB": "#c084fc", "OLR": "#8b9dc3",
+                    "CEN": "#fbbf24"}
     positions = [pts(r_pos), pts(l_pos), pts(mid_pos),
                  pts(t45_pos[is_t4]), pts(t45_pos[is_t5])]
     for pname, spec in (circuit.get("extra_pops") or {}).items():
