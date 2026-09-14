@@ -180,6 +180,14 @@ SECTIONS: dict = {
         "elec_neck_excl_deg": (40.0, "deg", "chosen",
                                "电极颈部排除锥（相对颈轴的最小角；电极不落在"
                                "耳下颈部）"),
+        "head_form_calib": ({"scale": 3.2, "rotX": 0.0, "rotY": -17.0,
+                             "rotZ": 3.0, "offF_mm": 77.0, "offU_mm": 160.0,
+                             "offR_mm": -48.0}, "-", "calibrated",
+                             "人头形态（LeePerrySmith 扫描，CC-BY）手动校准"
+                             "超参数（2026-09-14 用户目测标定）：缩放相对"
+                             "种子（模型宽=脑球直径）；旋转为世界轴外旋"
+                             "（俯仰/偏航/翻滚）；平移沿面/上/右轴 mm。"
+                             "旋转与缩放以颅腔中心（耳点中点）为支点"),
         "kernel_n_terms": (60, "terms", "numerical",
                            "勒让德截断；网络深度处误差 2.5e-10"),
         "_note_deferred": "**DEFERRED（当前最大不确定项）**：回流电流几何——"

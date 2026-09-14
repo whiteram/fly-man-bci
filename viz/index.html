@@ -321,18 +321,18 @@ function initScene() {
       headForm.add(new THREE.Mesh(lathe, skinMat()));
     };
 
-    // calibration: rotation sliders are WORLD-AXIS extrinsic rotations
-    // applied on top of the face-forward seed (model +y -> local +z),
-    // so at the default view: 俯仰 = screen-horizontal axis,
-    // 偏航 = vertical axis, 翻滚 = view axis. Persisted in localStorage,
-    // exportable as hyperparameters.
+    // calibration: MANUAL HYPERPARAMETERS (user-calibrated 2026-09-14,
+    // see params head_model.head_form_calib). Rotation sliders are
+    // WORLD-AXIS extrinsic rotations applied on top of the face-forward
+    // seed (model +y -> local +z); offsets in mm along face/up/right.
+    // Rotation AND scaling pivot on the cranium center (ear midpoint).
     const CALIB_DEFAULTS = {
-      scale: 1.0,           // x model units -> um, refined at load
-      rotX: 0, rotY: 0, rotZ: 0,       // deg, world axes (see above)
-      offF: 0, offU: 0, offR: 0,       // mm along face / up / right
+      scale: 3.2,
+      rotX: 0, rotY: -17, rotZ: 3,
+      offF: 77, offU: 160, offR: -48,
     };
     let calib = { ...CALIB_DEFAULTS,
-      ...(JSON.parse(localStorage.getItem("headFormCalib_v2") || "{}")) };
+      ...(JSON.parse(localStorage.getItem("headFormCalib_v3") || "{}")) };
     const qSeed = new THREE.Quaternion().setFromAxisAngle(
         new THREE.Vector3(1, 0, 0), Math.PI / 2);
     // cranium pivot = ear midpoint, computed from the raw mesh (extreme
@@ -483,10 +483,10 @@ function initScene() {
       c.calib[k] = +e.target.value;
       div.querySelector(`[data-v="${k}"]`).textContent = c.calib[k];
       apply();
-      localStorage.setItem("headFormCalib_v2", JSON.stringify(c.calib));
+      localStorage.setItem("headFormCalib_v3", JSON.stringify(c.calib));
     });
     div.querySelector("#hcal-reset").onclick = () => {
-      localStorage.removeItem("headFormCalib_v2");
+      localStorage.removeItem("headFormCalib_v3");
       location.reload();
     };
     div.querySelector("#hcal-copy").onclick = async () => {
