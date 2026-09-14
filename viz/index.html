@@ -56,14 +56,14 @@
   <div id="panel">
     <h1>果蝇视觉系统 · 从神经放电到脑电</h1>
     <div class="sub">
-      MaleCNS v1.0 真实连接组（左叶 1.9 万神经元 / 167 万突触）· 闪光刺激 →
-      光转导 → R1-R6 → L1-L3 → Mi/Tm → T4/T5 → 突触电流 → 准静电前向核 →
-      三电极电位。数据来自 exp009 递质符号工作点的整段仿真。
+      MaleCNS v1.0 真实连接组（左叶 1.9 万神经元 / 167 万突触）放大 ×400
+      放进人脑四球壳（脑/脑脊液/颅骨/头皮，网络贴枕极）· 自然视觉刺激 →
+      光转导 → R1-R6 → L1-L3 → Mi/Tm → T4/T5（突触电流）→ 四球壳前向核
+      → 头皮 17 电极脑电。机制板层版（R/L 为分级电位细胞）。
     </div>
     <div id="controls">
       <button id="play">⏸ 暂停</button>
       <button id="restart">↺ 重放</button>
-      <button id="viewmode">🧠 人脑壳视图（×400）</button>
       <select id="speed">
         <option value="0.5">0.5×</option>
         <option value="1" selected>1×</option>
@@ -75,30 +75,23 @@
     </div>
     <div class="chart-title">刺激亮度（各时段颜色见右上）</div>
     <canvas id="stim" class="chart" height="64"></canvas>
-    <div class="chart-title">电极电位（实时生成）
-      <label style="float:right;font-weight:normal;cursor:pointer">
-        <input type="checkbox" id="zoom"> 近 2 s 放大</label></div>
-    <canvas id="eeg" class="chart" height="290"></canvas>
     <div class="chart-title">人脑头皮电极阵列 ×17（行按与眼轴夹角 0°→180° 排列，
       蓝− 红+）
       <label style="float:right;font-weight:normal;cursor:pointer">
+        <input type="checkbox" id="zoom"> 近 2 s 放大</label>
+      <label style="float:right;font-weight:normal;cursor:pointer;margin-right:12px">
         <input type="checkbox" id="bgon"> 叠加人脑背景脑电</label></div>
-    <canvas id="scalpmap" class="chart" height="170"></canvas>
+    <canvas id="scalpmap" class="chart" height="200"></canvas>
     <div class="flash-legend" id="snrinfo"></div>
     <div class="chart-title">各层群体放电率</div>
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
-      电极电位：红=眼表面 · 琥珀=板层 · 绿=髓质（果蝇头内）·
-      粉=<b>人脑头皮</b>（×400 思想实验：同一网络放大放进<b>人脑四球壳</b>
-      ——脑/脑脊液/颅骨/头皮，网络<b>贴枕极</b>（T4/T5 端靠着颅骨内壁，
-      像真实视觉皮层）；17 个电极均匀贴头皮，粉色曲线=眼轴方向那一个，
-      热图=全部 17 通道——exp010/011）｜ 放电率自上而下：R → L → Mi/Tm
-      → T4 → T5。果蝇自己的头壳外放不了电极（角质层绝缘，外部场严格
-      为零）。右上按钮可切换 果蝇头 / 人脑壳 双视图；人脑壳视图下头皮
-      球面按电位实时着色（脑电地形图），相机从枕侧看。
-      <b>机制板层版</b>：R1-6 与 L1/L2 为分级电位细胞（上两行曲线是
-      它们的<b>分级释放率</b>%，不是放电率——真实 LMC 不放电）；头皮
-      幅值含回流几何判定的 ×1.7 标定系数（exp013）。
+      展示链路：自然视觉刺激（上）→ 五层神经元活动（下，R/L 行为分级
+      释放率%——真实 LMC 不放电）→ 头皮 17 电极脑电（中，果蝇网络 ×400
+      放进四层人脑壳、贴枕极，粉点为电极，头皮球面按电位实时着色，
+      幅值含回流几何判定 ×1.7 标定）。果蝇自己的头壳外放不了电极
+      （角质层绝缘，外部场严格为零）。左上开关可单独显示/隐藏每层、
+      连接、电极与四个球壳（灰=脑、蓝=脑脊液、白=颅骨、粉=头皮）。
     </div>
   </div>
 </div>
@@ -114,8 +107,8 @@ const RATE_ROWS = [
   { key: "T4",  label: "T4",     color: "#f87171" },
   { key: "T5",  label: "T5",     color: "#fb923c" },
 ];
-const ELEC_COLORS = ["#ef4444", "#f59e0b", "#22c55e"];
-const ELEC_NAMES = ["眼表面", "板层", "髓质"];
+const ELEC_COLORS = ["#ef4444", "#f59e0b", "#22c55e"];   // legacy keys
+const ELEC_NAMES = ["眼表面", "板层", "髓质"];             // (unused)
 
 let DATA = null;
 let simIdx = 0, playing = true, speed = 1.0;
@@ -129,10 +122,10 @@ function scalpScale() {
   return bgOn && scalpMix ? scalpVmaxBg : scalpVmax;
 }
 
-// ---------- 3D scene ----------
+// ---------- 3D scene (human-head view only) ----------
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
-let elecMeshes = [], elecLabels = [], headMesh, stimLight, scene;
-let netGroup, elecGroup, humanHead, eyeDirVec, humanMode = false;
+let netGroup, humanHead, eyeDirVec, shellMeshes = [], scalpElecMeshes = [];
+let stimLight, scene;
 let scalpTopo = null, topoWeights = null;
 
 function initScene() {
@@ -154,9 +147,7 @@ function initScene() {
   stimLight = new THREE.DirectionalLight(0xffd97a, 0.0);
   scene.add(stimLight);
   netGroup = new THREE.Group();
-  elecGroup = new THREE.Group();
   scene.add(netGroup);
-  scene.add(elecGroup);
 
   // neuron layers
   DATA.positions.forEach((pts, i) => {
@@ -193,55 +184,25 @@ function initScene() {
     flowMeshes.push(mesh);
   });
 
-  // electrodes + pulsing rings + labels
-  DATA.electrodes_pos.forEach((p, i) => {
-    const mat = new THREE.MeshBasicMaterial({ color: ELEC_COLORS[i] });
-    const s = new THREE.Mesh(new THREE.SphereGeometry(6, 12, 8), mat);
-    s.position.set(p[0], p[1], p[2]);
-    elecGroup.add(s);
-    elecMeshes.push(s);
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(9, 11, 24),
-      new THREE.MeshBasicMaterial({ color: ELEC_COLORS[i], transparent: true,
-                                    opacity: 0.5, side: THREE.DoubleSide }));
-    ring.position.copy(s.position);
-    ring.userData.isRing = true;
-    elecGroup.add(ring);
-    elecLabels.push(ring);
-    const sprite = makeLabel(ELEC_NAMES[i], ELEC_COLORS[i]);
-    const radial = new THREE.Vector3(p[0], p[1], p[2]).normalize()
-      .multiplyScalar(30 + 16 * i);
-    radial.y += 6;
-    sprite.position.set(p[0], p[1], p[2]).add(radial);
-    sprite.scale.set(72, 27, 1);
-    elecGroup.add(sprite);
-  });
-
-  // fly head sphere
-  const r1 = DATA.meta.head_r_um;
-  headMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(r1, 28, 18),
-    new THREE.MeshBasicMaterial({ color: 0x7dd3fc, wireframe: true,
-                                  transparent: true, opacity: 0.05 }));
-  scene.add(headMesh);
-
-  // human 4-sphere head (thought experiment, S=400):
-  // brain / CSF / skull / scalp wireframes, network shifted occipitally
+  // human 4-sphere head: brain / CSF / skull / scalp wireframes,
+  // individually toggleable, with visible shells
   humanHead = new THREE.Group();
   const meta = DATA.meta.scalp || { radii_um: [8e4, 8.5e4, 9.2e4],
                                     elec_dist_um: 9.06e4 };
   const eDir = new THREE.Vector3(...(meta.elec_dir || [1, 0, 0]));
   const R_SCALP_UM = meta.radii_um[meta.radii_um.length - 1] || 9.2e4;
+  const shellNames = ["脑", "脑脊液", "颅骨", "头皮"];
+  const shellColors = [0x94a3b8, 0x38bdf8, 0xcbd5e1, 0xe879f9];
+  const shellOpacity = [0.10, 0.12, 0.10, 0.12];
   meta.radii_um.forEach((rr, i) => {
-    const last = i === meta.radii_um.length - 1;
-    const csf = meta.radii_um.length === 4 && i === 1;
     const wire = new THREE.Mesh(
-      new THREE.SphereGeometry(rr, 30, 20),
+      new THREE.SphereGeometry(rr, 40, 26),
       new THREE.MeshBasicMaterial({
-        color: last ? 0xe879f9 : csf ? 0x38bdf8 : 0x94a3b8,
-        wireframe: true, transparent: true,
-        opacity: last ? 0.08 : 0.05 }));
+        color: shellColors[i] || 0x94a3b8, wireframe: true,
+        transparent: true, opacity: shellOpacity[i] || 0.1 }));
+    wire.userData.shellName = shellNames[i] || `层${i}`;
     humanHead.add(wire);
+    shellMeshes.push(wire);
   });
 
   // scalp electrode array: channel 0 (magenta) on the eye axis, the rest
@@ -250,10 +211,11 @@ function initScene() {
   const eDist = meta.elec_dist_um || 9.06e4;
   eDirs.forEach((d, i) => {
     const s = new THREE.Mesh(
-      new THREE.SphereGeometry(i === 0 ? 1200 : 750, 12, 8),
+      new THREE.SphereGeometry(i === 0 ? 1600 : 1000, 12, 8),
       new THREE.MeshBasicMaterial({ color: i === 0 ? 0xe879f9 : 0xf0abfc }));
     s.position.set(d[0] * eDist, d[1] * eDist, d[2] * eDist);
     humanHead.add(s);
+    scalpElecMeshes.push(s);
   });
   const sl = makeLabel("人脑头皮电极 ×17", "#e879f9", 5600);
   sl.position.copy(eDir.clone().multiplyScalar(eDist + 6000));
@@ -287,12 +249,19 @@ function initScene() {
   humanHead.visible = false;
   scene.add(humanHead);
 
-  // camera: along the eye direction
+  // camera: from the occipital (-eye) side, where the shifted network
+  // (T4/T5 pole) sits under the scalp; network pre-scaled x400 and
+  // shifted occipitally (human view is the only view)
   const eye = new THREE.Vector3(...DATA.electrodes_pos[0]);
-  const dir = eye.clone().normalize();
-  eyeDirVec = dir.clone();
-  camera.position.copy(dir.multiplyScalar(r1 * 2.6))
-    .add(new THREE.Vector3(0, r1 * 0.9, 0));
+  eyeDirVec = eye.clone().normalize();
+  netGroup.scale.set(400, 400, 400);
+  if (DATA.meta.scalp && DATA.meta.scalp.shift_um) {
+    const sv = DATA.meta.scalp.shift_um;
+    netGroup.position.set(sv[0], sv[1], sv[2]);
+  }
+  const rCam = R_SCALP_UM;
+  camera.position.copy(eyeDirVec.clone().multiplyScalar(-rCam * 2.6))
+    .add(new THREE.Vector3(0, rCam * 0.9, 0));
   camera.lookAt(0, 0, 0);
   camera.far = 1e6;
   camera.updateProjectionMatrix();
@@ -408,28 +377,6 @@ function drawChartFrame(ch, i0, i1, x0, x1) {
   const px = (i1 - 1 - x0) / n * w;
   ctx.strokeStyle = "#7dd3fc"; ctx.lineWidth = 1 * dpr;
   ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
-}
-
-function drawEegChart(i) {
-  const rows = [0, 1, 2].map(k => ({
-    key: "PHI" + k, label: ELEC_NAMES[k], color: ELEC_COLORS[k] }));
-  const scalpSingle = DATA.phi_scalp_all_uV
-    ? (bgOn && scalpMix ? scalpMix[0] : DATA.phi_scalp_all_uV[0])
-    : DATA.phi_scalp_uV;
-  if (scalpSingle)
-    rows.push({ key: "SCALP", label: "人脑头皮×400·眼轴",
-                color: "#e879f9" });
-  if (!drawEegChart.ch) {
-    const data = { PHI0: DATA.phi_uV.map(v => v[0]),
-                   PHI1: DATA.phi_uV.map(v => v[1]),
-                   PHI2: DATA.phi_uV.map(v => v[2]),
-                   SCALP: scalpSingle };
-    drawEegChart.ch = setupChart(document.getElementById("eeg"), rows, data);
-  }
-  const n = DATA.t_ms.length;
-  const zoom = document.getElementById("zoom").checked;
-  const x0 = zoom ? Math.max(0, i - 2000) : 0;
-  drawChartFrame(drawEegChart.ch, x0, i + 1, x0, zoom ? x0 + 2000 : n);
 }
 
 // 17-channel scalp array as a time x channel heatmap (rows = angle from
@@ -573,7 +520,7 @@ function tick() {
     const target = DATA.rates[k][i] / 90;     // normalize to ~1 at peak
     SMOOTH[k] += (Math.min(target, 1.4) - SMOOTH[k]) * 0.12;
   });
-  const sizeScale = humanMode ? 400 : 1;
+  const sizeScale = 400;                     // human view only
   layerMeshes.forEach((m, li) => {
     const a = SMOOTH[LAYER_KEYS[li]];
     m.material.color.copy(m.userData.base)
@@ -589,25 +536,14 @@ function tick() {
   document.getElementById("overlay").style.opacity = stimOn ? 0.55 : 0;
   stimLight.intensity = stimOn ? 1.6 : 0.0;
 
-  // electrode rings pulse with |phi|
-  const phiScale = DATA.phi_uV.reduce(
-    (m, v) => Math.max(m, Math.abs(v[0]), Math.abs(v[1]), Math.abs(v[2])), 1);
-  elecLabels.forEach((ring, ei) => {
-    const p = Math.abs(DATA.phi_uV[i][ei]) / phiScale;
-    ring.scale.setScalar(0.7 + 2.6 * p);
-    ring.material.opacity = 0.25 + 0.6 * p;
-    ring.lookAt(camera.position);
-  });
-
   controls.update();
   renderer.render(scene, camera);
+  updateScalpTopo(i);
 
   // charts (progressive: redraw fully is fine at these sizes)
   drawStimChart(i);
-  drawEegChart(i);
   drawScalpMap(i);
   drawRatesChart(i);
-  if (humanMode) updateScalpTopo(i);
 
   document.getElementById("time").textContent =
     (DATA.t_ms[i] / 1000).toFixed(2) + " s";
@@ -627,8 +563,11 @@ function buildLayerBox() {
      <span style="color:#5b7186">(${l.n})</span></label>`);
   const extras = [
     `<label><input type="checkbox" checked data-extra="flow">连接采样</label>`,
-    `<label><input type="checkbox" checked data-extra="elec">电极</label>`,
-    `<label><input type="checkbox" checked data-extra="head">头壳边界</label>`,
+    `<label><input type="checkbox" checked data-extra="elecs">头皮电极</label>`,
+    `<label><input type="checkbox" checked data-extra="shell0">脑壳</label>`,
+    `<label><input type="checkbox" checked data-extra="shell1">脑脊液层</label>`,
+    `<label><input type="checkbox" checked data-extra="shell2">颅骨壳</label>`,
+    `<label><input type="checkbox" checked data-extra="shell3">头皮壳</label>`,
   ];
   box.innerHTML = items.concat(extras).join("<br>");
   box.addEventListener("change", e => {
@@ -637,11 +576,10 @@ function buildLayerBox() {
       layerMeshes[+t.dataset.layer].visible = t.checked;
     else if (t.dataset.extra === "flow")
       flowMeshes.forEach(m => m.visible = t.checked);
-    else if (t.dataset.extra === "elec") {
-      elecMeshes.forEach(m => m.visible = t.checked);
-      elecLabels.forEach(m => m.visible = t.checked);
-    } else if (t.dataset.extra === "head")
-      headMesh.visible = t.checked;
+    else if (t.dataset.extra === "elecs")
+      scalpElecMeshes.forEach(m => m.visible = t.checked);
+    else if (t.dataset.extra.startsWith("shell"))
+      shellMeshes[+t.dataset.extra.slice(5)].visible = t.checked;
   });
 }
 
@@ -652,29 +590,6 @@ function initUI() {
     if (playing && simIdx >= DATA.t_ms.length - 2) simIdx = 0;
   };
   document.getElementById("restart").onclick = () => { simIdx = 0; };
-  document.getElementById("viewmode").onclick = function () {
-    humanMode = !humanMode;
-    const s = humanMode ? 400 : 1;
-    netGroup.scale.set(s, s, s);
-    if (DATA.meta.scalp && DATA.meta.scalp.shift_um) {
-      const sv = DATA.meta.scalp.shift_um;
-      netGroup.position.set(humanMode ? sv[0] : 0,
-                            humanMode ? sv[1] : 0,
-                            humanMode ? sv[2] : 0);
-    }
-    headMesh.visible = !humanMode;
-    elecGroup.visible = !humanMode;
-    humanHead.visible = humanMode;
-    const r = humanMode
-      ? DATA.meta.scalp.radii_um[DATA.meta.scalp.radii_um.length - 1]
-      : DATA.meta.head_r_um;
-    // in human mode look from the occipital (-eye) side: that is where
-    // the shifted network (T4/T5 pole) sits under the scalp
-    camera.position.copy(eyeDirVec.clone()
-      .multiplyScalar((humanMode ? -1 : 1) * r * 2.6))
-      .add(new THREE.Vector3(0, r * 0.9, 0));
-    this.textContent = humanMode ? "🐛 果蝇头视图" : "🧠 人脑壳视图（×400）";
-  };
   document.getElementById("speed").onchange = function () {
     speed = +this.value;
   };
@@ -683,7 +598,6 @@ function initUI() {
   };
   document.getElementById("bgon").onchange = function () {
     bgOn = this.checked;
-    drawEegChart.ch = null;      // rebuild the EEG chart with/without bg
   };
   buildLayerBox();
 }
