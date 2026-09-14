@@ -88,8 +88,8 @@
     <div class="flash-legend">
       展示链路：自然视觉刺激（上）→ 五层神经元活动（下，R/L 行为分级
       释放率%——真实 LMC 不放电）→ 头皮 17 电极脑电（中，果蝇网络 ×400
-      放进四层人脑壳、贴枕极，粉点为电极，头皮球面按电位实时着色，
-      幅值含回流几何判定 ×1.7 标定）。果蝇自己的头壳外放不了电极
+      放进四层人脑壳、贴枕极，粉色圆片=贴附式头皮电极，头皮球面按电位
+      实时着色，幅值含回流几何判定 ×1.7 标定）。果蝇自己的头壳外放不了电极
       （角质层绝缘，外部场严格为零）。左上开关可单独显示/隐藏：每层
       神经元、连接采样（紫/绿/橙 = R→L / L→Mi,Tm / Mi→T4,T5 三段突触
       采样）、头皮电极、头皮电位着色（红正蓝负，随时间实时变化）与
@@ -232,13 +232,24 @@ function initScene() {
 
   // scalp electrode array: channel 0 (magenta) on the eye axis, the rest
   // quasi-uniform over the sphere
+  // scalp electrodes as disk/cylinder "EEG-cap" electrodes flush on the
+  // display-globe surface, axis along the local surface normal; a fixed
+  // fill light gives the Lambert disks a 3D shaded look (everything else
+  // in the scene is unlit material, so the light affects only these)
   const eDirs = meta.elec_dirs || [meta.elec_dir || [1, 0, 0]];
-  const eDist = R_SCALP_UM * 1.055;   // drawn on the outer topomap globe
+  const globeR = R_SCALP_UM * 1.04;
+  const elecLight = new THREE.DirectionalLight(0xaabbdd, 0.7);
+  elecLight.position.set(-0.6, 1.0, 0.8);
+  scene.add(elecLight);
+  const UP = new THREE.Vector3(0, 1, 0);
   eDirs.forEach((d, i) => {
+    const dir = new THREE.Vector3(d[0], d[1], d[2]).normalize();
+    const rDisk = i === 0 ? 3400 : 2600, hDisk = 1400, embed = 300;
     const s = new THREE.Mesh(
-      new THREE.SphereGeometry(i === 0 ? 3000 : 2000, 14, 10),
-      new THREE.MeshBasicMaterial({ color: i === 0 ? 0xe879f9 : 0xf0abfc }));
-    s.position.set(d[0] * eDist, d[1] * eDist, d[2] * eDist);
+      new THREE.CylinderGeometry(rDisk, rDisk, hDisk, 20),
+      new THREE.MeshLambertMaterial({ color: i === 0 ? 0xe879f9 : 0xf0abfc }));
+    s.quaternion.setFromUnitVectors(UP, dir);
+    s.position.copy(dir.clone().multiplyScalar(globeR - embed + hDisk / 2));
     humanHead.add(s);
     scalpElecMeshes.push(s);
   });
