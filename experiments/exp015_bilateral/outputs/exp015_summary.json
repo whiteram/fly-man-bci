@@ -1,0 +1,60 @@
+{
+ "working_point": "round-5 CAL, unchanged",
+ "calibration": {
+  "l12_dark_mv": -35.2,
+  "l12_depth_mv": 20.6,
+  "l12_dark_left_mv": -26.0,
+  "l12_depth_left_mv": 5.8,
+  "l12_dark_right_mv": -25.2,
+  "l12_depth_right_mv": 0.0,
+  "dark_rates_hz": {
+   "R": 0.0,
+   "MID": 16.7,
+   "T4": 6.9,
+   "T5": 1.1
+  },
+  "flash_rates_hz": {
+   "R": 0.0,
+   "MID": 11.2,
+   "T4": 7.0,
+   "T5": 0.8
+  },
+  "windows_pass": {
+   "l12_dark_-38.4+-3.2": true,
+   "depth_10_25": true,
+   "MID_5.0_20.0": true,
+   "T4_2.0_12.0": true,
+   "T5_2.0_15.0": false,
+   "flashT4_gt5": true
+  }
+ },
+ "amplitude": {
+  "note": "bilateral does NOT fit at x400 (native span 692 um -> 277 mm); each circuit uses its own fit-scale min(400, 0.98 R_brain / r_max)",
+  "scale_left": 395.4,
+  "scale_bilateral": 202.0,
+  "elec_deg": [
+   0.0,
+   90.0,
+   147.0
+  ],
+  "phi_flash_std_uv_left": [
+   0.053,
+   0.004,
+   0.047
+  ],
+  "phi_flash_std_uv_bilateral": [
+   0.047,
+   0.018,
+   0.004
+  ],
+  "ratio_bilateral_left": [
+   0.89,
+   4.5,
+   0.09
+  ],
+  "shift_mm_left": 31.8,
+  "shift_mm_bilateral": 0.0,
+  "r_after_um_bilateral": 76440.0
+ },
+ "timing_s": 512.0
+}

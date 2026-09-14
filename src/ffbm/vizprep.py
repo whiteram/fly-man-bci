@@ -56,6 +56,48 @@ def occipital_shift(points: np.ndarray, u_eye: np.ndarray, r_brain: float,
     return -np.asarray(u_eye, dtype=np.float64) * max(d, 0.0)
 
 
+def fit_scale_shift(points_native: np.ndarray, center: np.ndarray,
+                    u_occ: np.ndarray, r_brain: float, nominal: float = 400.0,
+                    pole_frac: float = 0.90,
+                    margin_frac: float = 0.98) -> tuple:
+    """Largest scale <= nominal whose occipitally-shifted cloud fits.
+
+    exp015: the BOTH-lobe cloud in native geometry does not fit at x400
+    (692 um span -> 277 mm vs the 156 mm brain diameter), so the
+    thought-experiment scale auto-fits. u_occ points from the cloud
+    centroid toward the pole end (the T4/T5 side); occipital_shift does
+    the placement -- a pole-anchored shift for elongated clouds (single
+    lobe: the T4/T5 extreme lands at pole_frac*r_brain) and a zero/
+    centered shift for clouds wider than long along u_occ (bilateral V:
+    the long inter-eye axis rides a diameter through the head center).
+    Bisection maximizes the scale under the margin_frac*r_brain bound.
+    Returns (scale, shift, r_after_um); scale == nominal whenever it
+    fits (single-lobe case)."""
+    rel = np.asarray(points_native, dtype=np.float64) - center
+    u_occ = np.asarray(u_occ, dtype=np.float64)
+    r_safe = margin_frac * r_brain
+
+    def place(s):
+        scaled = rel * s
+        shift = occipital_shift(scaled, -u_occ, r_brain, pole_frac,
+                                margin_frac)
+        return shift, float(np.linalg.norm(scaled + shift, axis=1).max())
+
+    shift, r_after = place(nominal)
+    if r_after <= r_safe + 1e-6:
+        return nominal, shift, r_after
+    lo, hi = 1.0, nominal      # lo assumed feasible (tiny clouds)
+    for _ in range(40):
+        mid = 0.5 * (lo + hi)
+        _, r = place(mid)
+        if r <= r_safe + 1e-6:
+            lo = mid
+        else:
+            hi = mid
+    shift, r_after = place(lo)
+    return lo, shift, r_after
+
+
 def _one_over_f(n: int, rng) -> np.ndarray:
     x = rng.standard_normal(n)
     f = np.fft.rfftfreq(n)

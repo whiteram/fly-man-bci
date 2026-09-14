@@ -23,11 +23,16 @@ import numpy as np  # noqa: F401  (kept for downstream imports)
 # name: (value, unit, status, note)
 SECTIONS: dict = {
     "circuit": {
-        "_title": "电路（左叶五层级联）",
+        "_title": "电路（双侧视叶五层级联，exp015）",
+        "lobes": ("both", "L/R", "chosen",
+                  "exp015 起双叶接入（原生几何、同侧连线；跨叶边=0 实测）"
+                  "——右眼 R1-6 追踪不完整（1,112 vs 左 2,265），受支配 "
+                  "L1/2 突触质量中位数两侧一致（148 vs 153），工作点直接迁移"),
         "lobe_split_iters": (20, "iterations", "numerical",
                              "x 轴 2-means 收敛轮数（20 轮内必然收敛）"),
         "rhabd_offset_um": (23.5, "um", "calibrated",
-                            "光感受器偶极长度（小网膜方向外推，exp002 对 ERG 标定）"),
+                            "光感受器偶极长度（小网膜方向外推，exp002 对 ERG 标定）；"
+                            "双叶各自朝本侧眼（镜像）"),
     },
     "neuron_lif": {
         "_title": "LIF 神经元（量级取自果蝇文献，未逐细胞拟合）",
@@ -105,10 +110,37 @@ SECTIONS: dict = {
                              "0.3 m/s，小轴突传导速度"),
         "jitter_ms": (0.5, "ms", "assumed", "±均匀抖动；影响微小（实测校准点不变）"),
     },
+    "vpn_central": {
+        "_title": "视觉下游 VPN→中央脑（exp016 可选层，现象学工作点）",
+        "_status": "phenomenol.",
+        "vpn_classes": (["LC17", "LC12", "LC10a", "LC10d", "LC11", "LC18",
+                         "LPLC2", "LLPC1", "LC9", "LC16"], "-", "chosen",
+                        "CB 突触量前 10 的 VPN 类（承担 3.17M VPN→CB "
+                        "突触中的 1.35M；全部胆碱能；跨度 326-561 um）"),
+        "g_unit_m2v_ns": (0.02, "nS", "phenomenol.",
+                          "MID/T45→VPN 单突触电导（全部 ACh 兴奋性）"),
+        "g_unit_v2c_ns": (0.02, "nS", "phenomenol.",
+                          "VPN→CB 单突触电导（全部 ACh 兴奋性）"),
+        "tau_v_ms": (8.0, "ms", "phenomenol.", "VPN 一级突触动力学"),
+        "i_v_base_pa": (60.0, "pA", "calibrated",
+                        "VPN 未建模背景基流（暗率 1-10 Hz 窗口内）"),
+        "i_c_base_pa": (60.0, "pA", "calibrated",
+                        "中央脑目标细胞基流（同窗口）"),
+        "ou_sigma_vpn_cb_pa": (40.0, "pA", "phenomenol.",
+                               "VPN/CB 的 OU 噪声（与 MID 同量级）"),
+        "positions": ("soma", "-", "assumed",
+                      "VPN/CB 用胞体位置近似突触位置（syn-points 13 GB "
+                      "未做子集扫描；偶极长度因此保守偏短）"),
+        "_note": "电路为可选扩展：仅当 circuit 带 vpn_ids/cb_ids 键时"
+                 "build_stack 才构建这两层（exp016 评估用，未进主管线导出）。",
+    },
     "head_model": {
         "_title": "人脑四球壳 + 电极（思想实验几何）",
         "scale": (400.0, "x", "chosen",
-                  "网络放大倍数（exp010 定：铺满大脑）"),
+                  "网络放大倍数标称值（exp010 定：单叶铺满大脑）；exp015 起"
+                  "按网络实际半径自适应 scale = min(400, 0.98·r_脑/r_max)"
+                  "——双叶原生几何 692 um 在 ×400 下宽 277 mm 装不进脑球，"
+                  "自动降到 ~×213（原生相对几何保持不变）"),
         "radii_mm": ([78.0, 80.0, 85.0, 92.0], "mm", "literature",
                      "脑/CSF/颅骨/头皮半径（成人文献值；±1 mm 只动幅值 ±1%）"),
         "sigmas_sm": ([0.33, 1.79, 0.013, 0.33], "S/m", "literature",
@@ -196,6 +228,7 @@ def cal() -> dict:
     lif = SECTIONS["neuron_lif"]
     syn = SECTIONS["synapses"]
     dly = SECTIONS["delays"]
+    vpn = SECTIONS["vpn_central"]
     return {
         "I_R_BASE": wp["i_r_base_pa"][0],
         "I_L_BASE": wp["i_l_base_pa"][0],
@@ -224,6 +257,15 @@ def cal() -> dict:
         "R_RELEASE_MAP_MV": list(lam["release_map_mv"][0]),
         "L_RELEASE_MAP_MV": list(lam["l_release_map_mv"][0]),
         "G_UNIT_LM_NS": lam["g_unit_lm_ns"][0],
+        # exp016 optional VPN->central layers (built only when the
+        # circuit carries vpn_ids/cb_ids)
+        "VPN_CLASSES": list(vpn["vpn_classes"][0]),
+        "G_UNIT_M2V": vpn["g_unit_m2v_ns"][0],
+        "G_UNIT_V2C": vpn["g_unit_v2c_ns"][0],
+        "TAU_V_MS": vpn["tau_v_ms"][0],
+        "I_V_BASE": vpn["i_v_base_pa"][0],
+        "I_C_BASE": vpn["i_c_base_pa"][0],
+        "OU_VPN_CB": vpn["ou_sigma_vpn_cb_pa"][0],
     }
 
 

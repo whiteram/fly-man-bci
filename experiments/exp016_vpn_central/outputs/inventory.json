@@ -1,0 +1,431 @@
+{
+ "filter": "VPN(superclass=visual_projection) -> CB(cb_*), w>=5",
+ "circuit_feed_into_vpn_synapses": {
+  "MID": 582681,
+  "T45": 1178786
+ },
+ "vpn_classes": [
+  {
+   "vpn_class": "LC17",
+   "cells": 353,
+   "cb_synapses": 333987,
+   "cb_pairs": 10630,
+   "top_targets": {
+    "PVLP061": 55293,
+    "PVLP072": 38829,
+    "PVLP011": 37386,
+    "PVLP135": 36873,
+    "PVLP106": 36405
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 422.8
+  },
+  {
+   "vpn_class": "LC12",
+   "cells": 498,
+   "cb_synapses": 332979,
+   "cb_pairs": 17481,
+   "top_targets": {
+    "PVLP097": 90731,
+    "PVLP025": 51593,
+    "PVLP013": 34129,
+    "PVLP037": 30023,
+    "PVLP085": 27691
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 406.7
+  },
+  {
+   "vpn_class": "LC10a",
+   "cells": 275,
+   "cb_synapses": 182551,
+   "cb_pairs": 8120,
+   "top_targets": {
+    "TuTuA_2": 23204,
+    "AOTU008": 14996,
+    "AOTU019": 14152,
+    "AOTU041": 14057,
+    "AOTU014": 8547
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 560.9
+  },
+  {
+   "vpn_class": "LC10d",
+   "cells": 214,
+   "cb_synapses": 122518,
+   "cb_pairs": 6090,
+   "top_targets": {
+    "AOTU041": 28327,
+    "AOTU008": 17651,
+    "AOTU019": 7774,
+    "AOTU015": 6735,
+    "AOTU063_a": 5043
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 440.6
+  },
+  {
+   "vpn_class": "LC11",
+   "cells": 143,
+   "cb_synapses": 79813,
+   "cb_pairs": 6505,
+   "top_targets": {
+    "PVLP098": 16913,
+    "AVLP282": 8695,
+    "CB1109": 5843,
+    "CB0744": 3223,
+    "AVLP079": 3219
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 417.5
+  },
+  {
+   "vpn_class": "LC18",
+   "cells": 208,
+   "cb_synapses": 76275,
+   "cb_pairs": 7506,
+   "top_targets": {
+    "PVLP107": 12002,
+    "?": 7119,
+    "PVLP139": 6162,
+    "PVLP086": 4138,
+    "AVLP407": 3958
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 422.6
+  },
+  {
+   "vpn_class": "LPLC2",
+   "cells": 185,
+   "cb_synapses": 74698,
+   "cb_pairs": 4641,
+   "top_targets": {
+    "PVLP111": 12741,
+    "PVLP011": 11623,
+    "PVLP069": 9053,
+    "PVLP151": 6456,
+    "AVLP479": 4932
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 406.3
+  },
+  {
+   "vpn_class": "LLPC1",
+   "cells": 285,
+   "cb_synapses": 65134,
+   "cb_pairs": 4329,
+   "top_targets": {
+    "PLP249": 13423,
+    "PVLP011": 9547,
+    "PLP163": 7804,
+    "PLP059": 3093,
+    "PVLP015": 2784
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 533.6
+  },
+  {
+   "vpn_class": "LC9",
+   "cells": 219,
+   "cb_synapses": 64609,
+   "cb_pairs": 4184,
+   "top_targets": {
+    "PVLP004": 30943,
+    "PVLP070": 5318,
+    "PVLP015": 2733,
+    "PVLP140": 2518,
+    "PVLP114": 2147
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 441.0
+  },
+  {
+   "vpn_class": "LC16",
+   "cells": 182,
+   "cb_synapses": 63693,
+   "cb_pairs": 4537,
+   "top_targets": {
+    "PVLP007": 30364,
+    "CB0829": 6830,
+    "CB1852": 5089,
+    "PVLP008_b": 4158,
+    "PVLP133": 3249
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 326.0
+  },
+  {
+   "vpn_class": "LC4",
+   "cells": 126,
+   "cb_synapses": 62744,
+   "cb_pairs": 4609,
+   "top_targets": {
+    "AMMC-A1": 10759,
+    "PVLP024": 6604,
+    "?": 6341,
+    "PVLP122": 4454,
+    "PVLP021": 3329
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 398.9
+  },
+  {
+   "vpn_class": "LC15",
+   "cells": 126,
+   "cb_synapses": 61792,
+   "cb_pairs": 5523,
+   "top_targets": {
+    "PVLP121": 9120,
+    "CB2049": 3159,
+    "CB0346": 3029,
+    "PVLP028": 2958,
+    "CB0381": 2854
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 306.8
+  },
+  {
+   "vpn_class": "LC21",
+   "cells": 153,
+   "cb_synapses": 58643,
+   "cb_pairs": 4876,
+   "top_targets": {
+    "PVLP099": 16679,
+    "AVLP325_b": 5395,
+    "CB0743": 4733,
+    "PVLP103": 2872,
+    "PVLP214m": 2536
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 408.6
+  },
+  {
+   "vpn_class": "LC13",
+   "cells": 177,
+   "cb_synapses": 55006,
+   "cb_pairs": 2317,
+   "top_targets": {
+    "PLP015": 18836,
+    "PLP016": 10742,
+    "PLP008": 7211,
+    "AVLP464": 6617,
+    "CB4071": 3057
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 308.9
+  },
+  {
+   "vpn_class": "LC10c-2",
+   "cells": 125,
+   "cb_synapses": 52258,
+   "cb_pairs": 3216,
+   "top_targets": {
+    "TuTuA_1": 9301,
+    "AOTU025": 4278,
+    "AOTU041": 3121,
+    "IB018": 2285,
+    "AOTU019": 1978
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 426.1
+  },
+  {
+   "vpn_class": "LPC1",
+   "cells": 224,
+   "cb_synapses": 50660,
+   "cb_pairs": 3525,
+   "top_targets": {
+    "PLP018": 11037,
+    "PVLP011": 6597,
+    "PLP163": 6491,
+    "PLP230": 3286,
+    "PLP012": 2685
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 458.4
+  },
+  {
+   "vpn_class": "LPLC4",
+   "cells": 97,
+   "cb_synapses": 44614,
+   "cb_pairs": 3486,
+   "top_targets": {
+    "PLP172": 5927,
+    "PLP009": 2439,
+    "PS306": 2291,
+    "PS065": 2126,
+    "PLP213": 1922
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 407.8
+  },
+  {
+   "vpn_class": "LC6",
+   "cells": 124,
+   "cb_synapses": 44462,
+   "cb_pairs": 4300,
+   "top_targets": {
+    "PVLP008_a1": 4468,
+    "PVLP008_a3": 3488,
+    "PVLP008_a2": 3467,
+    "PVLP008_a4": 3174,
+    "PVLP151": 2603
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 429.1
+  },
+  {
+   "vpn_class": "LC10c-1",
+   "cells": 130,
+   "cb_synapses": 39990,
+   "cb_pairs": 2670,
+   "top_targets": {
+    "AOTU041": 5807,
+    "TuTuA_1": 3306,
+    "AOTU019": 2495,
+    "AOTU025": 1929,
+    "AOTU012": 1850
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 428.5
+  },
+  {
+   "vpn_class": "LPLC1",
+   "cells": 134,
+   "cb_synapses": 37267,
+   "cb_pairs": 3307,
+   "top_targets": {
+    "PVLP113": 6271,
+    "?": 6199,
+    "PVLP011": 4952,
+    "PLP219": 4067,
+    "PVLP112": 1370
+   },
+   "nt": "acetylcholine",
+   "soma_span_um": 397.0
+  }
+ ],
+ "targets": [
+  {
+   "target_type": "PVLP097",
+   "cells": 14,
+   "syn_from_vpn": 93058,
+   "soma_span_um": 300.9
+  },
+  {
+   "target_type": "PVLP011",
+   "cells": 2,
+   "syn_from_vpn": 73446,
+   "soma_span_um": 192.4
+  },
+  {
+   "target_type": "PVLP061",
+   "cells": 2,
+   "syn_from_vpn": 56830,
+   "soma_span_um": 387.3
+  },
+  {
+   "target_type": "AOTU041",
+   "cells": 4,
+   "syn_from_vpn": 55979,
+   "soma_span_um": 236.4
+  },
+  {
+   "target_type": "PVLP025",
+   "cells": 4,
+   "syn_from_vpn": 51656,
+   "soma_span_um": 206.1
+  },
+  {
+   "target_type": "?",
+   "cells": 0,
+   "syn_from_vpn": 50303,
+   "soma_span_um": null
+  },
+  {
+   "target_type": "PVLP135",
+   "cells": 4,
+   "syn_from_vpn": 41128,
+   "soma_span_um": 349.7
+  },
+  {
+   "target_type": "PVLP072",
+   "cells": 10,
+   "syn_from_vpn": 41090,
+   "soma_span_um": 329.4
+  },
+  {
+   "target_type": "PVLP106",
+   "cells": 2,
+   "syn_from_vpn": 40454,
+   "soma_span_um": 144.0
+  },
+  {
+   "target_type": "AOTU008",
+   "cells": 25,
+   "syn_from_vpn": 35851,
+   "soma_span_um": 294.6
+  },
+  {
+   "target_type": "PVLP004",
+   "cells": 16,
+   "syn_from_vpn": 35007,
+   "soma_span_um": 326.8
+  },
+  {
+   "target_type": "PVLP013",
+   "cells": 2,
+   "syn_from_vpn": 34569,
+   "soma_span_um": 376.5
+  },
+  {
+   "target_type": "AVLP479",
+   "cells": 4,
+   "syn_from_vpn": 31860,
+   "soma_span_um": 304.2
+  },
+  {
+   "target_type": "PVLP085",
+   "cells": 8,
+   "syn_from_vpn": 31550,
+   "soma_span_um": 388.0
+  },
+  {
+   "target_type": "AOTU019",
+   "cells": 2,
+   "syn_from_vpn": 31004,
+   "soma_span_um": 135.6
+  },
+  {
+   "target_type": "PVLP007",
+   "cells": 11,
+   "syn_from_vpn": 30844,
+   "soma_span_um": 325.6
+  },
+  {
+   "target_type": "PVLP037",
+   "cells": 7,
+   "syn_from_vpn": 30573,
+   "soma_span_um": 258.0
+  },
+  {
+   "target_type": "TuTuA_2",
+   "cells": 2,
+   "syn_from_vpn": 27872,
+   "soma_span_um": 312.5
+  },
+  {
+   "target_type": "PVLP036",
+   "cells": 6,
+   "syn_from_vpn": 26459,
+   "soma_span_um": 250.1
+  },
+  {
+   "target_type": "PVLP120",
+   "cells": 2,
+   "syn_from_vpn": 25763,
+   "soma_span_um": 180.0
+  }
+ ]
+}

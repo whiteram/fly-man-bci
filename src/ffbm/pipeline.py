@@ -140,6 +140,42 @@ def build_stack(circuit, cal, rng):
             g_unit=cal["G_UNIT_MT"], e_rev_exc=cal["E_REV_EXC"],
             e_rev_inh=cal["E_REV_INH"])
 
+    # exp016 optional visual-downstream layers: VPNs (LC/LPLC classes)
+    # and their central-brain targets, built only when the circuit
+    # carries the extra keys; ACh (excitatory) throughout
+    vpn_ids = circuit.get("vpn_ids")
+    if vpn_ids is not None:
+        cb_ids = circuit["cb_ids"]
+        n_vpn, n_cb = len(vpn_ids), len(cb_ids)
+        vpn_index = _indices(vpn_ids)
+        cb_index = _indices(cb_ids)
+        e_m2v = circuit["e_m2v"]
+        e_v2c = circuit["e_v2c"]
+        syn["M2V"] = ExponentialSynapses(
+            *edges(e_m2v), e_m2v["weight"].to_numpy(np.float32), vpn_index,
+            dt=DT_MS, gain=1.0, tau_s=cal["TAU_V_MS"], n_post=n_vpn,
+            delay_ms=delays(e_m2v), conductance=True,
+            g_unit=cal["G_UNIT_M2V"], e_rev_exc=cal["E_REV_EXC"],
+            e_rev_inh=cal["E_REV_INH"])
+        syn["V2C"] = ExponentialSynapses(
+            *edges(e_v2c), e_v2c["weight"].to_numpy(np.float32), cb_index,
+            dt=DT_MS, gain=1.0, tau_s=cal["TAU_V_MS"], n_post=n_cb,
+            delay_ms=delays(e_v2c), conductance=True,
+            g_unit=cal["G_UNIT_V2C"], e_rev_exc=cal["E_REV_EXC"],
+            e_rev_inh=cal["E_REV_INH"])
+        pops["VPN"] = LIFPopulation(n_vpn, DT_MS,
+                                    tau_m=cal["LIF"]["MID"][0],
+                                    t_refrac=cal["LIF"]["MID"][1],
+                                    R_m=cal["RIN_GOHM"])
+        pops["CB"] = LIFPopulation(n_cb, DT_MS, tau_m=cal["LIF"]["MID"][0],
+                                   t_refrac=cal["LIF"]["MID"][1],
+                                   R_m=cal["RIN_GOHM"])
+        noises["VPN"] = ColoredCurrentNoise(
+            n_vpn, DT_MS, rng, tau_n=cal["OU_TAU_MS"],
+            sigma=cal["OU_VPN_CB"])
+        noises["CB"] = ColoredCurrentNoise(
+            n_cb, DT_MS, rng, tau_n=cal["OU_TAU_MS"], sigma=cal["OU_VPN_CB"])
+
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
                                t_refrac=(1e9 if mech
                                          else cal["LIF"]["R"][1]),
@@ -170,13 +206,21 @@ def build_stack(circuit, cal, rng):
     t45_base[is_t5] = cal.get("I_T5_BASE", 0.0)
     return {"syn": syn, "pops": pops, "noises": noises, "mech": mech,
             "r_ids": r_ids, "l_ids": l_ids, "mid_ids": mid_ids,
+            "t45_ids": t45_ids,
             "n_r": n_r, "n_l": n_l, "n_mid": n_mid, "n_t45": n_t45,
             "is_t4": is_t4, "is_t5": is_t5, "l_index": l_index,
             "mid_index": mid_index, "t45_index": t45_index,
+            "vpn_ids": (None if vpn_ids is None else vpn_ids),
+            "cb_ids": circuit.get("cb_ids"),
             "l_base": (np.zeros(n_l) if mech
                        else np.full(n_l, cal["I_L_BASE"])),
             "mid_base": np.full(n_mid, cal["I_MID_BASE"]),
             "t45_base": t45_base,
+            "v_base": (None if vpn_ids is None
+                       else np.full(len(vpn_ids), cal["I_V_BASE"])),
+            "c_base": (None if vpn_ids is None
+                       else np.full(len(circuit["cb_ids"]),
+                                    cal["I_C_BASE"])),
             "r_release": _release, "l_release": _release, "cal": cal}
 
 
@@ -225,14 +269,26 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
             i_t45 += di
             g_t45 += dg
         sp_t45 = pops["T45"].step(i_t45, g_t45)
+        sp_v = sp_cb = None
+        if "M2V" in syn:
+            di_v, dg_v = syn["M2V"].to_neuron_drive()
+            sp_v = pops["VPN"].step(st["v_base"] + di_v
+                                    + noises["VPN"].step(), dg_v)
+            di_c, dg_c = syn["V2C"].to_neuron_drive()
+            sp_cb = pops["CB"].step(st["c_base"] + di_c
+                                    + noises["CB"].step(), dg_c)
         if not st["mech"]:
             syn["RL"].step(st["r_ids"][sp_r])
             syn["LM"].step(st["l_ids"][sp_l])
         spiked_mid = st["mid_ids"][sp_mid]
         for mt in cal["MID_TAU_S"]:
             syn[f"MT_{mt}"].step(spiked_mid)
+        if "M2V" in syn:
+            syn["M2V"].step(np.concatenate(
+                [spiked_mid, st["t45_ids"][sp_t45]]))
+            syn["V2C"].step(st["vpn_ids"][sp_v])
         if k % 2 == 0 and on_sample is not None:
             on_sample(k // 2, k, t, st, inc_f,
                       {"R": sp_r, "L": sp_l, "MID": sp_mid,
-                       "T45": sp_t45})
+                       "T45": sp_t45, "VPN": sp_v, "CB": sp_cb})
     return st

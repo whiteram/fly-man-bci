@@ -1,0 +1,42 @@
+{
+ "geometry": {
+  "per_layer": {
+   "R": 3377,
+   "L": 5327,
+   "MID": 14358,
+   "T45": 13580
+  },
+  "span_um": [
+   691.7,
+   310.1,
+   167.0
+  ],
+  "r_max_native_um": 359.3,
+  "r_max_x400_um": 143702.0,
+  "perp_max_x400_um": 116704.0,
+  "brain_radius_um": 78000.0,
+  "margin_frac_0p98_um": 76440.0,
+  "shift_mm": 0.0,
+  "r_max_after_shift_um": 143702.0,
+  "fits_in_brain": false,
+  "u_eye_left": [
+   -0.7103,
+   0.108,
+   -0.6956
+  ]
+ },
+ "l12_mass": {
+  "left": {
+   "n": 824,
+   "mass_median": 148.0,
+   "mass_p25": 107.0,
+   "mass_p75": 208.0
+  },
+  "right": {
+   "n": 445,
+   "mass_median": 153.0,
+   "mass_p25": 99.0,
+   "mass_p75": 225.0
+  }
+ }
+}

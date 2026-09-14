@@ -26,13 +26,13 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "experiments" / "exp005_medulla_ds"))
+sys.path.insert(0, str(ROOT / "experiments" / "exp015_bilateral"))
 
 from ffbm import pipeline as fp
 from ffbm import vizprep as vp
 from ffbm.forward import FourSpherePairField, SealedHeadPairField
 
-import run as exp005
+from circuit import build_bilateral_circuit, exp005
 
 OUT = ROOT / "viz" / "data"
 DT = exp005.DT
@@ -61,12 +61,18 @@ N_FLOW_EDGES = 1400
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    circuit = exp005.build_circuit()
+    # exp015: BOTH optic lobes (per-cell wiring mirror-symmetric, working
+    # point transferred unchanged -- see experiments/exp015_bilateral)
+    circuit = build_bilateral_circuit()
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]
     mid_ids = circuit["mid_ids"]
     t45_ids = circuit["t45_ids"]
+    side_r = circuit["side_r"]
+    side_l = circuit["side_l"]
+    side_mid = circuit["side_mid"]
+    side_t45 = circuit["side_t45"]
     n_r, n_l, n_mid, n_t45 = (len(r_ids), len(l_ids), len(mid_ids),
                               len(t45_ids))
     t45_type = circuit["t45_type"]
@@ -91,16 +97,20 @@ def main():
     t45_pos = np.array([pp[b] for b in t45_ids])
     mid_pos = np.array([pp[b] for b in mid_ids])
     center = np.vstack([r_pos, l_pos, mid_pos, t45_pos]).mean(axis=0)
-    u_eye = r_pos.mean(axis=0) - t45_pos.mean(axis=0)
-    u_eye /= np.linalg.norm(u_eye)
+    # head-anchor axis: the LEFT lobe's own eye axis (the bilateral
+    # R-mean minus T45-mean degenerates to noise at the midline)
+    u_eye = circuit["u_eye_left"]
 
-    eye_elec = (r_pos.mean(axis=0)
-                + (float(np.max((r_pos - r_pos.mean(axis=0)) @ u_eye)) + 20.0)
-                * u_eye)
-    lam_elec = l_pos.mean(axis=0) + 30.0 * u_eye
-    med_elec = t45_pos.mean(axis=0) + 30.0 * (
-        (t45_pos.mean(axis=0) - l_pos.mean(axis=0))
-        / np.linalg.norm(t45_pos.mean(axis=0) - l_pos.mean(axis=0)))
+    # legacy fly-head reference electrodes sit on the LEFT lobe
+    r_pos_l, l_pos_l, t45_pos_l = (r_pos[side_r], l_pos[side_l],
+                                   t45_pos[side_t45])
+    eye_elec = (r_pos_l.mean(axis=0)
+                + (float(np.max((r_pos_l - r_pos_l.mean(axis=0)) @ u_eye))
+                   + 20.0) * u_eye)
+    lam_elec = l_pos_l.mean(axis=0) + 30.0 * u_eye
+    med_elec = t45_pos_l.mean(axis=0) + 30.0 * (
+        (t45_pos_l.mean(axis=0) - l_pos_l.mean(axis=0))
+        / np.linalg.norm(t45_pos_l.mean(axis=0) - l_pos_l.mean(axis=0)))
     electrodes = np.array([eye_elec, lam_elec, med_elec])
     r_max = np.linalg.norm(np.vstack([r_pos, l_pos, mid_pos, t45_pos,
                                       electrodes]) - center, axis=1).max()
@@ -116,8 +126,13 @@ def main():
     group_pairs = {"RL": pairs(e_rl), "LM": pairs(e_lm)}
     for mt in exp005.MID_TYPES:
         group_pairs[f"MT_{mt}"] = pairs(e_mt[mt])
-    rhabd = r_pos + 23.5 * u_eye
-    photo_pair = (r_pos, rhabd)
+    # rhabdome dipole per R toward its OWN eye (mirror the left eye axis
+    # across the midline for the right lobe)
+    xhat = np.array([1.0, 0.0, 0.0])
+    u_right = u_eye - 2.0 * float(np.dot(u_eye, xhat)) * xhat
+    u_right = u_right / np.linalg.norm(u_right)
+    rh_dir = np.where(side_r[:, None], u_eye[None, :], u_right[None, :])
+    photo_pair = (r_pos, r_pos + 23.5 * rh_dir)
 
     ker = {}
     for name, (pr, po) in group_pairs.items():
@@ -128,41 +143,51 @@ def main():
         photo_pair[0], photo_pair[1], electrodes, center=center, r1=r1,
         r2=1.3 * r1, sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
 
-    # thought-experiment channels (exp010/011): the same network magnified
-    # 400x inside a human 4-layer head (brain/CSF/skull/scalp), electrode
-    # ARRAY on the scalp (channel 0 on the eye axis + a quasi-uniform
-    # Fibonacci cover, sorted by angle from the eye axis). The network is
-    # shifted occipitally: the T4/T5 (output/"cortex") end of the cascade
-    # is brought near the inner skull wall, like the real visual cortex at
-    # the occipital pole; the retina end dips toward the head center.
-    SCALE = 400.0
+    # thought-experiment channels (exp010/011): the network magnified
+    # inside a human 4-layer head (brain/CSF/skull/scalp), electrode
+    # ARRAY on the scalp (channel 0 on the eye-side anchor + a
+    # quasi-uniform Fibonacci cover, sorted by angle from it). The
+    # network is placed occipitally: the T4/T5 (output/"cortex") end of
+    # the cascade is pinned near the inner skull wall, like the real
+    # visual cortex at the occipital pole.
+    # exp015: BOTH lobes in native geometry span 692 um -> 277 mm at
+    # x400, which does NOT fit; fit_scale_shift pins the junction
+    # extreme at the occipital pole and picks the largest scale that
+    # then fits (x400 for a single lobe, ~x200 for both lobes).
     R_BRAIN, R_CSF, R_SKULL, R_SCALP = 7.8e4, 8.0e4, 8.5e4, 9.2e4
     SIGMAS = (0.33, 1.79, 0.013, 0.33)
     N_SCALP_ELEC = 17
 
-    scaled_pairs = {name: (center + (pr - center) * SCALE,
-                           center + (po - center) * SCALE)
+    u_occ = t45_pos.mean(axis=0) - center     # toward the T4/T5 junction
+    u_occ = u_occ / np.linalg.norm(u_occ)
+    u_anchor = -u_occ                          # 0 deg = eye side
+    native_pts = np.vstack([p for pr, po in {**group_pairs,
+                                             "PHOTO": photo_pair}.items()
+                            for p in (pr, po)])
+    SCALE, shift_vec, r_after = vp.fit_scale_shift(native_pts, center,
+                                                   u_occ, R_BRAIN)
+    margin = 0.98 * R_BRAIN - r_after
+    print(f"thought-experiment scale x{SCALE:.0f} (nominal x400), "
+          f"junction pinned at the occipital pole "
+          f"(shift {np.linalg.norm(shift_vec) / 1000:.1f} mm, "
+          f"brain-margin {margin:.0f} um)")
+
+    scaled_pairs = {name: (center + (pr - center) * SCALE + shift_vec,
+                           center + (po - center) * SCALE + shift_vec)
                     for name, (pr, po) in {**group_pairs,
                                            "PHOTO": photo_pair}.items()}
-    all_pts = np.vstack([p for pr, po in scaled_pairs.values()
-                         for p in (pr, po)]) - center
-    shift_vec = vp.occipital_shift(all_pts, u_eye, R_BRAIN)
-    margin = (0.98 * R_BRAIN
-              - np.linalg.norm(all_pts + shift_vec, axis=1).max())
-    print(f"occipital shift: {np.linalg.norm(shift_vec) / 1000:.1f} mm "
-          f"toward the T4/T5 pole (brain-margin {margin:.0f} um)")
 
-    scalp_dirs = vp.scalp_electrode_dirs(N_SCALP_ELEC, u_eye)
-    scalp_ang = np.degrees(np.arccos(np.clip(scalp_dirs @ u_eye, -1, 1)))
+    scalp_dirs = vp.scalp_electrode_dirs(N_SCALP_ELEC, u_anchor)
+    scalp_ang = np.degrees(np.arccos(np.clip(scalp_dirs @ u_anchor, -1, 1)))
     coef_scalp = {name: [] for name in
                   list(group_pairs) + ["PHOTO"]}
     import time as _time
     _t0 = _time.time()
     for k, d in enumerate(scalp_dirs):
         elec_k = center + 0.985 * R_SCALP * d
-        for name, (pr_s, po_s) in scaled_pairs.items():
+        for name, (pr_s, po_s) in scaled_pairs.items():   # shift included
             coef_scalp[name].append(FourSpherePairField(
-                pr_s + shift_vec, po_s + shift_vec, elec_k[None, :],
+                pr_s, po_s, elec_k[None, :],
                 center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
                 r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
                 sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0])
@@ -183,7 +208,9 @@ def main():
     a1 = np.array([1.0, 0.0, 0.0]) - u_eye * u_eye[0]
     a1 /= np.linalg.norm(a1)
     b1 = np.cross(u_eye, a1)
-    mi1_ids = mid_ids[mid_type == "Mi1"]
+    # hex-axis regression on LEFT-lobe Mi1 only: the two lobes' hex axes
+    # are mirrored in physical x and would cancel in a joint fit
+    mi1_ids = mid_ids[(mid_type == "Mi1") & side_mid]
     mi1_pos = np.array([pp[b] for b in mi1_ids])
 
     def hex_dir(hex_series):
@@ -312,7 +339,7 @@ def main():
     phi_scalp = phi_scalp * 1.7
 
     # ---- background human EEG + SNR (shared helpers, unit-tested) ----
-    bg = vp.generate_background_eeg(scalp_dirs, u_eye, n_field)
+    bg = vp.generate_background_eeg(scalp_dirs, u_anchor, n_field)
     snr = vp.snr_metrics(phi_scalp.T * 1e6, bg, 1500, 4500)
     snr["best_elec_deg"] = round(float(scalp_ang[snr["best_elec"]]), 1)
     print(f"background EEG: fly signal {snr['sig_uv']:.2f} uV vs bg "
@@ -351,13 +378,14 @@ def main():
                              "band+": "带通纹理 →", "band-": "带通纹理 ←"},
             "head_r_um": round(r1, 1),
             "scalp": {"model": "4sphere", "place": "occipital",
-                      "scale": 400,
+                      "scale": round(SCALE, 1),
+                      "scale_nominal": 400,
                       "radii_um": [7.8e4, 8.0e4, 8.5e4, 9.2e4],
                       "sigmas": list(SIGMAS),
                       "shift_um": [round(float(x), 1) for x in shift_vec],
                       "n_elec": N_SCALP_ELEC,
                       "elec_dist_um": 0.985 * 9.2e4,
-                      "elec_dir": [round(float(x), 4) for x in u_eye],
+                      "elec_dir": [round(float(x), 4) for x in u_anchor],
                       "elec_dirs": [[round(float(x), 4) for x in d]
                                     for d in scalp_dirs],
                       "elec_deg": [round(float(a), 1)

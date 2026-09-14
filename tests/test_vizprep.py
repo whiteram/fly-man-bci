@@ -3,8 +3,9 @@ bug must never survive a 12-minute run again)."""
 
 import numpy as np
 
-from ffbm.vizprep import (generate_background_eeg, occipital_shift,
-                          scalp_electrode_dirs, snr_metrics)
+from ffbm.vizprep import (fit_scale_shift, generate_background_eeg,
+                          occipital_shift, scalp_electrode_dirs,
+                          snr_metrics)
 
 
 def test_electrode_dirs_layout():
@@ -38,6 +39,34 @@ def test_occipital_shift_zero_when_already_at_pole():
     pts = np.array([[0, 0, -70e3], [0, 0, -20e3]])
     s = occipital_shift(pts, u, 78e3, pole_frac=0.85, margin_frac=0.98)
     assert np.linalg.norm(s) == 0.0     # pole already beyond 0.85*r
+
+
+def test_fit_scale_shift_small_cloud_keeps_nominal():
+    rng = np.random.default_rng(1)
+    u_occ = np.array([0.0, 0.0, 1.0])
+    pts = rng.normal(scale=40.0, size=(400, 3))    # native um, small
+    scale, shift, r_after = fit_scale_shift(pts, pts.mean(0), u_occ, 78e3)
+    assert scale == 400.0
+    assert r_after <= 0.98 * 78e3 + 1e-6
+    # elongated along u_occ: the u_occ-side extreme is pushed to the wall
+    moved = (pts - pts.mean(0)) * scale + shift
+    assert abs(moved[:, 2].max() - 0.90 * 78e3) < 5e3
+
+
+def test_fit_scale_shift_huge_cloud_scales_down():
+    # wide V-ish cloud: two arms extending toward -x -> cannot fit x400
+    rng = np.random.default_rng(2)
+    u_occ = np.array([1.0, 0.0, 0.0])
+    arm = rng.normal(scale=30.0, size=(300, 3))
+    arm[:, 0] = -np.abs(arm[:, 0]) - 100.0        # extends toward -x
+    arm2 = arm.copy()
+    arm2[:, 1] += 250.0                            # second arm offset
+    pts = np.vstack([arm, arm2])
+    center = pts.mean(0)
+    scale, shift, r_after = fit_scale_shift(pts, center, u_occ, 78e3)
+    assert scale < 400.0
+    assert r_after <= 0.98 * 78e3 + 1e-6
+    assert scale > 50.0                             # sane magnitude
 
 
 def test_background_eeg_components():
