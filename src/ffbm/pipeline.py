@@ -168,18 +168,6 @@ def build_stack(circuit, cal, rng):
             delay_ms=delays(e_v2c), conductance=True,
             g_unit=cal["G_UNIT_V2C"], e_rev_exc=cal["E_REV_EXC"],
             e_rev_inh=cal["E_REV_INH"])
-        pops["VPN"] = LIFPopulation(n_vpn, DT_MS,
-                                    tau_m=cal["LIF"]["MID"][0],
-                                    t_refrac=cal["LIF"]["MID"][1],
-                                    R_m=cal["RIN_GOHM"])
-        pops["CB"] = LIFPopulation(n_cb, DT_MS, tau_m=cal["LIF"]["MID"][0],
-                                   t_refrac=cal["LIF"]["MID"][1],
-                                   R_m=cal["RIN_GOHM"])
-        noises["VPN"] = ColoredCurrentNoise(
-            n_vpn, DT_MS, rng, tau_n=cal["OU_TAU_MS"],
-            sigma=cal["OU_VPN_CB"])
-        noises["CB"] = ColoredCurrentNoise(
-            n_cb, DT_MS, rng, tau_n=cal["OU_TAU_MS"], sigma=cal["OU_VPN_CB"])
 
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
                                t_refrac=(1e9 if mech
@@ -203,6 +191,20 @@ def build_stack(circuit, cal, rng):
                                      sigma=cal["OU"][k])
               for k, n in (("R", n_r), ("L", n_l), ("MID", n_mid),
                            ("T45", n_t45))}
+    if vpn_ids is not None:
+        n_vpn, n_cb = len(vpn_ids), len(circuit["cb_ids"])
+        pops["VPN"] = LIFPopulation(n_vpn, DT_MS,
+                                    tau_m=cal["LIF"]["MID"][0],
+                                    t_refrac=cal["LIF"]["MID"][1],
+                                    R_m=cal["RIN_GOHM"])
+        pops["CB"] = LIFPopulation(n_cb, DT_MS, tau_m=cal["LIF"]["MID"][0],
+                                   t_refrac=cal["LIF"]["MID"][1],
+                                   R_m=cal["RIN_GOHM"])
+        noises["VPN"] = ColoredCurrentNoise(
+            n_vpn, DT_MS, rng, tau_n=cal["OU_TAU_MS"],
+            sigma=cal["OU_VPN_CB"])
+        noises["CB"] = ColoredCurrentNoise(
+            n_cb, DT_MS, rng, tau_n=cal["OU_TAU_MS"], sigma=cal["OU_VPN_CB"])
     t45_type = circuit["t45_type"]
     is_t4 = np.array([str(x).startswith("T4") for x in t45_type])
     is_t5 = np.array([str(x).startswith("T5") for x in t45_type])

@@ -113,21 +113,31 @@ def build_vpn_circuit(bi=None):
           f"{int(e_v2c['weight'].sum()):,} syn")
 
     # soma positions injected into the position maps (same um frame as
-    # the synapse sites; VPN is both post and pre, CB is post)
+    # the synapse sites; VPN is both post and pre, CB is post). VPN/CB
+    # ids are REMAPPED to a compact 1..n range: annotation bodyIds reach
+    # 1.6e9 and the id-indexed lookup tables (_indices / bincount) would
+    # allocate many GB. The new ids never index another layer's table,
+    # so the compact space cannot collide.
+    vmap = {int(old): int(new) for new, old in enumerate(vpn_ids, 1)}
+    cmap = {int(old): int(new)
+            for new, old in enumerate(cb_ids, len(vpn_ids) + 1)}
     pp = dict(bi["pre_pos"])
     qq = dict(bi["post_pos"])
-    for b in vpn_ids.tolist():
-        pp[b] = soma[b]
-        qq[b] = soma[b]
-    for b in cb_list:
-        qq[b] = soma[b]
-        pp[b] = soma[b]
+    for old, new in vmap.items():
+        pp[new] = soma[old]
+        qq[new] = soma[old]
+    for old, new in cmap.items():
+        pp[new] = soma[old]
+        qq[new] = soma[old]
+    e_m2v["body_post"] = e_m2v["body_post"].map(vmap)
+    e_v2c["body_pre"] = e_v2c["body_pre"].map(vmap)
+    e_v2c["body_post"] = e_v2c["body_post"].map(cmap)
 
     circuit = dict(bi)
     circuit["pre_pos"] = pp
     circuit["post_pos"] = qq
-    circuit["vpn_ids"] = vpn_ids
-    circuit["cb_ids"] = cb_ids
+    circuit["vpn_ids"] = np.array(sorted(vmap.values()), dtype=np.int64)
+    circuit["cb_ids"] = np.array(sorted(cmap.values()), dtype=np.int64)
     circuit["vpn_type"] = np.array([str(types.get(b, "?"))
                                     for b in vpn_ids])
     circuit["e_m2v"] = e_m2v
