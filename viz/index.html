@@ -335,7 +335,11 @@ function initScene() {
       ...(JSON.parse(localStorage.getItem("headFormCalib_v2") || "{}")) };
     const qSeed = new THREE.Quaternion().setFromAxisAngle(
         new THREE.Vector3(1, 0, 0), Math.PI / 2);
-
+    // cranium pivot = ear midpoint, computed from the raw mesh (extreme
+    // +/-x pair at matching height): rotations and scaling pivot around
+    // it, so the head turns in place and the cranium envelopes the
+    // brain sphere symmetrically
+    let cranium = new THREE.Vector3();
     const applyCalib = (wrap, off, s0) => {
       const s = calib.scale * s0;
       wrap.scale.setScalar(s);
@@ -347,6 +351,11 @@ function initScene() {
       const qz = new THREE.Quaternion().setFromAxisAngle(
           new THREE.Vector3(0, 0, 1), d(calib.rotZ));
       wrap.quaternion.copy(qz).multiply(qx).multiply(qy).multiply(qSeed);
+      // keep the cranium pivot at the headForm origin under the full
+      // rotation, so rotation/scale pivot there
+      const piv = cranium.clone().applyQuaternion(wrap.quaternion)
+          .multiplyScalar(s);
+      wrap.position.set(-piv.x, -piv.y, -piv.z);
       const mm = 1000;
       off.position.copy(
         faceAxis.clone().multiplyScalar(calib.offF * mm)
@@ -362,6 +371,23 @@ function initScene() {
       // data-driven scale seed: model width (x) spans the brain-sphere
       // diameter by default; the panel refines from here
       const s0 = 2 * 0.78e5 / size.x;
+      // ear-midpoint landmark: computed in the SEEDED frame (after
+      // qSeed the model is upright facing +z, so extreme +/-x = ears)
+      {
+        const mesh = (() => { let m = null;
+          obj.traverse(o => { if (o.isMesh && !m) m = o; }); return m; })();
+        const pos = mesh.geometry.attributes.position;
+        const step = Math.max(1, Math.floor(pos.count / 20000));
+        const v = new THREE.Vector3();
+        let xmin = 1e9, xmax = -1e9, L = null, Rp = null;
+        for (let i = 0; i < pos.count; i += step) {
+          v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyQuaternion(qSeed);
+          if (v.x < xmin) { xmin = v.x; L = v.clone(); }
+          if (v.x > xmax) { xmax = v.x; Rp = v.clone(); }
+        }
+        cranium.copy(L).add(Rp).multiplyScalar(0.5);
+        cranium.y += 0.02 * size.y;   // a touch above ear level
+      }
       const wrap = new THREE.Group();
       wrap.add(obj);
       const off = new THREE.Group();
@@ -408,19 +434,19 @@ function initScene() {
         "background:#0d131ccc;border:1px solid #1c2733;border-radius:6px;" +
         "padding:8px 10px;font-size:12px;line-height:1.5;z-index:5";
     const rows = [
-      ["scale", "缩放", 0.5, 2.0, 0.01],
+      ["scale", "缩放", 0.5, 4.0, 0.01],
       ["rotX", "俯仰（横轴）", -180, 180, 1],
       ["rotY", "偏航（竖轴）", -180, 180, 1],
       ["rotZ", "翻滚（视线轴）", -180, 180, 1],
-      ["offF", "平移·面轴 mm", -100, 100, 1],
-      ["offU", "平移·上轴 mm", -100, 100, 1],
-      ["offR", "平移·右轴 mm", -100, 100, 1],
+      ["offF", "平移·前后 mm", -200, 200, 1],
+      ["offU", "平移·上下 mm", -200, 200, 1],
+      ["offR", "平移·左右 mm", -200, 200, 1],
     ];
     const views = [["front", "正面"], ["back", "背面"], ["left", "左侧"],
                    ["right", "右侧"], ["top", "头顶"], ["bottom", "下巴"],
                    ["iso", "复位"]];
     div.innerHTML = "<b>人头校准</b> <span style='color:#64788c'>" +
-        "(值自动保存，导出后填入超参数)</span><br>" + rows.map(
+        "(自动保存；旋转/缩放以颅腔中心为轴)</span><br>" + rows.map(
       ([k, label, lo, hi, st]) =>
         `<label style="display:block">${label}
          <input type="range" min="${lo}" max="${hi}" step="${st}"
@@ -431,11 +457,22 @@ function initScene() {
         ([v, label]) => `<button data-view="${v}"
          style="padding:2px 6px;font-size:11px">${label}</button>`).join("") +
       "</div>" +
+      "<div style='color:#64788c;margin-top:2px'>提示：平移请在" +
+      "“正面/左侧”吸附视角下调 = 横平竖直</div>" +
       `<button id="hcal-reset" style="margin-top:4px">重置</button>
        <button id="hcal-copy">复制JSON</button>
        <button id="hcal-close">收起</button>`;
     document.getElementById("scene-wrap").appendChild(div);
-    const apply = () => c.applyCalib(c.wrap, c.off, c.s0);
+    const apply = () => { c.applyCalib(c.wrap, c.off, c.s0); syncSliders(); };
+    const syncSliders = () => {
+      rows.forEach(([k]) => {
+        const el = div.querySelector(`input[data-k="${k}"]`);
+        if (el) el.value = c.calib[k];
+        const lb = div.querySelector(`[data-v="${k}"]`);
+        if (lb) lb.textContent = c.calib[k];
+      });
+    };
+    c.syncPanel = syncSliders;
     div.addEventListener("click", e => {
       const v = e.target.dataset && e.target.dataset.view;
       if (v) snapHeadView(v);
