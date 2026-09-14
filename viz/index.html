@@ -186,32 +186,48 @@ function initScene() {
     flowMeshes.push(mesh);
   });
 
-  // human 4-sphere head: each shell = translucent FILL + brighter
-  // wireframe overlay (a 1px 0.1-opacity wireframe alone is effectively
-  // invisible at this scale), individually toggleable
+  // human 4-sphere head: each shell rendered as a fresnel-rim "bubble" --
+  // nearly transparent center + a soft glowing silhouette ring. Nested
+  // shells then read as clean concentric rings from any angle, instead of
+  // overlapping wireframe grids. Individually toggleable.
   humanHead = new THREE.Group();
   const meta = DATA.meta.scalp || { radii_um: [8e4, 8.5e4, 9.2e4],
                                     elec_dist_um: 9.06e4 };
   const R_SCALP_UM = meta.radii_um[meta.radii_um.length - 1] || 9.2e4;
   const shellNames = ["脑", "脑脊液", "颅骨", "头皮"];
   const shellColors = [0x94a3b8, 0x38bdf8, 0xe2e8f0, 0xe879f9];
+  const rimVert = `
+    varying vec3 vN; varying vec3 vV;
+    void main() {
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vN = normalize(normalMatrix * normal);
+      vV = normalize(-mv.xyz);
+      gl_Position = projectionMatrix * mv;
+    }`;
+  const rimFrag = `
+    uniform vec3 uColor; uniform float uPower; uniform float uStrength;
+    varying vec3 vN; varying vec3 vV;
+    void main() {
+      float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), uPower);
+      gl_FragColor = vec4(uColor, uStrength * (f + 0.02));
+    }`;
   meta.radii_um.forEach((rr, i) => {
-    const col = shellColors[i] || 0x94a3b8;
-    const grp = new THREE.Group();
-    const fill = new THREE.Mesh(
-      new THREE.SphereGeometry(rr, 48, 32),
-      new THREE.MeshBasicMaterial({ color: col, transparent: true,
-                                    opacity: 0.05, depthWrite: false,
-                                    side: THREE.DoubleSide }));
-    const wire = new THREE.Mesh(
-      new THREE.SphereGeometry(rr * 1.0005, 28, 18),
-      new THREE.MeshBasicMaterial({ color: col, wireframe: true,
-                                    transparent: true,
-                                    opacity: Math.max(0.35, 0.48 - 0.04 * i) }));
-    grp.add(fill, wire);
-    grp.userData.shellName = shellNames[i] || `层${i}`;
-    humanHead.add(grp);
-    shellMeshes.push(grp);
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(rr, 64, 40),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: { value: new THREE.Color(shellColors[i] || 0x94a3b8) },
+          uPower: { value: 2.6 },
+          uStrength: { value: 1.0 - 0.07 * i },
+        },
+        vertexShader: rimVert, fragmentShader: rimFrag,
+        transparent: true, depthWrite: false, side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+      }));
+    mesh.userData.shellName = shellNames[i] || `层${i}`;
+    mesh.renderOrder = i;
+    humanHead.add(mesh);
+    shellMeshes.push(mesh);
   });
 
   // scalp electrode array: channel 0 (magenta) on the eye axis, the rest
