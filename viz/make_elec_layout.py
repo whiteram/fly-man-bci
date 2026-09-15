@@ -40,12 +40,14 @@ if export.exists():
         anchors = {k: h[k] for k in ("Cz", "Fz", "Oz", "A1", "A2")}
         layout = vp.standard_1020(anchors, system="1010",
                                   ni_arc_deg=exp["ni_arc_deg"],
-                                  yaw_deg=exp.get("yaw_deg", 0.0))
+                                  yaw_deg=exp.get("yaw_deg", 0.0),
+                                  roll_deg=exp.get("roll_deg", 0.0))
         out = {k: [round(float(x), 5) for x in v]
                for k, v in layout.items()}
         print(f"source: calibration handles re-derived "
               f"(ni={exp['ni_arc_deg']} deg, ear th={exp.get('ear_th_deg')} deg, "
-              f"yaw={exp.get('yaw_deg', 0.0)} deg)")
+              f"yaw={exp.get('yaw_deg', 0.0)} deg, "
+              f"roll={exp.get('roll_deg', 0.0)} deg)")
     else:
         out = {k: [float(x) for x in v] for k, v in exp["layout"].items()}
         print("source: calibration export layout (verbatim)")

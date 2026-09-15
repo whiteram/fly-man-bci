@@ -140,6 +140,42 @@ def test_standard_1020_yaw_rotates_whole_cap_about_cz():
                    - deg(base[k], base["Cz"])) < 1e-9
 
 
+def test_standard_1020_roll_tips_cap_toward_ear():
+    cz = np.array([0.0, np.cos(np.radians(30.0)), np.sin(np.radians(30.0))])
+    ant = np.array([0.0, np.sin(np.radians(30.0)), -np.cos(np.radians(30.0))])
+    left = np.cross(cz, ant)
+    anchors = {
+        "CZ": cz,
+        "FZ": cz * np.cos(np.radians(48.46))
+              + ant * np.sin(np.radians(48.46)),
+        "OZ": cz * np.cos(np.radians(48.46))
+              - ant * np.sin(np.radians(48.46)),
+        "A1": cz * np.cos(np.radians(130.8)) + left * np.sin(np.radians(130.8)),
+        "A2": cz * np.cos(np.radians(130.8)) - left * np.sin(np.radians(130.8)),
+    }
+    base = standard_1020(anchors, system="1010", ni_arc_deg=242.3)
+    rolled = standard_1020(anchors, system="1010", ni_arc_deg=242.3,
+                           roll_deg=5.0)
+    # the roll axis is the (yawed) anterior direction through Cz
+    e_ant = base["Fz"] - base["Oz"]
+    e_ant = e_ant - cz * (e_ant @ cz)
+    e_ant = e_ant / np.linalg.norm(e_ant)
+    def rodr(v, th):
+        c, s = np.cos(th), np.sin(th)
+        return v * c + np.cross(e_ant, v) * s + e_ant * (e_ant @ v) * (1 - c)
+    for k in ("Cz", "Fpz", "Fz", "Oz", "A1", "A2", "T7"):
+        assert np.linalg.norm(
+            rolled[k] - rodr(base[k], np.radians(5.0))) < 1e-9
+    # distances to the roll axis are invariant
+    for k in ("Cz", "Fpz", "A1"):
+        assert abs(rolled[k] @ e_ant - base[k] @ e_ant) < 1e-9
+    # and the crown really tips toward an ear: Cz gains an A1/A2-side
+    # component (sagittal-normal component)
+    n_sag = np.cross(base["Cz"], e_ant)
+    n_sag = n_sag / np.linalg.norm(n_sag)
+    assert abs(rolled["Cz"] @ n_sag) > 0.05
+
+
 def test_electrode_dirs_capped_excludes_face_and_neck():
     from ffbm.vizprep import ELEC_DEFAULTS
     face = np.array([0.0, 0.0, 1.0])

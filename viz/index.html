@@ -1322,6 +1322,20 @@ function yawedAxes() {
     nRot: rotAbout(calib.nRot, calib.st.cz, calib.st.yaw) };
 }
 
+// full frame = yaw about the crown, then roll about the (yawed)
+// anterior axis: the crown tips toward one ear, aligning the cap with
+// the head's left-right tilt.  st.cz stores the UN-rolled crown.
+function rotatedFrameAxes() {
+  const y = yawedAxes();
+  if (!calib.st.roll) return { cz: calib.st.cz, nEar: y.nEar, nRot: y.nRot };
+  const uAnt = new THREE.Vector3().crossVectors(y.nRot, calib.st.cz)
+      .normalize();
+  return {
+    cz: rotAbout(calib.st.cz, uAnt, calib.st.roll),
+    nEar: rotAbout(y.nEar, uAnt, calib.st.roll),
+    nRot: rotAbout(y.nRot, uAnt, calib.st.roll) };
+}
+
 // full 10-20/10-10 derivation, mirroring ffbm.vizprep.standard_1020:
 // nEar = sagittal normal toward A1 (frozen per session), nRot = +/-nEar
 // signed so rotations by +phi go ANTERIOR, cz = cap center on the
@@ -1440,17 +1454,25 @@ function onCalibMove(e) {
   if (!hit) return;
   const d = hit.point.clone().normalize();
   const st = calib.st, name = calib.drag.name;
-  const { nEar, nRot } = yawedAxes();      // frame incl. global yaw
+  const fr = rotatedFrameAxes();           // frame incl. yaw + roll
   if (name === "Cz") {
-    st.cz = d.clone().addScaledVector(nEar, -d.dot(nEar)).normalize();
+    let c = d.clone().addScaledVector(
+      fr.nEar, -d.dot(fr.nEar)).normalize();
+    if (st.roll) {   // store the crown un-rolled (base frame value)
+      const uAnt = new THREE.Vector3().crossVectors(
+        fr.nRot, fr.cz).normalize();
+      c = rotAbout(c, uAnt, -st.roll);
+    }
+    st.cz = c;
   } else if (name === "A1" || name === "A2") {
     const s = name === "A1" ? 1 : -1;
-    const th = Math.atan2(s * d.dot(nEar), d.dot(st.cz)) * 180 / Math.PI;
+    const th = Math.atan2(s * d.dot(fr.nEar), d.dot(fr.cz))
+               * 180 / Math.PI;
     st.th = Math.min(155, Math.max(25, th));
   } else {                       // Fz / Fpz / Oz: ni vote from percentage
-    const uAnt = new THREE.Vector3().crossVectors(nRot, st.cz).normalize();
-    const phi = Math.atan2(d.dot(uAnt), d.dot(st.cz)) * 180 / Math.PI;
-    // Fz/Fpz live anterior of Cz, Oz posterior -- reject wrong-side drags
+    const uAnt = new THREE.Vector3().crossVectors(
+      fr.nRot, fr.cz).normalize();
+    const phi = Math.atan2(d.dot(uAnt), d.dot(fr.cz)) * 180 / Math.PI;
     const sideOk = name === "Oz" ? phi < 0 : phi > 0;
     const ni = Math.abs(phi) / (name === "Fz" ? 0.20 : 0.40);
     if (sideOk && ni >= 150 && ni <= 340) st.ni = ni;
@@ -1464,8 +1486,8 @@ function onCalibMove(e) {
 function calibApply() {
   if (!calib) return;
   const st = calib.st;
-  const { nEar, nRot } = yawedAxes();
-  applyCap(deriveCap(nEar, nRot, st.cz, st.ni, st.th));
+  const fr = rotatedFrameAxes();
+  applyCap(deriveCap(fr.nEar, fr.nRot, fr.cz, st.ni, st.th));
   const names = DATA.meta.scalp.elec_names;
   calib.handles.forEach(h => setCalibHandle(
     h.name, calib.dirs[names.indexOf(h.name)]));
@@ -1473,10 +1495,14 @@ function calibApply() {
   const elTh = document.getElementById("calib-th");
   const elYaw = document.getElementById("calib-yaw");
   const elYawV = document.getElementById("calib-yaw-v");
+  const elRoll = document.getElementById("calib-roll");
+  const elRollV = document.getElementById("calib-roll-v");
   if (elNi) elNi.textContent = st.ni.toFixed(0);
   if (elTh) elTh.textContent = st.th.toFixed(0);
   if (elYaw && +elYaw.value !== st.yaw) elYaw.value = st.yaw;
   if (elYawV) elYawV.textContent = st.yaw.toFixed(1);
+  if (elRoll && +elRoll.value !== st.roll) elRoll.value = st.roll;
+  if (elRollV) elRollV.textContent = st.roll.toFixed(1);
 }
 
 function onCalibUp() {
@@ -1485,7 +1511,8 @@ function onCalibUp() {
     localStorage.setItem("calib1020", JSON.stringify({
       cz: calib.st.cz.toArray().map(x => +x.toFixed(5)),
       ni: +calib.st.ni.toFixed(2), th: +calib.st.th.toFixed(2),
-      yaw: +calib.st.yaw.toFixed(2) }));
+      yaw: +calib.st.yaw.toFixed(2),
+      roll: +calib.st.roll.toFixed(2) }));
   calib.drag = null;
   controls.enabled = true;
 }
@@ -1517,7 +1544,7 @@ function toggleCalib() {
             drag: null, nEar, nRot, raf: 0, dirs: null,
             baseDirs: DATA.meta.scalp.elec_names.map((n, i) => stdDir(i)),
             baseTr: editTraces.map(tr => tr.slice()),
-            st: { cz: cz0, ni: null, th: null, yaw: 0 } };
+            st: { cz: cz0, ni: null, th: null, yaw: 0, roll: 0 } };
   // starting ni/th read from the current layout (Fz/Oz votes; used as
   //-is until a handle is actually dragged)
   const uAnt0 = new THREE.Vector3().crossVectors(nRot, cz0).normalize();
@@ -1538,7 +1565,7 @@ function toggleCalib() {
   if (saved) {
     calib.st = { cz: new THREE.Vector3(...saved.cz),
                  ni: saved.ni, th: saved.th,
-                 yaw: saved.yaw || 0 };
+                 yaw: saved.yaw || 0, roll: saved.roll || 0 };
     calibApply();
   }
   renderer.domElement.addEventListener("pointerdown", onCalibDown);
@@ -1565,6 +1592,10 @@ function buildCalibPanel() {
       `<input type="range" id="calib-yaw" min="-20" max="20" step="0.1"` +
       ` value="0" style="width:200px;vertical-align:middle">` +
       ` <span id="calib-yaw-v">0.0</span>°<br>` +
+      "整体纵转 roll（向左/右耳倾）：<br>" +
+      `<input type="range" id="calib-roll" min="-20" max="20" step="0.1"` +
+      ` value="0" style="width:200px;vertical-align:middle">` +
+      ` <span id="calib-roll-v">0.0</span>°<br>` +
       "<button id='calib-copy' style='margin-top:4px'>复制JSON</button> " +
       "<button id='calib-reset'>恢复标准位</button> " +
       "<button id='calib-exit' style='float:right'>退出</button>" +
@@ -1580,6 +1611,7 @@ function buildCalibPanel() {
       ni_arc_deg: +calib.st.ni.toFixed(1),
       ear_th_deg: +calib.st.th.toFixed(1),
       yaw_deg: +calib.st.yaw.toFixed(2),
+      roll_deg: +calib.st.roll.toFixed(2),
       sag_normal: calib.nEar.toArray().map(x => +x.toFixed(5)),
       handles: Object.fromEntries(CALIB_DEFS.map(([nm]) => [nm,
         calib.dirs[names.indexOf(nm)].toArray()
@@ -1591,7 +1623,8 @@ function buildCalibPanel() {
   };
   div.querySelector("#calib-reset").onclick = () => {
     localStorage.removeItem("calib1020");
-    calib.st = { cz: calibDir("Cz"), ni: 260, th: calib.st.th, yaw: 0 };
+    calib.st = { cz: calibDir("Cz"), ni: 260, th: calib.st.th,
+                 yaw: 0, roll: 0 };
     DATA.meta.scalp.elec_names.forEach((nm, i) =>
       positionElecMesh(i, stdDir(i)));
     buildTopoWeights(calib.baseDirs.map(v => v.clone()));
@@ -1604,10 +1637,18 @@ function buildCalibPanel() {
     const yEl = document.getElementById("calib-yaw");
     if (yEl) yEl.value = 0;
     document.getElementById("calib-yaw-v").textContent = "0.0";
+    const rEl = document.getElementById("calib-roll");
+    if (rEl) rEl.value = 0;
+    document.getElementById("calib-roll-v").textContent = "0.0";
   };
   const yawEl = document.getElementById("calib-yaw");
   if (yawEl) yawEl.oninput = function () {
     calib.st.yaw = +this.value;
+    calibApply();
+  };
+  const rollEl = document.getElementById("calib-roll");
+  if (rollEl) rollEl.oninput = function () {
+    calib.st.roll = +this.value;
     calibApply();
   };
   div.querySelector("#calib-exit").onclick = () => toggleCalib();

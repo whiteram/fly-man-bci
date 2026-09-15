@@ -52,7 +52,8 @@ def _sph_mid(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 def standard_1020(anchors: dict, system: str = "1020",
                   ni_arc_deg: float = 180.0,
                   fpz_arc_deg: float | None = None,
-                  yaw_deg: float = 0.0) -> dict:
+                  yaw_deg: float = 0.0,
+                  roll_deg: float = 0.0) -> dict:
     """Standard 10-20 / 10-10 electrode directions from hand-placed
     anchors (Cz, Fz, Oz, A1, A2 unit vectors, any consistent head frame).
 
@@ -86,7 +87,10 @@ def standard_1020(anchors: dict, system: str = "1020",
         F1/F2, C1/C2, P1/P2, FC3-6, CP3-6, AF3/AF4/AFz, PO3/PO4/POz);
       - yaw_deg rotates the WHOLE cap about the Cz (crown) axis, so the
         sagittal plane can be aligned with the head mesh's nose midline
-        and the fly-brain midline (visual calibration).
+        and the fly-brain midline (visual calibration);
+      - roll_deg tilts the WHOLE cap about the (yawed) anterior axis:
+        the crown slides toward one ear, for aligning the cap with the
+        head mesh's actual left-right tilt (visual calibration).
 
     Returns dict name -> unit vector in the SAME frame as the anchors.
     """
@@ -208,6 +212,14 @@ def standard_1020(anchors: dict, system: str = "1020",
         # global yaw of the whole cap about the Cz (crown) axis
         for k in out:
             out[k] = _sph_rotate(out[k], cz, yaw_deg)
+    if roll_deg:
+        # global roll: tip the whole cap toward one ear, about the
+        # (yawed) anterior axis through the head center
+        e_a = out["Fz"] - out["Oz"]
+        e_a = e_a - cz * (e_a @ cz)
+        e_a = e_a / np.linalg.norm(e_a)
+        for k in out:
+            out[k] = _sph_rotate(out[k], e_a, roll_deg)
     return out
 
 
