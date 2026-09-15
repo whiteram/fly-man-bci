@@ -44,3 +44,26 @@ python experiments/exp001_erg_forward/run.py
 
 - MaleCNS v1.0: <https://male-cns.janelia.org/> — Berg et al., Cell (2026)
 - 视觉回路验证基准: Shinomiya et al. 2019/2022（T4/T5 输入），Lappalainen et al., Nature 2024（连接组约束视觉网络）
+
+## 文档索引
+
+| 文档 | 内容 |
+|---|---|
+| [HANDOFF.md](HANDOFF.md) | 交接：环境恢复、数据事实、API 参考、bug 史 |
+| [docs/STATUS.md](docs/STATUS.md) | **项目进度总览**（先看这里） |
+| [docs/TECHNICAL.md](docs/TECHNICAL.md) | 方法学：连接组→电路→仿真→前向核→背景 EEG |
+| [docs/PARAMS.md](docs/PARAMS.md) | 超参数注册表（`python -m ffbm.params` 自动生成） |
+| [docs/STIMULUS.md](docs/STIMULUS.md) | 视觉刺激协议：实现、参数、真实图像输入路线 |
+| [docs/USAGE.md](docs/USAGE.md) | 使用手册：可视化页面、标定工作流、数据导出 |
+| [docs/data.md](docs/data.md) | 数据文件说明 |
+| [viz/ELEC_CONFIGS.md](viz/ELEC_CONFIGS.md) | 电极配置文件格式（45/64/128/EGI241 + 自定义） |
+
+## 可视化（当前主线产物）
+
+```bash
+python -m http.server 8613 -d viz   # 访问 http://localhost:8613
+```
+
+页面：果蝇视觉系统 ×202 嵌入人脑四球壳的实时放电→头皮 EEG 演示，
+含电极配置切换（45/64/128/EGI241）、10-20 手柄标定、视角标定、
+人头形态校准。操作见 docs/USAGE.md。

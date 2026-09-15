@@ -476,3 +476,45 @@ deferred 的 inverted-Cl 组胺电导（§12 A3）是**同一块生物学的两�
 ---
 维护约定：本文档与代码同步更新；改 §5–§9 任一机制时，§6 的校准
 与 §9 的 SNR 数字必须重算并在 git 提交信息记录。
+
+## 15. 近期扩展（exp013–017 与可视化体系，2026-09 补记）
+
+本节补记 §14 规划之后已完成的工作；细节分散在各实验 README 与
+docs/STIMULUS.md、docs/STATUS.md。
+
+### 15.1 区域可选装配（exp014–017）
+
+`ffbm.regions`：每个脑区（visual_bilateral / vpn_central / ol_rest /
+central_brain / vnc）独立启停。关闭的区域零构建（不建种群/突触/
+前向核）。装配顺序与依赖在 `_ORDER`；电路以 `extra_pops`（含
+i_base/tau 的 CAL 键名，按次解析）与 `extra_edges` 规范附加，
+`pipeline.build_stack` 统一构建。VNC 组 `forward=False`（参与动力学、
+不进头壳前向核）。exp016/017 结论：VPN→中央脑对头皮电位贡献
+0.91/1.05/1.01 倍（≈噪声级）；全 CNS 相对双叶的差值属非锁相自发
+活动（2.03/1.08/0.88）。
+
+### 15.2 头皮电极阵列体系（45/64/128/241）
+
+- 45 导（现用）：10-20 19 导 + 10-10 中线/分度 26 导，由
+  `vp.standard_1020`（锚点 Cz/Fz/Oz/A1/A2 + `ni_arc_deg` +
+  `fpz_arc_deg` + `yaw_deg` + `roll_deg`）参数化推导；冠状环按耳位角
+  th 缩放（C3/C4=0.4·th，T7/T8=0.8·th）。
+- 64 导 = 45 + 链中点（AF7/8、F5/6、FC1/2、C5/6、CP1/2、P5/6、
+  FT7/8、TP7/8、PO7/8）+ Iz；128 导 = 64 再做 5% 细分（新点由 MNE
+  standard_1005 官方 10-05 名称匹配）；EGI 241 = MNE 'EGI_256' 真实
+  测地几何，经蒙太奇自带 nasion/lpa fiducial 做手性确定刚体对齐、
+  颈锥过滤。目录文件 `viz/data/elec_configs.json`（viz/ELEC_CONFIGS.md）。
+
+### 15.3 交互标定（页面 ↔ 管线闭环）
+
+10-20 标定手柄（Cz 俯仰 / Fz-Fpz-Oz 中线投票 / A1-A2 镜像耳位）+
+yaw/roll 滑块实时重推整帽；波形为球面距离插值预览，精确数值由
+`export_data.py --elec-layout` 重导出。视角标定（前/顶两锚正交展开
+六视图）与人头形态校准独立持久化（localStorage）。启动时自动应用
+已保存标定，杜绝"启动旧布局、进模式跳变"。
+
+### 15.4 刺激协议参数入注册表
+
+自然刺激时段表/对比度/漂移速度/板层柱间距/种子从 export_data.py
+常量收编进 `params.SECTIONS["stimulus"]`（docs/PARAMS.md 自动收录，
+测试保证文档不过期）。刺激机制与真实图像输入路线见 docs/STIMULUS.md。

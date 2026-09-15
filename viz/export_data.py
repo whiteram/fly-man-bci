@@ -37,23 +37,19 @@ from circuit import exp005
 
 OUT = ROOT / "viz" / "data"
 DT = exp005.DT
-SEED = 42
 
 # naturalistic protocol (exp007-style): continuous waveforms, no square
-# flashes -- the resulting EEG traces are wavy, not blocky
-T_EPOCHS = [
-    ("dark", 0.0, 1500.0),            # 黑暗基线
-    ("flicker", 1500.0, 4500.0),      # 空间均匀 1/f 闪烁
-    ("drift+", 4500.0, 6000.0),       # 1/f 纹理沿偏好方向漂移
-    ("drift-", 6000.0, 7500.0),       # 同一影片时间反演
-    ("band+", 7500.0, 9000.0),        # DS 尺度带通纹理漂移
-    ("band-", 9000.0, 10500.0),       # 其反演
-]
+# flashes -- the resulting EEG traces are wavy, not blocky.  All protocol
+# hyperparameters live in the user-modifiable registry (src/ffbm/
+# params.py -> docs/PARAMS.md); edit there, not here.
+_ST = fp.SECTIONS["stimulus"]
+SEED = _ST["seed"][0]
+T_EPOCHS = [tuple(e) for e in _ST["t_epochs"][0]]
 T_END = T_EPOCHS[-1][2]
-STIM_CONTRAST = 2.0
-I_LUM = 150.0
-DRIFT_SPEED = 0.1                     # um/ms
-LAM_UM = 22.0
+STIM_CONTRAST = _ST["stim_contrast"][0]
+I_LUM = _ST["i_lum"][0]
+DRIFT_SPEED = _ST["drift_speed"][0]
+LAM_UM = _ST["lam_um"][0]
 EPOCH_COLORS = {"dark": "#33465a", "flicker": "#f7c948", "drift+": "#34d399",
                 "drift-": "#22d3ee", "band+": "#f472b6", "band-": "#c084fc"}
 
