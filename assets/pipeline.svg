@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="pbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1e"/><stop offset="1" stop-color="#111b33"/>
+    </linearGradient>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="440" fill="url(#pbg)"/>
+
+  <rect x="40" y="30" rx="13" width="252" height="26" fill="rgba(74,222,128,0.10)" stroke="#4ade80" stroke-opacity="0.6"/>
+  <text x="166" y="48" font-size="13.5" fill="#4ade80" text-anchor="middle">&#9679; pipeline — implemented &amp; validated</text>
+  <rect x="660" y="30" rx="13" width="180" height="26" fill="rgba(245,158,11,0.10)" stroke="#f59e0b" stroke-opacity="0.6"/>
+  <text x="750" y="48" font-size="13.5" fill="#fbbf24" text-anchor="middle">&#9679; roadmap — next</text>
+
+  <!-- stage boxes -->
+  <g font-size="12.5" fill="#94a3b8" text-anchor="middle">
+    <rect x="40" y="120" width="190" height="112" rx="12" fill="#121a30" stroke="#38bdf8" stroke-opacity="0.55" stroke-width="1.4"/>
+    <text x="135" y="146" font-size="16.5" font-weight="700" fill="#38bdf8">MaleCNS v1.0</text>
+    <text x="135" y="170">the fly-man&#8217;s brain</text>
+    <text x="135" y="188">166,700 neurons · 125 M syn.</text>
+    <text x="135" y="206">Janelia FlyEM · CC-BY 4.0</text>
+
+    <rect x="250" y="120" width="190" height="112" rx="12" fill="#121a30" stroke="#4ade80" stroke-opacity="0.55" stroke-width="1.4"/>
+    <text x="345" y="146" font-size="16.5" font-weight="700" fill="#4ade80">Circuit assembly</text>
+    <text x="345" y="170">regions &amp; cell types</text>
+    <text x="345" y="188">neurotransmitter signs</text>
+    <text x="345" y="206">per-synapse geometry</text>
+
+    <rect x="460" y="120" width="190" height="112" rx="12" fill="#121a30" stroke="#a855f7" stroke-opacity="0.55" stroke-width="1.4"/>
+    <text x="555" y="146" font-size="16.5" font-weight="700" fill="#a855f7">Spiking simulation</text>
+    <text x="555" y="168">LIF + exp./conductance syn.</text>
+    <text x="555" y="185">video &#8594; fly-eye sampling</text>
+    <text x="555" y="202">phototransduction cascade</text>
+    <text x="555" y="219">OU noise &#183; dt = 0.5 ms</text>
+
+    <rect x="670" y="120" width="190" height="112" rx="12" fill="#121a30" stroke="#fb923c" stroke-opacity="0.55" stroke-width="1.4"/>
+    <text x="765" y="146" font-size="16.5" font-weight="700" fill="#fb923c">Forward kernel</text>
+    <text x="765" y="170">synaptic dipole pairs &#8594;</text>
+    <text x="765" y="188">4-sphere head (60-term series)</text>
+    <text x="765" y="206">10-20..EGI caps &#183; 45-241 ch</text>
+
+    <rect x="880" y="120" width="190" height="112" rx="12" fill="#121a30" stroke="#ec4899" stroke-opacity="0.55" stroke-width="1.4"/>
+    <text x="975" y="146" font-size="16.5" font-weight="700" fill="#ec4899">Scalp EEG (µV)</text>
+    <text x="975" y="170">+ α / 1-f / sensor noise</text>
+    <text x="975" y="188">SNR &amp; d&#8242; detection theory</text>
+    <text x="975" y="206">VEP-like topography</text>
+  </g>
+
+  <g stroke="#64748b" stroke-width="1.8" fill="none">
+    <line x1="230" y1="176" x2="246" y2="176" marker-end="url(#arr)"/>
+    <line x1="440" y1="176" x2="456" y2="176" marker-end="url(#arr)"/>
+    <line x1="650" y1="176" x2="666" y2="176" marker-end="url(#arr)"/>
+    <line x1="860" y1="176" x2="876" y2="176" marker-end="url(#arr)"/>
+    <path d="M 975 232 L 975 292" marker-end="url(#arrAmber)" stroke="#f59e0b" stroke-opacity="0.8"/>
+  </g>
+
+  <!-- roadmap box -->
+  <rect x="40" y="300" width="1030" height="104" rx="12" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="7 5"/>
+  <text x="505" y="330" font-size="16.5" font-weight="700" fill="#fbbf24" text-anchor="middle">Roadmap — run EEG experiments on the fly-man</text>
+  <text x="505" y="358" font-size="13.5" fill="#cbd5e1" text-anchor="middle">flash VEP · SSVEP · oddball / P300 · motion &amp; direction paradigms &#8594; simulated 45-channel EEG &#8594; analysis &amp; decoding (BCI)</text>
+  <text x="505" y="384" font-size="13.5" fill="#94a3b8" text-anchor="middle">this library is the base: the fly-man&#8217;s EEG generation model — stimulate, record, analyze</text>
+
+  <text x="40" y="428" font-size="12.5" fill="#475569">key trick: the head model is linear — each connection&#8217;s field contribution is precomputed, so every millisecond of 45-channel EEG is one matrix multiply</text>
+</svg>

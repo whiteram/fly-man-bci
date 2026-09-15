@@ -1,69 +1,182 @@
-# male-fruit-fly-brain-map
+<div align="center">
 
-基于官方 **MaleCNS v1.0** 雄性果蝇中枢神经连接组（HHMI Janelia FlyEM，CC-BY 4.0，
-166,700 神经元 / 1.25 亿突触）的建模研究仓库。
+<img src="assets/banner.svg" alt="Fly-Man BCI banner" width="100%"/>
 
-> **迁移/接手项目请先读 [HANDOFF.md](HANDOFF.md)** —— 包含全部上下文：
-> 数据事实、API 参考、实验记录、修过的 bug、下一步计划、领域调研。
+# 🪰 Fly-Man BCI · 蝇人脑机接口
 
-当前主线：**视觉系统群体放电活动 → 细胞外场电位（眼表面 ERG 类信号）的前向生成建模**。
+**A fly's brain network in a human body — and the BCI he urgently needs.**
 
-## 目录结构
+*This repository builds the foundation: the fly-man's EEG generation model —
+external stimulus → brain network activity → EEG recorded at the scalp.*
 
-```
-├── data/                    # 数据（gitignore，可重新下载/生成）
-│   ├── raw/                 #   官方原始文件（见 docs/data.md）
-│   └── derived/             #   脚本产物（视觉子网络等）
-├── docs/                    # 数据说明、背景笔记
-├── scripts/                 # 数据管线（下载、子网络抽取）
-├── src/ffbm/                # 基础设施包（安装: pip install -e .）
-│   ├── data.py              #   数据加载（注释/边表/递质/胞体坐标）
-│   ├── simulation.py        #   LIF 神经元群 + 指数突触（向量化）
-│   └── forward.py           #   细胞外电位前向核（点源-汇对，准静态）
-├── experiments/             # 每个独立实验一个目录
-│   └── exp001_erg_forward/  #   闪光→光感受器→板层放电→眼表面电位
-└── pyproject.toml
-```
+**English** · [简体中文](README.zh-CN.md)
 
-## 快速开始
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Data](https://img.shields.io/badge/data-MaleCNS%20v1.0-38bdf8)
+![100%25 simulation](https://img.shields.io/badge/no_flies_harmed-100%25_simulation-8b5cf6)
 
-```bash
-pip install -e .                          # 安装基础设施包
-python scripts/download_data.py           # 下载原始数据 (~1.1 GB)
-python scripts/build_visual_subnetwork.py # 生成视觉子网络 (data/derived/)
-python experiments/exp001_erg_forward/run.py
-```
+</div>
 
-## 实验索引
+---
 
-| 实验 | 问题 | 状态 |
-|---|---|---|
-| exp001_erg_forward | 光感受器+板层群体放电能否前向生成 ERG 样眼表面电位？ | 完成 |
+## The setting
 
-## 数据来源与引用
+A fly-man: in a teleporter accident (you may know the movie), his brain's neural network
+was transformed into that of a fruit fly — the only animal whose brain exists as a
+complete wiring diagram — while his body stayed human. His senses all work; but a fly's
+motor system driving a human body barely does. He urgently needs a brain–computer
+interface.
 
-- MaleCNS v1.0: <https://male-cns.janelia.org/> — Berg et al., Cell (2026)
-- 视觉回路验证基准: Shinomiya et al. 2019/2022（T4/T5 输入），Lappalainen et al., Nature 2024（连接组约束视觉网络）
+To build him a BCI, we need something first: **a model of his EEG** — what his brain
+activity looks like as signals on the scalp. That is this project.
 
-## 文档索引
+## The model: his EEG generation model
 
-| 文档 | 内容 |
+> **external stimulus → fruit-fly brain network → scalp EEG**
+
+A human head model with a fruit-fly brain network inside. Flash his eyes, watch the
+network fire, compute the extracellular currents, read the EEG off his scalp.
+
+<img src="assets/pipeline.svg" alt="pipeline" width="100%"/>
+
+| Part | What it is |
 |---|---|
-| [HANDOFF.md](HANDOFF.md) | 交接：环境恢复、数据事实、API 参考、bug 史 |
-| [docs/STATUS.md](docs/STATUS.md) | **项目进度总览**（先看这里） |
-| [docs/TECHNICAL.md](docs/TECHNICAL.md) | 方法学：连接组→电路→仿真→前向核→背景 EEG |
-| [docs/PARAMS.md](docs/PARAMS.md) | 超参数注册表（`python -m ffbm.params` 自动生成） |
-| [docs/STIMULUS.md](docs/STIMULUS.md) | 视觉刺激协议：实现、参数、真实图像输入路线 |
-| [docs/USAGE.md](docs/USAGE.md) | 使用手册：可视化页面、标定工作流、数据导出 |
-| [docs/data.md](docs/data.md) | 数据文件说明 |
-| [viz/ELEC_CONFIGS.md](viz/ELEC_CONFIGS.md) | 电极配置文件格式（45/64/128/EGI241 + 自定义） |
+| **Brain** | The real fly connectome — [MaleCNS v1.0](https://male-cns.janelia.org/) (HHMI Janelia, CC-BY 4.0; Berg et al., *Cell* 2026), 166,700 neurons / ~125 M synapses — running simulated spiking dynamics: LIF neurons wired by the *actual* synapse counts and neurotransmitter signs, a phototransduction cascade in the eyes, axonal delays, background noise; 0.5 ms steps; ~150k neurons / ~64 M synapses in full-CNS mode (measured). |
+| **Eyes** | The stimulus can be a real human video: grayscale + ommatidial point-spread blur → percentile normalization → affine sampling at each photoreceptor's eye-plane coordinate → per-receptor luminance into the cascade (synthetic 1/f flicker & drifting-texture protocols also built in). |
+| **Head** | Geometry: the **Lee Perry-Smith 3D head scan** (CC-BY 3.0, via the three.js assets). Physics: the classic four-sphere model (brain / CSF / skull / scalp; literature radii & conductivities) — every synaptic current becomes a source–sink dipole, and a 60-term Legendre expansion carries the field to the scalp. |
+| **EEG** | Interchangeable electrode caps from the international 10-20 family: **45 ch (10-20) · 64 ch (10-10) · 128 ch (10-5) · EGI HydroCel 256** (241 usable sites), sampled at 1 kHz; optional realistic background EEG (α rhythm, 1/f activity, sensor noise); SNR and d′ detection analysis. |
 
-## 可视化（当前主线产物）
+One geometric footnote: the fly network is magnified (×202) to fill the human head —
+pure geometry, assumed not to change the firing.
 
-```bash
-python -m http.server 8613 -d viz   # 访问 http://localhost:8613
+## Why the human head matters
+
+A fly's own head is a sealed insulator: solve the physics and the field outside is
+*strictly zero* — a fly's brain activity can never be measured from outside. A human head
+(conductive brain, insulating skull, conductive scalp) is exactly what lets the signals
+out. The fly-man's human body is not cosmetic; it is what makes his EEG possible.
+
+## What the simulation already shows
+
+- Direction selectivity emerges in his visual system from the wiring alone — the
+  connectome "sees" motion without being taught.
+- His scalp topography matches human VEP intuition: strongest at posterior electrodes,
+  antipodal electrodes anticorrelated at −0.98.
+- His stimulus-locked signal scales with how much of the visual field is driven:
+  ~0.84 µV against ~2.8 µV of background for full-field naturalistic flicker —
+  **~46 averaged trials** on the best channel (T7); a sparse demo video (one small
+  moving object) drops it to ~0.2 µV and ~1,200 trials. Real, quantifiable, and
+  honest about the cost.
+- The pipeline passes the fly-scale benchmarks first: a flash at the eye yields the
+  textbook Drosophila ERG.
+
+## Repository layout
+
+```
+src/ffbm/          simulation engine: connectome data access, vectorized spiking
+                   cascade, spherical forward kernels, calibration &
+                   region-optional assembly, parameter registry
+experiments/       research log exp001–exp017 (each with its own README:
+                   design, results, limitations)
+viz/               interactive 3D demo + the data-export pipeline behind it
+                   (bilingual UI, English default)
+docs/              methods & usage (Chinese originals)
+docs/en/           English translations of the docs
+scripts/           data download / assembly / profiling utilities
+tests/             unit tests (forward kernels, calibration, assembly, params)
+tools/             banner / pipeline figure generators
+assets/            README figures
 ```
 
-页面：果蝇视觉系统 ×202 嵌入人脑四球壳的实时放电→头皮 EEG 演示，
-含电极配置切换（45/64/128/EGI241）、10-20 手柄标定、视角标定、
-人头形态校准。操作见 docs/USAGE.md。
+Quickstart: Python 3.12 + NumPy/SciPy/pandas/pyarrow; download the connectome
+(~14 GB, public, no registration — `docs/en/data.md`); `pip install -e .`;
+`pytest tests/`; serve `viz/` locally (`python -m http.server 8613 -d viz`) and
+open `index.html`. Full workflow in `docs/en/USAGE.md`.
+
+## Roadmap: the base for EEG experiments
+
+This library is the foundation — the fly-man's EEG generation model. On top of it, any
+human EEG paradigm can be run as a stimulus protocol:
+
+**paradigm → simulated brain → simulated 45-channel EEG → analysis / decoding (BCI)**
+
+- **Flash / pattern VEP** — evoked responses, the simplest channel
+- **SSVEP** — frequency-tagged selection channels
+- **Oddball / P300-style** — rare-deviant responses
+- **Motion & direction** — his visual system's directional machinery
+- **High-density caps** — shipped: 10-20 (45 ch) · 10-10 (64 ch) · 10-5 (128 ch) · EGI 256 (241 sites)
+- **GPU acceleration** — CuPy route for the forward kernel and simulation loop (planned; roadmap in `docs/en/ACCELERATION_PLAN.md`)
+- **Closed loop** — decoded output feeds back into the stimulus
+
+## Engine notes
+
+Threaded Legendre kernel build (**~15× faster, 68 s for 1.23 M dipole pairs**) and a
+buffered float32 forward path verified against the float64 baseline to 0.092 % of peak;
+the full-CNS export runs end-to-end on a 16-core desktop. Requirements: Python 3.12,
+NumPy / SciPy / pandas / pyarrow (MNE-Python and imageio/PyAV for the electrode & video
+tooling); connectome download ~14 GB (public, no registration); 16+ GB RAM for the full
+pipeline.
+
+## Honesty notes
+
+- The fly-man is fiction; the connectome, the head physics and the EEG engineering
+  standards are real. This is a thought experiment built on real data.
+- The ×202 magnification is geometry only — a real neuron scaled up 202× would not work.
+- Neuron dynamics are calibrated approximations matched to literature firing-rate
+  windows; absolute amplitudes are order-of-magnitude honest.
+
+## Credits & acknowledgements
+
+This project is a small stage built on other people's work. All of it belongs here:
+
+**The brain — data**
+
+- **MaleCNS v1.0**, the male fruit-fly CNS connectome — Berg et al., *Cell* (2026),
+  HHMI Janelia FlyEM, https://male-cns.janelia.org/ — **CC-BY 4.0**
+
+**The head — geometry & electrodes**
+
+- **3D Head Scan by Lee Perry-Smith / Infinite-Realities** — **CC-BY 3.0**; the
+  human-head mesh our electrode cap sits on, widely known through the three.js
+  example assets
+- **International 10-20 system** of electrode placement — H. H. Jasper,
+  *Electroencephalogr. Clin. Neurophysiol.* (1958)
+- **10-10 "five-percent" extension** — Oostenveld & Praamstra,
+  *Clin. Neurophysiol.* (2001)
+
+**The physics & the science we lean on**
+
+- Rush & Driscoll (1969); Nunez & Srinivasan, *Electric Fields of the Brain* —
+  spherical volume-conduction models behind the 4-sphere forward kernel
+- Lappalainen et al., *Nature* (2024) — connectome-constrained fly visual
+  networks (`flyvis`)
+- Shiu et al., *Nature* (2024) — full-connectome LIF simulation of the fly brain
+- Wang-Chen et al., *Nature Methods* (2024) — NeuroMechFly v2, embodied simulation
+- Nern et al., *Nature* (2025) — optic-lobe connectome
+- Shinomiya et al. (2019, 2022) — visual-circuit connectivity benchmarks (T4/T5 inputs)
+- Hardie & Raghu (2001); Rusanen & Weckström (2016) — Drosophila phototransduction
+  and lamina electrophysiology
+
+Every constant in the simulator is traced to dataset / literature / calibration in
+the parameter registry (`src/ffbm/params.py` → `docs/PARAMS.md`).
+
+**Software**
+
+- three.js (MIT) — the real-time 3D replay
+- MNE-Python (BSD) — standard electrode montages (EGI HydroCel, 10-05 nomenclature)
+- imageio + PyAV — human-video → fly-vision stimulus tooling
+- The open scientific Python stack: NumPy, SciPy, pandas, PyArrow, matplotlib, pytest
+
+**Culture**
+
+- *The Fly* (1986), dir. David Cronenberg — for the fly-man. Original short story:
+  George Langelaan (1957).
+
+Spotted something we used without credit? Open an issue and we'll fix it.
+
+## License
+
+Code: MIT. Third-party assets keep their own licenses — the MaleCNS v1.0 data is
+CC-BY 4.0 (HHMI Janelia) and the Lee Perry-Smith head scan is CC-BY 3.0
+(Infinite-Realities); see their terms when redistributing derived data.
