@@ -97,13 +97,9 @@
     <div class="chart-title">刺激亮度</div>
     <canvas id="stim" class="chart" height="64"></canvas>
     <div class="chart-title"><span id="elec-title">人脑头皮电极阵列</span>
-      （蓝− 红+）
       <label style="float:right;font-weight:normal;cursor:pointer">
-        <input type="checkbox" id="zoom"> 近 2 s 放大</label>
-      <label style="float:right;font-weight:normal;cursor:pointer;margin-right:12px">
-        <input type="checkbox" id="bgon"> 叠加人脑背景脑电</label></div>
+        <input type="checkbox" id="waveform"> 时序波形</label></div>
     <canvas id="scalpmap" class="chart" height="200"></canvas>
-    <div class="flash-legend" id="snrinfo"></div>
     <div class="chart-title">各层群体放电率</div>
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
@@ -745,15 +741,27 @@ function drawChartFrame(ch, i0, i1, x0, x1) {
   ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
 }
 
-// 17-channel scalp array as a time x channel heatmap (rows = angle from
-// the eye axis, 0 at top); same time window logic as the EEG chart
+// scalp channel array, two display modes (checkbox "时序波形"):
+// heatmap (default) = time x channel color grid; waveform = classic
+// stacked EEG traces, one row per channel, shared amplitude scale
 function drawScalpMap(i) {
   if (!scalpAll) return;
   const cv = document.getElementById("scalpmap");
   const dpr = Math.min(window.devicePixelRatio, 2);
-  if (cv.width !== Math.round(cv.clientWidth * dpr)) {
+  const wantH = document.getElementById("waveform").checked
+                ? Math.min(640, Math.max(200, scalpAll.length * 11 + 8))
+                : 200;
+  if (cv.getAttribute("height") !== String(wantH)) {
+    cv.setAttribute("height", String(wantH));
+  }
+  if (cv.width !== Math.round(cv.clientWidth * dpr)
+      || cv.height !== wantH * dpr) {
     cv.width = Math.round(cv.clientWidth * dpr);
-    cv.height = cv.getAttribute("height") * dpr;
+    cv.height = wantH * dpr;
+  }
+  if (document.getElementById("waveform").checked) {
+    drawScalpWave(i, cv, dpr, wantH);
+    return;
   }
   const ctx = cv.getContext("2d");
   const w = cv.width, h = cv.height;
@@ -763,9 +771,7 @@ function drawScalpMap(i) {
   const padL = 52 * dpr, padR = 38 * dpr, padT = 4 * dpr, padB = 6 * dpr;
   const plotW = w - padL - padR, plotH = h - padT - padB;
   ctx.fillStyle = "#060a10"; ctx.fillRect(0, 0, w, h);
-  const zoom = document.getElementById("zoom").checked;
-  const x0 = zoom ? Math.max(0, i - 2000) : 0;
-  const xRight = zoom ? x0 + 2000 : n;
+  const x0 = 0, xRight = n;
   const cols = Math.max(2, Math.min(1400, xRight - x0));
   if (!drawScalpMap.off || drawScalpMap.off.width !== cols) {
     drawScalpMap.off = document.createElement("canvas");
@@ -827,6 +833,60 @@ function drawScalpMap(i) {
   ctx.fillText("+" + vmax.toFixed(1), cbX + 7 * dpr, padT + 8 * dpr);
   ctx.fillText("0", cbX + 7 * dpr, padT + plotH / 2);
   ctx.fillText("−" + vmax.toFixed(1), cbX + 7 * dpr, padT + plotH);
+}
+
+// classic stacked EEG traces: one row per channel, shared µV scale,
+// progressive reveal up to the playhead (same convention as the heatmap)
+function drawScalpWave(i, cv, dpr, wantH) {
+  const ctx = cv.getContext("2d");
+  const w = cv.width, h = cv.height;
+  const n = DATA.t_ms.length;
+  const S = scalpData(), vmax = scalpScale() * 1.1;
+  const nE = S.length;
+  const padL = 52 * dpr, padR = 14 * dpr, padT = 4 * dpr, padB = 6 * dpr;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  const rowH = plotH / nE;
+  ctx.fillStyle = "#060a10"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#22304a"; ctx.lineWidth = 1;
+  epochs.forEach(ep => {
+    const x = padL + ep.i0 / n * plotW;
+    if (x > padL && x < padL + plotW) {
+      ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+    }
+  });
+  const enames = DATA.meta.scalp.elec_names || null;
+  const step = Math.max(1, Math.ceil((i + 1) / plotW));
+  ctx.font = `${Math.min(10, rowH / dpr - 1) * dpr}px sans-serif`;
+  ctx.textAlign = "right";
+  for (let e = 0; e < nE; e++) {
+    const yMid = padT + (e + 0.5) * rowH;
+    ctx.strokeStyle = "#14202e";
+    ctx.beginPath(); ctx.moveTo(padL, yMid); ctx.lineTo(padL + plotW, yMid);
+    ctx.stroke();
+    ctx.strokeStyle = "#60a5fa"; ctx.lineWidth = 1.1 * dpr;
+    ctx.beginPath();
+    for (let s = 0; s <= i; s += step) {
+      const x = padL + s / (n - 1) * plotW;
+      const y = yMid - Math.max(-1, Math.min(1, S[e][s] / vmax))
+                * (rowH * 0.5 - dpr);
+      if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = "#8aa0b4";
+    ctx.fillText(enames ? enames[e]
+                 : (scalpDeg[e] != null ? Math.round(scalpDeg[e]) + "°"
+                    : "E" + e), padL - 5 * dpr, yMid + 3 * dpr);
+  }
+  const px = padL + i / (n - 1) * plotW;
+  ctx.strokeStyle = "#7dd3fc";
+  ctx.beginPath(); ctx.moveTo(px, padT); ctx.lineTo(px, padT + plotH);
+  ctx.stroke();
+  // shared scale badge
+  ctx.textAlign = "left"; ctx.fillStyle = "#8aa0b4";
+  ctx.font = `${9 * dpr}px sans-serif`;
+  ctx.fillText(`±${(vmax / 1.1).toFixed(1)} µV`, padL + 4 * dpr,
+               padT + 10 * dpr);
 }
 
 function drawRatesChart(i) {
@@ -2062,8 +2122,10 @@ function initUI() {
   document.getElementById("scrub").oninput = function () {
     simIdx = +this.value / 1000 * (DATA.t_ms.length - 1);
   };
-  document.getElementById("bgon").onchange = function () {
-    bgOn = this.checked;
+  // waveform toggle: mode switch re-sizes the canvas; the next tick
+  // redraws in the new style
+  document.getElementById("waveform").onchange = function () {
+    drawScalpMap(Math.floor(simIdx));
   };
   buildLayerBox();
   addSceneButtons();
@@ -2225,6 +2287,9 @@ fetch("data/viz_data.json?v=" + Date.now()).then(r => r.json()).then(d => {
     abs.sort((a, b) => a - b);
     scalpVmax = Math.max(abs[Math.floor(abs.length * 0.98)], 1e-3);
   }
+  // background-EEG tables stay loaded (post-hoc overlay may return);
+  // the on-page overlay toggle + SNR readout are retired -- the noise
+  // story lives in docs/TECHNICAL.md until it is needed again
   if (DATA.phi_scalp_bg_uV && DATA.phi_scalp_all_uV) {
     bgAll = DATA.phi_scalp_bg_uV;
     scalpMix = scalpAll.map((ch, i) =>
@@ -2233,17 +2298,6 @@ fetch("data/viz_data.json?v=" + Date.now()).then(r => r.json()).then(d => {
     scalpMix.forEach(ch => ch.forEach(v => abs2.push(Math.abs(v))));
     abs2.sort((a, b) => a - b);
     scalpVmaxBg = Math.max(abs2[Math.floor(abs2.length * 0.98)], 1e-3);
-  }
-  const snr = DATA.meta && DATA.meta.bg_eeg && DATA.meta.bg_eeg.snr;
-  if (snr) {
-    const bestTag = snr.best_elec_name
-      ? snr.best_elec_name : snr.best_elec_deg + "°";
-    document.getElementById("snrinfo").innerHTML =
-      `SNR：信号 <b>${snr.sig_uv} µV</b> @ ${bestTag} · 人脑背景 ` +
-      `${snr.bg_uv} µV · d′=2 需 ~<b>${snr.k_for_dprime2}</b> 次平均` +
-      (snr.k_for_dprime2_band
-        ? `（信号带内 ~${snr.k_for_dprime2_band} 次）` : "") +
-      ` · 详见 docs/TECHNICAL.md`;
   }
   initScene();
   setupEpochs();
