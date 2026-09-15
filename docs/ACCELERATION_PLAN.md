@@ -114,6 +114,18 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
   deliver ~3 + drive 流式 6.8 + ecur@1.23M ~0.5）→ 21k 步 ≈
   5.6 min；decay+ring+clear 可融合（traffic 减半）→ ~10-12 ms/步
   ≈ 4 min。结论：先按生产布局落地 P3-3 实测，融合优化视实测再做。
+- **P3-3 引擎已落地（2026-09-16，src/ffbm/gpu.py）**：
+  `GPUTrial` 全状态常驻 GPU 复刻 mech 分支循环——RNG 方案 a 实装
+  （噪声按每步 R→L→MID→T45→extras 交错顺序在 CPU 预算、分批
+  512 步上传，numpy 流逐位不变）；drive 走生产 post-sorted 布局的
+  流式段求和；投递 = 每 pre 行一线程（不相交区间免原子），ring
+  指针先推进再投递（复刻 numba 次序，bin b 落 (ptr+b-1)%len 行）。
+  **验证**：① 合成小电路（含 extra 区+双 pre 源组）60/60 采样步
+  全状态逐位一致（scripts/gpu_loop_parity.py，v/refrac/s/y/
+  buffer/ptr/OU-x）；② 真实 visual_bilateral 电路 200 步逐位一致
+  （scripts/gpu_real_parity.py），GPU **2.36 ms/步**（视觉规模，
+  含记录钩子；全区域待 P3-4 实测）。曾修 1 个关键 bug：LIF 的
+  i_ext 必须用 OU 更新后的状态 x，不是原始噪声 w。
 
 ### P4 多 trial 并行（零风险，随时可加）
 - SNR 场景 d′=2 需 ~1,630 trials → **吞吐比延迟重要**；
