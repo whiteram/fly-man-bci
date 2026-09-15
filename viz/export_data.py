@@ -80,6 +80,13 @@ def main():
                     help="EXPERIMENTAL: runtime kernel pooling (3-5x "
                          "faster, <1% target projection error -- "
                          "accuracy refinement still in progress)")
+    ap.add_argument("--gpu", action="store_true",
+                    help="P3: run the biology loop on the GPU "
+                         "(ffbm.gpu, CuPy). Bitwise-identical "
+                         "trajectories; the scalp/fly-head forward GEMMs "
+                         "run on cublas so phi differs from the CPU "
+                         "export at float rounding (~1e-6 relative), "
+                         "and --pool is not supported")
     ap.add_argument("--smoke", action="store_true",
                     help="fast end-to-end smoke test: 400 ms protocol, "
                          "20k kernel-pair cap, output to viz/data_smoke/ "
@@ -597,12 +604,13 @@ def main():
     # row-major (CHUNK, N): records append CONTIGUOUS rows (a strided
     # column write costs a cache miss per dipole); flush feeds the
     # transposed view straight into the GEMM (BLAS native, no copy)
-    ybuf = {name: np.zeros((CHUNK, coef_f32[name].shape[1]), np.float32)
-            for name in gnames}
-    print(f"forward buffers: {CHUNK} records x "
-          f"{sum(b.shape[1] for b in ybuf.values())} dipoles "
-          f"({sum(b.nbytes for b in ybuf.values()) / 1e6:.0f} MB)",
-          flush=True)
+    if not args.gpu:
+        ybuf = {name: np.zeros((CHUNK, coef_f32[name].shape[1]),
+                               np.float32) for name in gnames}
+        print(f"forward buffers: {CHUNK} records x "
+              f"{sum(b.shape[1] for b in ybuf.values())} dipoles "
+              f"({sum(b.nbytes for b in ybuf.values()) / 1e6:.0f} MB)",
+              flush=True)
     jbuf = 0
 
     def flush_scalp(j0, c):
@@ -686,10 +694,99 @@ def main():
 
     print(f"simulating {T_END / 1000:.1f} s ...")
     _t1 = _time.time()
-    fp.simulate(circuit, cal, lambda t: I_LUM * (luminance(t) - 1.0),
-                SEED, T_END, on_sample=record)
-    if jbuf:
-        flush_scalp(n_field - jbuf, jbuf)
+    if args.gpu:
+        # ---- P3 GPU path: biology loop + record buffers on device ----
+        import cupy as cp
+        from ffbm import gpu as fgpu
+
+        rng_g = np.random.default_rng(SEED)
+        st_g = fp.build_stack(circuit, cal, rng_g)
+        trial = fgpu.GPUTrial(st_g)
+        Kg = trial.K
+        ybuf_g = {name: cp.zeros((CHUNK, coef_f32[name].shape[1]),
+                                 cp.float32) for name in gnames}
+        coef_g = {name: cp.asarray(coef_f32[name]) for name in gnames}
+        ker_g = {name: cp.asarray(ker[name].coef) for name in ker}
+        keep_g = {name: (cp.asarray(kernel_keep[name])
+                         if kernel_keep.get(name) is not None else None)
+                  for name in gnames}
+        phi_scalp_g = cp.zeros((n_field, len(scalp_dirs)), cp.float32)
+        phi_g = cp.zeros((n_field, 3), cp.float64)
+        is_t4_g = cp.asarray(is_t4)
+        is_t5_g = cp.asarray(is_t5)
+        # rate accumulators stay on device (sums); per-record host syncs
+        # would dominate the loop -- means/scales applied at the end
+        sum_g = {"R": cp.zeros(n_field), "L": cp.zeros(n_field),
+                 "MID": cp.zeros(n_field, cp.int64),
+                 "T4": cp.zeros(n_field, cp.int64),
+                 "T5": cp.zeros(n_field, cp.int64)}
+        mb = (sum(b.nbytes for b in ybuf_g.values())
+              + sum(c.nbytes for c in coef_g.values())) / 1e6
+        print(f"GPU forward buffers: {CHUNK} records, {mb:.0f} MB "
+              f"on device", flush=True)
+
+        def flush_scalp_gpu(j0, c):
+            for name in gnames:
+                if pool_info.get(name) is not None:
+                    raise RuntimeError("--pool is not supported with "
+                                       "--gpu")
+                Y = ybuf_g[name][:c]
+                phi_scalp_g[j0:j0 + c] += (coef_g[name] @ Y.T).T
+            phi3 = cp.zeros((c, 3), cp.float64)
+            for name in ker:
+                Y = ybuf_g[name][:c]
+                phi3 += (ker_g[name] @ Y.T).T
+            phi_g[j0:j0 + c] = phi3 * 1e-12
+
+        def record_gpu(k, j, t, inc_f):
+            nonlocal jbuf
+            for name in gnames:
+                row = ybuf_g[name][jbuf]
+                if name == "PHOTO":
+                    row[:] = cp.asarray(
+                        (cal["I_R_BASE"] + inc_f).astype(np.float32))
+                elif name == "RL":
+                    trial.graded["RL"].ecur_row(
+                        Kg, trial.v_post("L"), row)
+                elif name == "LM":
+                    trial.graded["LM"].ecur_row(
+                        Kg, trial.v_post("MID"), row)
+                else:
+                    post = extra_post.get(name, "T45")
+                    trial.exp[name].ecur_row(
+                        Kg, trial.v_post(post), row, keep_g[name])
+            jbuf += 1
+            if jbuf == CHUNK:
+                flush_scalp_gpu(j - CHUNK + 1, CHUNK)
+                jbuf = 0
+            # device-side accumulators: no host sync per record
+            sum_g["R"][j] = trial.r_release.sum()
+            sum_g["L"][j] = trial.l_release.sum()
+            m45 = trial._mask("T45")
+            sum_g["MID"][j] = trial._mask("MID").sum()
+            sum_g["T4"][j] = m45[is_t4_g].sum()
+            sum_g["T5"][j] = m45[is_t5_g].sum()
+            stim[j] = float(np.mean(luminance(t)))
+
+        trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
+                  int(T_END / fp.DT_MS), on_record=record_gpu)
+        if jbuf:
+            flush_scalp_gpu(n_field - jbuf, jbuf)
+        cp.cuda.runtime.deviceSynchronize()
+        phi_scalp_g *= 1e-12
+        phi_scalp = cp.asnumpy(phi_scalp_g)
+        phi = cp.asnumpy(phi_g)
+        rate["R"] = cp.asnumpy(sum_g["R"]) * (100.0 / n_r)
+        rate["L"] = cp.asnumpy(sum_g["L"]) * (100.0 / n_l)
+        rate["MID"] = cp.asnumpy(sum_g["MID"]) * (1000.0 / n_mid)
+        rate["T4"] = cp.asnumpy(sum_g["T4"]) * (1000.0 / int(is_t4.sum()))
+        rate["T5"] = cp.asnumpy(sum_g["T5"]) * (1000.0 / int(is_t5.sum()))
+        jbuf = 0
+    else:
+        fp.simulate(circuit, cal, lambda t: I_LUM * (luminance(t) - 1.0),
+                    SEED, T_END, on_sample=record)
+        if jbuf:
+            flush_scalp(n_field - jbuf, jbuf)
     print(f"biology loop: {_time.time() - _t1:.0f} s "
           f"({n_field} records)")
     np.save(OUT / "_debug_phi_scalp.npy", phi_scalp * 1.7)

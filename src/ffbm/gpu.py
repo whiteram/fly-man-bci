@@ -250,6 +250,25 @@ void k_spike_row(unsigned char* spike_row, const int* src_off,
     int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < n_rows) spike_row[p] = mask_all[src_off[p] + local[p]];
 }
+
+// record path: per-edge current with the CPU expression's exact dtype
+// path (f32 g*y product widened to f64, f64 (e_rev - v_post), f64
+// product) then the same f64 -> f32 store the numpy ybuf row cast does.
+// The _keep variant writes only the subsampled edges (kernel_keep),
+// like the CPU `ybuf[..] = y[keep]` path.
+extern "C" __global__
+void k_ecur_f32(const float* y, float g_unit, const float* e_rev,
+                const long long* post_local, const double* v_post,
+                const long long* keep, float* out_row, int n)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n) return;
+    long long e = keep == 0 ? i : keep[i];
+    float g32 = g_unit;
+    double t1 = (double)(g32 * y[e]);
+    double t2 = (double)e_rev[e] - v_post[post_local[e]];
+    out_row[i] = (float)(t1 * t2);
+}
 """
 
 _K = {}
@@ -260,7 +279,8 @@ def _kernels():
         for name in ("k_release", "k_graded", "k_drive", "k_ou",
                      "k_lif_none", "k_lif_g32", "k_lif_g32_base",
                      "k_acc_init", "k_acc_add", "k_lif_g64", "k_exp_ring",
-                     "k_buf_clear", "k_deliver", "k_spike_row"):
+                     "k_buf_clear", "k_deliver", "k_spike_row",
+                     "k_ecur_f32"):
             _K[name] = cp.RawKernel(_SRC, name, options=_FAMD)
     return _K
 
@@ -294,6 +314,7 @@ class _GradedPoolG:
         self.k = _f64(pool.k)
         self.g_unit = np.float32(pool.g_unit)
         self.indptr = cp.asarray(_indptr(pool.post_local, self.n_post))
+        self.post_local = cp.asarray(pool.post_local.astype(np.int64))
         self.out_i = cp.zeros(self.n_post, cp.float32)
         self.out_g = cp.zeros(self.n_post, cp.float32)
 
@@ -302,6 +323,17 @@ class _GradedPoolG:
             _go(K["k_graded"], self.n_edges,
                 (r_pre, self.pre_ids, self.s, self.y, self.weight,
                  self.k, np.int32(self.n_edges)))
+
+    def ecur_row(self, K, v_post, out_row, keep=None):
+        """edge_currents(v_post) cast f32 into a ybuf row (bitwise the
+        CPU edge_currents -> ybuf[..] = y[keep] path)."""
+        if self.n_edges:
+            _go(K["k_ecur_f32"], self.n_edges if keep is None
+                else keep.size,
+                (self.y, self.g_unit, self.e_rev, self.post_local,
+                 v_post, np.int64(0) if keep is None else keep,
+                 out_row,
+                 np.int32(self.n_edges if keep is None else keep.size)))
 
     def drive(self, K):
         if not self.n_edges:
@@ -344,8 +376,20 @@ class _ExpPoolG:
         self.g_unit = np.float32(pool.g_unit)
         self.e_rev = cp.asarray(pool.e_rev_edge)
         self.indptr = cp.asarray(_indptr(pool.post_local, self.n_post))
+        self.post_local = cp.asarray(pool.post_local.astype(np.int64))
         self.out_i = cp.zeros(self.n_post, cp.float32)
         self.out_g = cp.zeros(self.n_post, cp.float32)
+
+    def ecur_row(self, K, v_post, out_row, keep=None):
+        """edge_currents(v_post) cast f32 into a ybuf row (bitwise the
+        CPU edge_currents -> ybuf[..] = y[keep] path)."""
+        if self.n_edges:
+            _go(K["k_ecur_f32"], self.n_edges if keep is None
+                else keep.size,
+                (self.y, self.g_unit, self.e_rev, self.post_local,
+                 v_post, np.int64(0) if keep is None else keep,
+                 out_row,
+                 np.int32(self.n_edges if keep is None else keep.size)))
 
     def drive(self, K):
         if not self.n_edges:
@@ -594,8 +638,10 @@ class GPUTrial:
         if self._batch_pos >= self.NOISE_BATCH:
             self._draw_noise_batch()
 
-    def run(self, lum_inc_fn, n_steps, hook=None):
-        """hook(k, t) fires after each step (parity checking)."""
+    def run(self, lum_inc_fn, n_steps, hook=None, on_record=None):
+        """hook(k, t) fires after each step (parity checking).
+        on_record(k, j, t, inc_f) mirrors simulate()'s on_sample cadence
+        (every 2 steps); inc_f is the CPU photo increment (numpy f64)."""
         photo = PhotoCascade(self.st["n_r"], self.st["pops"]["R"].dt)
         dt = float(self.st["pops"]["R"].dt)
         for k in range(n_steps):
@@ -604,15 +650,34 @@ class GPUTrial:
             self._step(t, inc_f)
             if hook is not None:
                 hook(k, t)
+            if on_record is not None and k % 2 == 0:
+                on_record(k, k // 2, t, inc_f)
+
+    # -- record-side helpers ------------------------------------------
+    def v_post(self, name):
+        """Device membrane potential of a postsynaptic population."""
+        return self.pops[name].v
+
+    def spike_count(self, name):
+        """Spikes this step (sync; call once per record step)."""
+        return int(self._mask(name).sum())
+
+    def release_mean(self, which):
+        """Mean release rate of R ('R') or L ('L') this step (sync).
+        Statistical only (cupy reduction order), display quantity."""
+        r = self.r_release if which == "R" else self.l_release
+        return float(r.mean())
 
 
-def gpu_simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, hook=None):
-    """GPU twin of pipeline.simulate (mech branch, no on_sample yet).
+def gpu_simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, hook=None,
+                 on_record=None):
+    """GPU twin of pipeline.simulate (mech branch).
 
     Consumes the seed exactly like simulate (build_stack draws the
     delay jitter first), then the OU stream in per-step pop order."""
     rng = np.random.default_rng(seed)
     st = build_stack(circuit, cal, rng)
     trial = GPUTrial(st)
-    trial.run(lum_inc_fn, int(t_end_ms / st["pops"]["R"].dt), hook=hook)
+    trial.run(lum_inc_fn, int(t_end_ms / st["pops"]["R"].dt), hook=hook,
+              on_record=on_record)
     return st, trial
