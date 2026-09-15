@@ -2,11 +2,16 @@
 
 *(English translation — authoritative version: [../../docs/ACCELERATION_PLAN.md](../../docs/ACCELERATION_PLAN.md))*
 
-Status: **plan finalized, implementation not started** (finalized 2026-09-13).
-The prerequisite work (Route A: thread-pool kernel build + f32 chunked-GEMM
-forward application, see PERFORMANCE.md §7) has landed and passed full-scale
-A/B comparison. This document is the complete plan for the next phase; when
-work resumes, start directly from P0.
+Status (updated 2026-09-15): **P0 + P2 phase 1 implemented and
+verified** — numba 0.67 + CuPy 14.2 installed in the conda `ffbm` env
+(GPU compute verified); three JIT kernels (graded-synapse step /
+conductance drive / edge currents) landed with **bitwise-identical
+trajectories** (unit parity + smoke end-to-end A/B,
+tests/test_numba_parity.py), and the biology loop measured at
+**1.65×** (600 ms full-region in-process A/B: 77.3 s → 46.8 s; full
+export est. 22.5 → 13.6 min). P2 phase 2 (decay+delivery fusion,
+target +0.2× more) and P3 remain. The prerequisite work (Route A) is
+in PERFORMANCE.md §7.
 
 ---
 
@@ -52,15 +57,28 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
   (hand-written CSR loop);
 - expected 55 → ~40 min; verified by bit-exact A/B comparison.
 
-### P2 Numba JIT (one day, recommended to do first)
-- `@njit` fusion: GradedSynapses.step, ExponentialSynapses.step
-  (decay + delivery), edge_currents, hand-written CSR matvec;
-- **keep the RNG on the numpy side**: draw the noise arrays outside the loop
-  and pass them in → the random sequence is unchanged, and same-order
-  float64 arithmetic is bit-identical → the existing red-line A/B comparison
-  (<0.1 μV or <1%) applies unchanged;
-- `parallel=True` for the 1.23M-edge recording path;
-- expected **55 → ~15 min**.
+### P2 Numba JIT (phase 1 implemented 2026-09-15)
+- **Landed**: three `@njit` kernels — `_graded_step` (release-rate
+  smoothing + weight, in-place), `_drive_cond` (the two conductance CSR
+  matvecs fused into a single-pass f32 accumulation with per-row add
+  order matching scipy csr_matvec), `_edge_currents` (f64 output so the
+  downstream mixed-dtype dot stays on the exact same BLAS path);
+- **RNG stays in numpy throughout**: noise drawn inside the loop by
+  numpy, random sequence unchanged; bitwise identity verified (four
+  unit parity checks + smoke end-to-end FFBM_NUMBA=0/1 A/B);
+- **Measured**: biology loop **1.65×** (46.8 s vs 77.3 s @600 ms
+  full-region, scripts/profile_export_loop.py in-process A/B); full
+  export est. 22.5 → 13.6 min (excluding the 68 s kernel build and
+  assembly);
+- **Phase 2 remaining**: fuse `ExponentialSynapses.step` decay +
+  delayed delivery (still numpy fancy-indexing, ~20% of step cost) and
+  JIT the LIF/OU steps (Python dispatch overhead); expected +0.3–0.5×;
+- dtype-semantics traps on record: GradedSynapsePool without signs used
+  to keep e_rev as a scalar and ExponentialSynapses without signs used
+  to produce a 0-d array from np.where — both now per-edge 1-D arrays
+  (numpy fallback unaffected); weak-scalar promotion keeps `g_unit * y`
+  in f32, and the kernels must multiply-add in the same order to stay
+  bitwise-aligned.
 
 ### P3 CuPy full GPU (2-4 days, second stage)
 - Architecture (dual precedent: FastFly + GeNN/Brian2GeNN): **all state f32

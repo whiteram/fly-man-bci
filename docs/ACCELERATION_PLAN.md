@@ -1,9 +1,12 @@
 # 计算加速路线图（下一阶段，暂缓执行）
 
-状态：**计划已定稿，未开始实施**（2026-09-13 定稿）。前置工作
-（路线 A：线程池核构建 + f32 分块 GEMM 前向，见 PERFORMANCE.md §7）
-已落地并全量对拍通过。本文是下一阶段的完整计划，恢复工作时直接
-从 P0 开始。
+状态（2026-09-15 更新）：**P0 + P2 第一阶段已实施并验证**——
+numba 0.67 + CuPy 14.2 已装入 conda `ffbm` 环境（GPU 实测可算）；
+三个 JIT 内核（分级突触 step / 电导 drive / edge_currents）以
+**逐位一致**落地（单元对拍 + smoke 端到端 A/B，tests/test_numba_parity.py），
+生物学循环实测 **1.65×**（600 ms 全区域单进程双轮基准：77.3 s →
+46.8 s，全量估 22.5 → 13.6 min）。P2 第二阶段（衰减+投递融合，目标
+再 +0.2×）与 P3 待续。前置工作（路线 A）见 PERFORMANCE.md §7。
 
 ---
 
@@ -43,13 +46,23 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
 - `to_neuron_drive` 的两次 CSR matvec 合并为一次遍历（手写 CSR 循环）；
 - 预期 55 → ~40 min；逐位对拍验证。
 
-### P2 Numba JIT（一天，推荐先做）
-- `@njit` 融合：GradedSynapses.step、ExponentialSynapses.step（衰减+投递）、
-  edge_currents、手写 CSR matvec；
-- **RNG 留在 numpy 侧**：噪声数组在循环外抽好传入 → 随机序列不变，
-  float64 同序运算逐位一致 → 现有红线对拍（<0.1 μV 或 <1%）照常适用；
-- `parallel=True` 用于 123 万边的记录路径；
-- 预期 **55 → ~15 min**。
+### P2 Numba JIT（第一阶段已实施，2026-09-15）
+- **已落地**：`@njit` 三个内核——`_graded_step`（释放率平滑+权重，
+  原地写）、`_drive_cond`（电导 drive 双 CSR matvec 融合为单遍 f32
+  累加，逐行加法次序与 scipy csr_matvec 相同）、`_edge_currents`
+  （f64 输出，保持下游混合 dtype 点积走原 BLAS 路径）；
+- **RNG 全程 numpy**：噪声在循环内 numpy 抽取，随机序列不变；
+  逐位一致已验证（单元四对拍 + smoke 端到端 FFBM_NUMBA=0/1 A/B）；
+- **实测**：生物学循环 **1.65×**（46.8 s vs 77.3 s @600 ms 全区域，
+  scripts/profile_export_loop.py 单进程双轮）；全量导出估
+  22.5 → 13.6 min（不含核构建 68 s 与装配）；
+- **第二阶段待做**：`ExponentialSynapses.step` 的衰减+延迟投递
+  融合（现仍 numpy fancy-index，约剩 20% 步进成本）、LIF/OU 步进
+  JIT（Python 调度开销），预期再 +0.3~0.5×；
+- dtype 语义陷阱记录：GradedSynapsePool 无 sign 时 e_rev 曾是标量、
+  ExponentialSynapses 无 sign 时 np.where 曾给 0 维数组——均已改
+  逐边 1-D 数组（numpy 回退路径不受影响）；weak-scalar 提升使
+  `g_unit * y` 保持 f32，内核按同一次序乘加才逐位对齐。
 
 ### P3 CuPy 全 GPU（2-4 天，二阶段）
 - 架构（FastFly + GeNN/Brian2GeNN 双重先例）：**全部状态 f32 常驻显存，

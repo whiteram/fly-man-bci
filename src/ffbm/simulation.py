@@ -2,9 +2,74 @@
 
 Unit conventions (kept consistent across the package):
     voltage: mV, current: pA, time: ms, resistance: GΩ  (GΩ × pA = mV)
+
+Numba: the per-step hot kernels (graded-synapse step, conductance
+drive, edge currents) JIT-compile when numba is importable; the
+compiled loops reproduce the numpy expression semantics including
+dtype promotion order, so trajectories are bitwise identical to the
+pure-numpy path (verified by smoke A/B, tests/test_numba_parity.py).
+Set FFBM_NUMBA=0 to force the pure-numpy path (A/B, debugging).
 """
 
+import os
+
 import numpy as np
+
+try:
+    if os.environ.get("FFBM_NUMBA", "1") == "0":
+        raise ImportError("numba disabled via FFBM_NUMBA")
+    from numba import njit as _njit
+
+    def njit(func):
+        return _njit(cache=True)(func)
+
+    _HAVE_NUMBA = True
+except ImportError:                                    # pragma: no cover
+    def njit(func):
+        return func
+
+    _HAVE_NUMBA = False
+
+
+@njit
+def _graded_step(r_pre, pre_ids, s, y, weight, k):
+    """GradedSynapsePool.step as one pass: release-rate smoothing
+    s += (clip(r) - s) * k (f64 arithmetic, f32 state) then y = w * s."""
+    for i in range(s.size):
+        r = r_pre[pre_ids[i]]
+        if r < 0.0:
+            r = 0.0
+        elif r > 1.0:
+            r = 1.0
+        s[i] = s[i] + (r - s[i]) * k
+        y[i] = weight[i] * s[i]
+
+
+@njit
+def _drive_cond(y, g_unit, e_rev, post_local, out_i, out_g):
+    """Conductance-mode to_neuron_drive, replacing two scipy CSR matvecs:
+    per row the edge order (post-sorted) matches csr_matvec's column
+    order, so f32 accumulation order is identical."""
+    g32 = np.float32(g_unit)
+    for i in range(y.size):
+        gy = g32 * y[i]
+        p = post_local[i]
+        out_i[p] += gy * e_rev[i]
+        out_g[p] += gy
+
+
+@njit
+def _edge_currents(y, g_unit, e_rev, post_local, v_post, out):
+    """edge_currents into a preallocated buffer: (g*y) in f32 (python
+    weak-scalar promotion), (e_rev - v) and the product in f64 -- the
+    numpy expression verbatim, minus its temporaries.  f64 output keeps
+    the downstream mixed-dtype dot (f64 coef @ y) on the exact same
+    BLAS path as the numpy version."""
+    g32 = np.float32(g_unit)
+    for i in range(y.size):
+        t1 = g32 * y[i]
+        t2 = np.float64(e_rev[i]) - v_post[post_local[i]]
+        out[i] = np.float64(t1) * t2
 
 
 def _repeat_ranges(starts: np.ndarray, counts: np.ndarray) -> np.ndarray:
@@ -135,9 +200,9 @@ class GradedSynapsePool:
             self.e_rev_edge = np.where(sign_sorted > 0, e_rev,
                                        e_rev_inh).astype(np.float32)
             self._mixed = True
-        else:
-            self.e_rev_edge = np.float32(e_rev)
-            self._mixed = False
+        else:                           # per-edge array even when uniform:
+            self.e_rev_edge = np.full(self.n_edges, e_rev, np.float32)
+            self._mixed = False         # the numba kernels index it
 
         from scipy.sparse import csr_matrix
         n_post = (n_post if n_post is not None
@@ -153,17 +218,33 @@ class GradedSynapsePool:
 
     def step(self, r_pre: np.ndarray):
         """r_pre: (n_pre_neurons,) release rates in [0, 1]."""
-        self.s += (np.clip(r_pre[self.pre_ids], 0.0, 1.0) - self.s) * self.k
-        self.y = self.weight * self.s
+        if _HAVE_NUMBA and self.s.size:
+            _graded_step(r_pre, self.pre_ids, self.s, self.y,
+                         self.weight, self.k)
+        else:
+            self.s += (np.clip(r_pre[self.pre_ids], 0.0, 1.0) - self.s) \
+                * self.k
+            self.y = self.weight * self.s
         return self.y
 
     def edge_currents(self, v_post: np.ndarray) -> np.ndarray:
         """Per-edge transmembrane current (pA) for the field kernels."""
+        if _HAVE_NUMBA and self.n_edges:
+            out = np.empty(self.n_edges, dtype=np.float64)
+            _edge_currents(self.y, self.g_unit, self.e_rev_edge,
+                           self.post_local, v_post, out)
+            return out
         return self.g_unit * self.y * (self.e_rev_edge
                                        - v_post[self.post_local])
 
     def to_neuron_drive(self) -> tuple[np.ndarray, np.ndarray]:
         """(i_indep, g_tot): I(v) = i_indep - g_tot*v, semi-implicit form."""
+        if _HAVE_NUMBA and self.n_edges:
+            out_i = np.zeros(self.csr.shape[0], dtype=np.float32)
+            out_g = np.zeros(self.csr.shape[0], dtype=np.float32)
+            _drive_cond(self.y, self.g_unit, self.e_rev_edge,
+                        self.post_local, out_i, out_g)
+            return out_i, out_g
         gy = self.g_unit * self.y
         return (self.csr @ (gy * self.e_rev_edge), self.csr @ gy)
 
@@ -226,9 +307,13 @@ class ExponentialSynapses:
         self.conductance = conductance
         if conductance:
             self.kick = (gain * self.weight).astype(np.float32)
+            # per-edge 1-D array even without signs (a scalar True mask
+            # would make np.where return a 0-d array, which the numba
+            # kernels cannot index)
+            sign_sel = (sign > 0 if sign is not None
+                        else np.ones(len(order), dtype=bool))
             self.e_rev_edge = np.where(
-                sign > 0 if sign is not None else True,
-                e_rev_exc, e_rev_inh).astype(np.float32)
+                sign_sel, e_rev_exc, e_rev_inh).astype(np.float32)
             self.g_unit = g_unit
         else:
             eff_sign = sign if sign is not None else np.ones(len(order))
@@ -323,6 +408,11 @@ class ExponentialSynapses:
         if self.conductance:
             if v_post is None:
                 raise ValueError("conductance mode needs v_post")
+            if _HAVE_NUMBA and self.n_edges:
+                out = np.empty(self.n_edges, dtype=np.float64)
+                _edge_currents(self.y, self.g_unit, self.e_rev_edge,
+                               self.post_local, v_post, out)
+                return out
             return (self.g_unit * self.y
                     * (self.e_rev_edge - v_post[self.post_local]))
         return self.y
@@ -334,6 +424,12 @@ class ExponentialSynapses:
         -g_tot * v (nS*mV = pA). Current mode returns (sum y, 0).
         Feeds LIFPopulation.step(i_ext, g_tot) for stable integration."""
         if self.conductance:
+            if _HAVE_NUMBA and self.n_edges:
+                out_i = np.zeros(self.csr.shape[0], dtype=np.float32)
+                out_g = np.zeros(self.csr.shape[0], dtype=np.float32)
+                _drive_cond(self.y, self.g_unit, self.e_rev_edge,
+                            self.post_local, out_i, out_g)
+                return out_i, out_g
             gy = self.g_unit * self.y
             return (self.csr @ (gy * self.e_rev_edge), self.csr @ gy)
         return self.csr @ self.y, np.zeros(1, dtype=np.float32)
