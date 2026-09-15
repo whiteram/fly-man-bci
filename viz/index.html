@@ -615,6 +615,10 @@ function initScene() {
   camera.updateProjectionMatrix();
   stimLight.position.copy(eye.clone().multiplyScalar(3));
 
+  // apply the user's saved 10-20 calibration right away (if any), so
+  // boot never shows a stale layout and entering the mode never jumps
+  applySavedCalibAtBoot();
+
   window.addEventListener("resize", onResize);
 }
 
@@ -1874,6 +1878,50 @@ function buildViewPanel() {
     rebuildControls();
   };
   div.querySelector("#view-exit").onclick = () => toggleViewCalib();
+}
+
+// boot: if a saved 10-20 calibration exists (the user's latest working
+// state), apply it immediately -- the page must never boot showing a
+// stale layout, and entering the calibration mode must not jump
+function applySavedCalibAtBoot() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("calib1020") || "null"); }
+  catch (e) { return; }
+  if (!saved || saved.ni == null || !DATA.meta.scalp.elec_names) return;
+  // frame from the current meta, exactly as toggleCalib builds it
+  const dirOf = n => new THREE.Vector3(
+    ...DATA.meta.scalp.elec_dirs[DATA.meta.scalp.elec_names.indexOf(n)]);
+  const cz0 = dirOf("Cz");
+  const rawAnt = dirOf("Fz").sub(dirOf("Oz"));
+  rawAnt.addScaledVector(cz0, -rawAnt.dot(cz0)).normalize();
+  let nEar = new THREE.Vector3().crossVectors(cz0, rawAnt).normalize();
+  if (nEar.dot(dirOf("A1")) < 0) nEar.negate();
+  let nRot = nEar.clone();
+  if (rotAbout(cz0, nRot, 10).dot(rawAnt) < 0) nRot.negate();
+  // yaw about the crown, then roll about the yawed anterior axis
+  if (saved.yaw) {
+    nEar = rotAbout(nEar, cz0, saved.yaw);
+    nRot = rotAbout(nRot, cz0, saved.yaw);
+  }
+  let cz = new THREE.Vector3(...saved.cz);
+  if (saved.roll) {
+    const uAnt = new THREE.Vector3().crossVectors(nRot, cz).normalize();
+    cz = rotAbout(cz, uAnt, saved.roll);
+    nEar = rotAbout(nEar, uAnt, saved.roll);
+    nRot = rotAbout(nRot, uAnt, saved.roll);
+  }
+  const d = deriveCap(nEar, nRot, cz, saved.ni, saved.th);
+  const names = DATA.meta.scalp.elec_names;
+  const dirs = names.map(nm => d[nm]);
+  dirs.forEach((v, i) => positionElecMesh(i, v));
+  buildTopoWeights(dirs);
+  if (!editTraces) editTraces = DATA.phi_scalp_all_uV.map(tr => tr.slice());
+  names.forEach((nm, i) => {
+    if (DATA.meta.scalp.elec_dirs[i] &&
+        dirOf(nm).angleTo(dirs[i]) * 180 / Math.PI > 0.05)
+      editTraces[i] = interpTraceFrom(DATA.phi_scalp_all_uV,
+        DATA.meta.scalp.elec_dirs, i, dirs[i]);
+  });
 }
 
 function initUI() {
