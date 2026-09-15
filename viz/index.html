@@ -94,7 +94,7 @@
         <div><canvas id="stim-fly" width="96" height="72"
               style="border:1px solid #2a3a4d;border-radius:4px;display:block">
           </canvas>
-          <div style="font-size:10px;color:#8aa0b4;text-align:center">果蝇眼采样</div></div>
+          <div style="font-size:10px;color:#8aa0b4;text-align:center">果蝇眼采样（页面端插值）</div></div>
         <div id="stim-info" style="font-size:10px;color:#8aa0b4;
              align-self:center;line-height:1.6"></div>
       </div>
@@ -2108,7 +2108,11 @@ function loadStimView() {
     .then(buf => {
       const u = new Uint8Array(buf);
       const nh = sv.n * sv.human[0] * sv.human[1];
-      stimView = { ...sv, human: u.subarray(0, nh),
+      // keep meta dims under separate keys: human/fly hold the pixel
+      // subarrays, so human[0] would otherwise be a pixel VALUE, not
+      // the canvas height (this once made the fly canvas never draw)
+      stimView = { ...sv, humanDim: sv.human, flyDim: sv.fly,
+                   human: u.subarray(0, nh),
                    fly: u.subarray(nh), lastF: -1 };
       document.getElementById("stimview").style.display = "";
       const vi = DATA.meta.visual_input || {};
@@ -2137,6 +2141,71 @@ function drawGrayCanvas(cv, data, f, h, w, bg) {
   }
   ctx.putImageData(img, 0, 0);
 }
+// fly-eye canvas: the exported bins are the sparse ommatidia lattice
+// (~11% of the grid) rendered 1px each -- near-invisible as-is.  The
+// interpolation is a PAGE rendering choice (no re-export needed):
+// normalized-convolution fill turns the sparse bins into a smooth
+// luminance map, with a density gate so isolated single dots are not
+// extrapolated into large blocks.
+function drawFlyCanvas(cv, data, f, h, w) {
+  const n = h * w, base = f * n;
+  const known = new Float32Array(n);
+  const filled = new Float32Array(n), cov = new Float32Array(n);
+  for (let p = 0; p < n; p++) {
+    const v = data[base + p];
+    if (v > 0) { known[p] = 1; filled[p] = v; cov[p] = 1; }
+  }
+  const boxSum = (src, r) => {      // separable box sum, edge-clamped
+    const t = new Float32Array(n), o = new Float32Array(n);
+    for (let y = 0; y < h; y++) {
+      const row = y * w;
+      let acc = 0;
+      for (let x = -r; x <= r; x++) acc += src[row + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) {
+        t[row + x] = acc;
+        acc += src[row + Math.min(w - 1, x + r + 1)]
+             - src[row + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let y = -r; y <= r; y++) acc += t[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) {
+        o[y * w + x] = acc;
+        acc += t[Math.min(h - 1, y + r + 1) * w + x]
+             - t[Math.max(0, y - r) * w + x];
+      }
+    }
+    return o;
+  };
+  for (const r of [1, 2, 4, 7]) {
+    const As = boxSum(filled, r), Ms = boxSum(cov, r),
+          Gs = boxSum(known, r), win = (2 * r + 1) * (2 * r + 1);
+    for (let p = 0; p < n; p++)
+      if (cov[p] < 0.5 && Ms[p] > 0 && Gs[p] >= 0.03 * win) {
+        filled[p] = As[p] / Ms[p];
+        cov[p] = 1;
+      }
+  }
+  const ctx = cv.getContext("2d");
+  const img = ctx.createImageData(w, h);
+  const bg = [24, 32, 46];
+  for (let p = 0; p < n; p++) {
+    let v = 0;
+    if (cov[p] > 0.5)                       // gamma lift: faint dots ->
+      v = Math.round(255 * Math.pow(Math.min(filled[p] / 255, 1), 0.55))
+                                            // readable on the backdrop
+    if (v > 0) {
+      img.data[p * 4] = img.data[p * 4 + 1] = img.data[p * 4 + 2] = v;
+    } else {
+      img.data[p * 4] = bg[0];
+      img.data[p * 4 + 1] = bg[1];
+      img.data[p * 4 + 2] = bg[2];
+    }
+    img.data[p * 4 + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
 function drawStimView(i) {
   if (!stimView) return;
   const f = Math.floor(DATA.t_ms[Math.floor(i)] / 1000 * stimView.fps)
@@ -2144,9 +2213,9 @@ function drawStimView(i) {
   if (f === stimView.lastF) return;
   stimView.lastF = f;
   drawGrayCanvas(document.getElementById("stim-human"),
-    stimView.human, f, stimView.human[0], stimView.human[1]);
-  drawGrayCanvas(document.getElementById("stim-fly"),
-    stimView.fly, f, stimView.fly[0], stimView.fly[1], [24, 32, 46]);
+    stimView.human, f, stimView.humanDim[0], stimView.humanDim[1]);
+  drawFlyCanvas(document.getElementById("stim-fly"),
+    stimView.fly, f, stimView.flyDim[0], stimView.flyDim[1]);
 }
 
 // ---------- boot ----------

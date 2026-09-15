@@ -673,25 +673,17 @@ def main():
         gh, gw = 72, 96
         gyi = np.clip(pyi * gh // H, 0, gh - 1)
         gxi = np.clip(pxi * gw // W, 0, gw - 1)
-        # fly-eye view: the per-photoreceptor samples interpolated onto a
-        # smooth luminance map (linear inside the sampled hull, nearest
-        # outside) -- this is what the fly's retina actually receives
-        from scipy.interpolate import griddata
-        pts = np.column_stack([pyi, pxi]).astype(np.float64)
-        gyy, gxx = np.meshgrid(np.arange(gh), np.arange(gw),
-                               indexing="ij")
+        # fly-eye view: pooled per-photoreceptor luminance binned on the
+        # eye-plane grid (sparse by nature -- the ommatidia lattice);
+        # smoothing/interpolation is the PAGE's rendering choice
         fly_u8 = np.zeros((S.shape[0], gh, gw), np.uint8)
-        lo_l = float(cfg.get("lo", 0.05))
-        hi_l = float(cfg.get("hi", 3.0))
         for f in range(S.shape[0]):
-            grid = griddata(pts, S[f], (gyy, gxx), method="linear")
-            nan = np.isnan(grid)
-            if nan.any():
-                near = griddata(pts, S[f], (gyy[nan], gxx[nan]),
-                                method="nearest")
-                grid[nan] = near
-            img = (grid - lo_l) / max(hi_l - lo_l, 1e-9)
-            fly_u8[f] = (np.clip(img, 0.0, 1.0) * 255).astype(np.uint8)
+            acc = np.zeros((gh, gw))
+            np.add.at(acc, (gyi, gxi), S[f])
+            nz = acc[acc > 0]
+            scale = np.percentile(nz, 95) if nz.size else 1.0
+            fly_u8[f] = (np.clip(acc / max(float(scale), 1e-9),
+                                 0.0, 1.0) * 255).astype(np.uint8)
         (OUT / "stim_frames.bin").write_bytes(
             human_u8.tobytes() + fly_u8.tobytes())
         stim_view_meta = {"n": int(S.shape[0]), "human": [ph, pw],
