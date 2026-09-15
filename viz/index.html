@@ -163,6 +163,10 @@ function initScene() {
 
   camera = new THREE.PerspectiveCamera(
     45, wrap.clientWidth / wrap.clientHeight, 1, 20000);
+  // the scene "up" is the calibrated head-top direction: ortho snap
+  // views roll head-upright and OrbitControls orbits around the crown
+  initDefaultViewDirs();
+  camera.up.copy(VIEW_DIRS.top);
   controls = new THREE.OrbitControls(camera, canvas);
   controls.enableDamping = true;
 
@@ -419,37 +423,29 @@ function initScene() {
   // 6-direction camera snap.  Directions are USER-CALIBRATED world
   // vectors (localStorage "viewDirs", via the 视角标定 mode); default =
   // derived from the electrode cap (front = cap anterior, top = Cz).
-  try {
-    const savedV = JSON.parse(localStorage.getItem("viewDirs") || "null");
-    VIEW_DIRS = savedV
-      ? deriveViewDirs(new THREE.Vector3(...savedV.front),
-                       new THREE.Vector3(...savedV.top))
-      : deriveViewDirs(capAnteriorDir(),
-                       new THREE.Vector3(
-                         ...DATA.meta.scalp.elec_dirs[
-                           DATA.meta.scalp.elec_names.indexOf("Cz")]));
-  } catch (e) { VIEW_DIRS = null; }
+  // Roll: side/front views keep the CROWN screen-up, top/bottom views
+  // keep the face toward screen bottom/top -- camera.up stays set to
+  // the per-view roll so the per-frame controls.update() keeps it.
   window.snapHeadView = dir => {
     const R = R_SCALP_UM;
-    let p, up = null;
+    const up0 = VIEW_DIRS ? VIEW_DIRS.top.clone()
+                          : new THREE.Vector3(0, 1, 0);
+    let p, up = up0;
     if (dir === "iso") {
       const f = new THREE.Vector3(...(DATA.meta.scalp.elec_dir || [1, 0, 0]))
           .normalize();
-      p = f.multiplyScalar(2.1 * R).add(new THREE.Vector3(0, 0.8 * R, 0));
+      p = f.multiplyScalar(2.1 * R).addScaledVector(up0, 0.8 * R);
     } else if (VIEW_DIRS && VIEW_DIRS[dir]) {
       p = VIEW_DIRS[dir].clone().multiplyScalar(2.0 * R);
-      // keep the face upright-ish on the axis views (lookAt degenerates
-      // when the camera axis is parallel to world up)
       if (dir === "top") up = VIEW_DIRS.front.clone().negate();
       if (dir === "bottom") up = VIEW_DIRS.front.clone();
     } else {
       p = new THREE.Vector3(dir === "front" ? 1 : -1, 0, 0)
           .multiplyScalar(2.0 * R);
     }
-    if (up) camera.up.copy(up);
+    camera.up.copy(up);
     camera.position.copy(p);
     camera.lookAt(0, 0, 0);
-    camera.up.set(0, 1, 0);
     controls.target.set(0, 0, 0);
     controls.update();
   };
@@ -1608,6 +1604,30 @@ function capAnteriorDir() {
   return ant;
 }
 
+function initDefaultViewDirs() {
+  try {
+    const savedV = JSON.parse(localStorage.getItem("viewDirs") || "null");
+    VIEW_DIRS = savedV
+      ? deriveViewDirs(new THREE.Vector3(...savedV.front),
+                       new THREE.Vector3(...savedV.top))
+      : deriveViewDirs(capAnteriorDir(),
+                       new THREE.Vector3(
+                         ...DATA.meta.scalp.elec_dirs[
+                           DATA.meta.scalp.elec_names.indexOf("Cz")]));
+  } catch (e) { VIEW_DIRS = null; }
+}
+
+// OrbitControls captures its orbit axis from camera.up at construction;
+// after a view (re)calibration the controls must be rebuilt so dragging
+// orbits around the calibrated crown axis
+function rebuildControls() {
+  if (controls) controls.dispose();
+  camera.up.copy(VIEW_DIRS ? VIEW_DIRS.top
+                           : new THREE.Vector3(0, 1, 0));
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+}
+
 function deriveViewDirs(frontH, topH) {
   const front = frontH.clone().normalize();
   const top = topH.clone()
@@ -1633,6 +1653,7 @@ function viewCalibHandleDirs() {
 function applyViewDirs() {
   const [f, t] = viewCalibHandleDirs();
   VIEW_DIRS = deriveViewDirs(f, t);
+  if (camera) camera.up.copy(VIEW_DIRS.top);   // live roll preview
 }
 
 function onViewCalibDown(e) {
@@ -1674,6 +1695,7 @@ function onViewCalibUp() {
     localStorage.setItem("viewDirs", JSON.stringify({
       front: f.toArray().map(x => +x.toFixed(5)),
       top: t.toArray().map(x => +x.toFixed(5)) }));
+    rebuildControls();
   }
   viewCalib.drag = null;
   controls.enabled = true;
@@ -1774,6 +1796,7 @@ function buildViewPanel() {
         DATA.meta.scalp.elec_names.indexOf("Cz")])).normalize()
       .multiplyScalar(globeRadius() + 5200);
     applyViewDirs();
+    rebuildControls();
   };
   div.querySelector("#view-exit").onclick = () => toggleViewCalib();
 }
