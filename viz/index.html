@@ -416,25 +416,40 @@ function initScene() {
   }
   scene.add(headForm);
 
-  // 6-direction camera snap (head-relative: front/back/left/right/
-  // top/bottom of the head form) + default 3/4 view
+  // 6-direction camera snap.  Directions are USER-CALIBRATED world
+  // vectors (localStorage "viewDirs", via the 视角标定 mode); default =
+  // derived from the electrode cap (front = cap anterior, top = Cz).
+  try {
+    const savedV = JSON.parse(localStorage.getItem("viewDirs") || "null");
+    VIEW_DIRS = savedV
+      ? deriveViewDirs(new THREE.Vector3(...savedV.front),
+                       new THREE.Vector3(...savedV.top))
+      : deriveViewDirs(capAnteriorDir(),
+                       new THREE.Vector3(
+                         ...DATA.meta.scalp.elec_dirs[
+                           DATA.meta.scalp.elec_names.indexOf("Cz")]));
+  } catch (e) { VIEW_DIRS = null; }
   window.snapHeadView = dir => {
     const R = R_SCALP_UM;
-    const dirs = {
-      front: [0, 0, 1], back: [0, 0, -1], left: [-1, 0, 0],
-      right: [1, 0, 0], top: [0, 1, 0], bottom: [0, -1, 0],
-      iso: null };
-    let p;
+    let p, up = null;
     if (dir === "iso") {
       const f = new THREE.Vector3(...(DATA.meta.scalp.elec_dir || [1, 0, 0]))
           .normalize();
       p = f.multiplyScalar(2.1 * R).add(new THREE.Vector3(0, 0.8 * R, 0));
+    } else if (VIEW_DIRS && VIEW_DIRS[dir]) {
+      p = VIEW_DIRS[dir].clone().multiplyScalar(2.0 * R);
+      // keep the face upright-ish on the axis views (lookAt degenerates
+      // when the camera axis is parallel to world up)
+      if (dir === "top") up = VIEW_DIRS.front.clone().negate();
+      if (dir === "bottom") up = VIEW_DIRS.front.clone();
     } else {
-      p = new THREE.Vector3(...dirs[dir]).multiplyScalar(2.0 * R)
-          .applyQuaternion(headForm.quaternion);
+      p = new THREE.Vector3(dir === "front" ? 1 : -1, 0, 0)
+          .multiplyScalar(2.0 * R);
     }
+    if (up) camera.up.copy(up);
     camera.position.copy(p);
     camera.lookAt(0, 0, 0);
+    camera.up.set(0, 1, 0);
     controls.target.set(0, 0, 0);
     controls.update();
   };
@@ -983,6 +998,8 @@ function addSceneButtons() {
     () => toggleElecEdit());
   mk("10-20标定", "锚点手柄标定：拖动 Cz/Fz/Fpz/Oz/A1/A2，整帽按 10-20 规则实时重建", 10, 108,
     () => toggleCalib());
+  mk("视角标定", "拖动「前」「顶」两个手柄，标定 6 个正交视角方向", 10, 140,
+    () => toggleViewCalib());
 }
 
 // ---------- electrode editing: drag named balls on the scalp sphere
@@ -1228,6 +1245,7 @@ function toggleElecEdit() {
   // enter: standard 45 electrodes become drag targets; moved-channel
   // traces switch to live interpolation previews
   if (calib) toggleCalib();                  // modes are exclusive
+  if (viewCalib) toggleViewCalib();
   elecEdit = { balls: [], ray: new THREE.Raycaster(), dragging: null,
                sphere: null, std: [] };
   const R = globeRadius();
@@ -1469,6 +1487,7 @@ function toggleCalib() {
     return;
   }
   if (elecEdit) toggleElecEdit();            // modes are exclusive
+  if (viewCalib) toggleViewCalib();
   if (!editTraces)
     editTraces = DATA.phi_scalp_all_uV.map(tr => tr.slice());
   const cz0 = calibDir("Cz");
@@ -1566,6 +1585,194 @@ function buildCalibPanel() {
     calib.st.ni.toFixed(0);
   document.getElementById("calib-th").textContent =
     calib.st.th.toFixed(0);
+}
+
+// ---------- view calibration: aim the 6 ortho views by hand ----------
+// Two handles on the sphere -- "front" (nose direction) and "top"
+// (crown).  back/bottom are their opposites, left/right complete the
+// orthonormal triad toward the A2 side.  The six snap views follow
+// live; exact numbers reach the page via localStorage, or via the
+// copied JSON baked in as code defaults.
+let VIEW_DIRS = null;
+let viewCalib = null;
+
+function capAnteriorDir() {
+  const dirOf = n => new THREE.Vector3(
+    ...DATA.meta.scalp.elec_dirs[DATA.meta.scalp.elec_names.indexOf(n)]);
+  const cz = dirOf("Cz");
+  const ant = dirOf("Fz").sub(dirOf("Oz"));
+  ant.addScaledVector(cz, -ant.dot(cz)).normalize();
+  return ant;
+}
+
+function deriveViewDirs(frontH, topH) {
+  const front = frontH.clone().normalize();
+  const top = topH.clone()
+    .addScaledVector(front, -topH.dot(front)).normalize();
+  let right = new THREE.Vector3().crossVectors(front, top).normalize();
+  const names = DATA.meta.scalp.elec_names;
+  if (names.includes("A2")) {          // "right" = the A2 (right-ear) side
+    const a2 = new THREE.Vector3(
+      ...DATA.meta.scalp.elec_dirs[names.indexOf("A2")]);
+    if (right.dot(a2) < 0) right.negate();
+  }
+  return { front, back: front.clone().negate(),
+           top, bottom: top.clone().negate(),
+           right, left: right.clone().negate() };
+}
+
+function viewCalibHandleDirs() {
+  const [hF, hT] = viewCalib.handles;
+  return [hF.mesh.position.clone().normalize(),
+          hT.mesh.position.clone().normalize()];
+}
+
+function applyViewDirs() {
+  const [f, t] = viewCalibHandleDirs();
+  VIEW_DIRS = deriveViewDirs(f, t);
+}
+
+function onViewCalibDown(e) {
+  if (!viewCalib) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1);
+  viewCalib.ray.setFromCamera(ndc, camera);
+  const hit = viewCalib.ray.intersectObjects(
+      viewCalib.handles.map(h => h.mesh))[0];
+  if (hit) {
+    viewCalib.drag = viewCalib.handles.find(h => h.mesh === hit.object);
+    controls.enabled = false;
+  }
+}
+
+function onViewCalibMove(e) {
+  if (!viewCalib || !viewCalib.drag) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1);
+  viewCalib.ray.setFromCamera(ndc, camera);
+  const hit = viewCalib.ray.intersectObject(viewCalib.sphere)[0];
+  if (!hit) return;
+  const h = viewCalib.drag;
+  h.mesh.position.copy(hit.point).normalize()
+    .multiplyScalar(globeRadius() + 5200);
+  h.label.position.copy(hit.point).normalize()
+    .multiplyScalar(globeRadius() + 15500);
+  applyViewDirs();
+}
+
+function onViewCalibUp() {
+  if (!viewCalib) return;
+  if (viewCalib.drag) {
+    const [f, t] = viewCalibHandleDirs();
+    localStorage.setItem("viewDirs", JSON.stringify({
+      front: f.toArray().map(x => +x.toFixed(5)),
+      top: t.toArray().map(x => +x.toFixed(5)) }));
+  }
+  viewCalib.drag = null;
+  controls.enabled = true;
+}
+
+function toggleViewCalib() {
+  if (viewCalib) {   // exit: calibrated views stay active
+    renderer.domElement.removeEventListener("pointerdown", onViewCalibDown);
+    renderer.domElement.removeEventListener("pointermove", onViewCalibMove);
+    renderer.domElement.removeEventListener("pointerup", onViewCalibUp);
+    viewCalib.handles.forEach(h => {
+      humanHead.remove(h.mesh); humanHead.remove(h.label); });
+    scene.remove(viewCalib.sphere);
+    const p = document.getElementById("viewpanel");
+    if (p) p.remove();
+    viewCalib = null;
+    return;
+  }
+  if (calib) toggleCalib();                  // modes are exclusive
+  if (elecEdit) toggleElecEdit();
+  const saved = JSON.parse(localStorage.getItem("viewDirs") || "null");
+  const seedF = saved ? new THREE.Vector3(...saved.front)
+                      : capAnteriorDir();
+  const seedT = saved ? new THREE.Vector3(...saved.top)
+                      : new THREE.Vector3(
+                          ...DATA.meta.scalp.elec_dirs[
+                            DATA.meta.scalp.elec_names.indexOf("Cz")]);
+  viewCalib = { ray: new THREE.Raycaster(), sphere: null, drag: null,
+                handles: [] };
+  viewCalib.sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(globeRadius(), 64, 40),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0,
+                                  depthWrite: false }));
+  scene.add(viewCalib.sphere);
+  [["前", seedF, 0xffd166], ["顶", seedT, 0x67d4ff]].forEach(
+    ([nm, dir, color]) => {
+      const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(4800, 16, 12),
+        new THREE.MeshBasicMaterial({ color }));
+      mesh.position.copy(dir).normalize()
+        .multiplyScalar(globeRadius() + 5200);
+      const label = makeTextSprite(nm, "#f2f7ff", 9000, 4500);
+      label.position.copy(dir).normalize()
+        .multiplyScalar(globeRadius() + 15500);
+      humanHead.add(mesh); humanHead.add(label);
+      viewCalib.handles.push({ name: nm, mesh, label });
+    });
+  applyViewDirs();
+  renderer.domElement.addEventListener("pointerdown", onViewCalibDown);
+  renderer.domElement.addEventListener("pointermove", onViewCalibMove);
+  renderer.domElement.addEventListener("pointerup", onViewCalibUp);
+  buildViewPanel();
+}
+
+function buildViewPanel() {
+  const div = document.createElement("div");
+  div.id = "viewpanel";
+  div.style.cssText = "position:absolute;bottom:34px;right:10px;" +
+      "background:#0d131cee;border:1px solid #2a3a4d;border-radius:6px;" +
+      "padding:8px 10px;font-size:12px;line-height:1.7;z-index:7;" +
+      "width:250px";
+  div.innerHTML = "<b>视角标定</b><br>" +
+      "<span style='color:#8aa0b4'>拖动 <b style='color:#ffd166'>金色「前」</b>" +
+      "到鼻子方向、<b style='color:#67d4ff'>青色「顶」</b>到头顶方向；" +
+      "后/底/左/右 自动正交得出。</span><br>" +
+      ["front 正面", "back 背面", "left 左侧", "right 右侧",
+       "top 头顶", "bottom 下巴"].map(s => {
+        const [v, label] = s.split(" ");
+        return `<button data-v="${v}" style="padding:2px 6px;` +
+          `font-size:11px;margin-top:3px">${label}</button>`;
+      }).join("") + "<br>" +
+      "<button id='view-copy' style='margin-top:4px'>复制JSON</button> " +
+      "<button id='view-reset'>恢复默认</button> " +
+      "<button id='view-exit' style='float:right'>退出</button>";
+  document.getElementById("scene-wrap").appendChild(div);
+  div.querySelectorAll("button[data-v]").forEach(b => {
+    b.onclick = () => snapHeadView(b.dataset.v);
+  });
+  div.querySelector("#view-copy").onclick = async () => {
+    const [f, t] = viewCalibHandleDirs();
+    const views = deriveViewDirs(f, t);
+    const enc = v => v.toArray().map(x => +x.toFixed(5));
+    await navigator.clipboard.writeText(JSON.stringify({
+      front_dir: enc(f), top_dir: enc(t),
+      views: Object.fromEntries(
+        Object.entries(views).map(([k, v]) => [k, enc(v)])) }));
+    const b = div.querySelector("#view-copy");
+    b.textContent = "已复制!";
+    setTimeout(() => b.textContent = "复制JSON", 1200);
+  };
+  div.querySelector("#view-reset").onclick = () => {
+    localStorage.removeItem("viewDirs");
+    const [hF, hT] = viewCalib.handles;
+    hF.mesh.position.copy(capAnteriorDir())
+      .multiplyScalar(globeRadius() + 5200);
+    hT.mesh.position.copy(new THREE.Vector3(
+      ...DATA.meta.scalp.elec_dirs[
+        DATA.meta.scalp.elec_names.indexOf("Cz")])).normalize()
+      .multiplyScalar(globeRadius() + 5200);
+    applyViewDirs();
+  };
+  div.querySelector("#view-exit").onclick = () => toggleViewCalib();
 }
 
 function initUI() {
