@@ -387,11 +387,20 @@ def main():
             H, W = frames.shape[1:3]
             x_i = r_pos @ a1                   # eye-plane coordinates
             y_i = r_pos @ b1
+            # percentile extent (not min/max): a few far outliers must
+            # not stretch the mapping and leave the grid mostly empty
+            mg = float(cfg.get("margin", 0.05))
+            x_lo, x_hi = np.percentile(x_i, [1, 99])
+            y_lo, y_hi = np.percentile(y_i, [1, 99])
+            x_pad = (x_hi - x_lo) * mg
+            y_pad = (y_hi - y_lo) * mg
             pxi = np.clip(np.round(
-                (x_i - x_i.min()) / max(x_i.max() - x_i.min(), 1e-9)
+                (x_i - (x_lo - x_pad))
+                / max((x_hi + x_pad) - (x_lo - x_pad), 1e-9)
                 * (W - 1)).astype(int), 0, W - 1)
             pyi = np.clip(np.round(
-                (y_i - y_i.min()) / max(y_i.max() - y_i.min(), 1e-9)
+                (y_i - (y_lo - y_pad))
+                / max((y_hi + y_pad) - (y_lo - y_pad), 1e-9)
                 * (H - 1)).astype(int), 0, H - 1)
             lo_l = float(cfg.get("lo", 0.05))
             hi_l = float(cfg.get("hi", 3.0))
@@ -509,8 +518,12 @@ def main():
         for f in range(S.shape[0]):
             acc = np.zeros((gh, gw))
             np.add.at(acc, (gyi, gxi), S[f])
-            fly_u8[f] = ((acc / max(float(acc.max()), 1e-9))
-                         * 255).astype(np.uint8)
+            # contrast stretch on the occupied bins' upper range: the
+            # bright-ball bin must not dim the whole field
+            nz = acc[acc > 0]
+            scale = np.percentile(nz, 95) if nz.size else 1.0
+            fly_u8[f] = (np.clip(acc / max(float(scale), 1e-9),
+                                 0.0, 1.0) * 255).astype(np.uint8)
         (OUT / "stim_frames.bin").write_bytes(
             human_u8.tobytes() + fly_u8.tobytes())
         stim_view_meta = {"n": int(S.shape[0]), "human": [ph, pw],
