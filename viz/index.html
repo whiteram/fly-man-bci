@@ -244,9 +244,12 @@ function applyStaticLang() {
                  && el.childNodes[0].nodeType === 3;
     if (only) el.textContent = t(el.textContent.trim());
   });
-  document.querySelectorAll("#stimview ~ div, #stimview div").forEach(
-    el => { if (el.textContent.trim() === "人类视频"
-                || el.textContent.trim() === "果蝇眼采样")
+  // leaf caption divs only: the wrappers also match "#stimview div" and
+  // a textContent write on them would REPLACE the canvases outright
+  document.querySelectorAll("#stimview div").forEach(
+    el => { if (el.children.length === 0
+                && (el.textContent.trim() === "人类视频"
+                    || el.textContent.trim() === "果蝇眼采样"))
               el.textContent = t(el.textContent.trim()); });
   const wf = document.getElementById("waveform");
   if (wf) wf.parentElement.lastChild.textContent = " waveform traces";
