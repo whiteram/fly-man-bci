@@ -50,7 +50,8 @@ def _sph_mid(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 
 def standard_1020(anchors: dict, system: str = "1020",
-                  ni_arc_deg: float = 180.0) -> dict:
+                  ni_arc_deg: float = 180.0,
+                  fpz_arc_deg: float | None = None) -> dict:
     """Standard 10-20 / 10-10 electrode directions from hand-placed
     anchors (Cz, Fz, Oz, A1, A2 unit vectors, any consistent head frame).
 
@@ -63,6 +64,10 @@ def standard_1020(anchors: dict, system: str = "1020",
         the ear-line plane); a real head/ghost-head mesh measures
         ~250-260 deg (both landmarks below the ear-line plane), which
         stretches the midline so Oz lands ON the occiput as seen;
+        fpz_arc_deg optionally re-pins Fpz directly (angle from Cz,
+        overriding the 10% rule) for visual calibration against the
+        head mesh -- the whole frontal chain (Fp1/2, F7/8, F3/4, AFz,
+        AF3/4, F1/2, FC5/6) is rebuilt from the moved Fpz;
       - the coronal great circle through Cz (perpendicular to the
         sagittal one) carries C3/C4 at 20% of the LPA-RPA arc on either
         side of Cz (=36 deg at ni_arc=180) and T7/T8 at 40% (=72 deg);
@@ -110,7 +115,9 @@ def standard_1020(anchors: dict, system: str = "1020",
     out = {
         "Cz": cz,
         "Fz": sag(0.20 * ni), "Pz": sag(-0.20 * ni),
-        "Fpz": sag(0.40 * ni), "Oz": sag(-0.40 * ni),
+        "Fpz": sag(fpz_arc_deg if fpz_arc_deg is not None
+                   else 0.40 * ni),
+        "Oz": sag(-0.40 * ni),
         "Nasion": sag(0.50 * ni), "Inion": sag(-0.50 * ni),
         "C3": cor(-36.0), "C4": cor(36.0),
         "T7": cor(-72.0), "T8": cor(72.0),

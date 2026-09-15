@@ -45,6 +45,38 @@ def test_standard_1020_from_canonical_anchors():
         assert k in layout
 
 
+def test_standard_1020_fpz_override_rebuilds_chain():
+    # fpz_arc_deg re-pins Fpz only; the frontal chain (Fp1, AFz, ...)
+    # must follow the moved Fpz, not stay at the rule-based spot
+    cz = np.array([0.0, np.cos(np.radians(30.0)), np.sin(np.radians(30.0))])
+    ant = np.array([0.0, np.sin(np.radians(30.0)), -np.cos(np.radians(30.0))])
+    left = np.cross(cz, ant)
+    anchors = {
+        "CZ": cz,
+        "FZ": cz * np.cos(np.radians(36.0))
+              + ant * np.sin(np.radians(36.0)),
+        "OZ": cz * np.cos(np.radians(36.0))
+              - ant * np.sin(np.radians(36.0)),
+        "A1": -left, "A2": left,
+    }
+    base = standard_1020(anchors, system="1010", ni_arc_deg=260.0)
+    lifted = standard_1020(anchors, system="1010", ni_arc_deg=260.0,
+                           fpz_arc_deg=94.0)
+    deg = lambda a, b: np.degrees(np.arccos(np.clip(a @ b, -1, 1)))
+    # Fpz sits exactly at the requested arc; unchanged electrodes stay
+    assert abs(deg(lifted["Fpz"], cz) - 94.0) < 1e-6
+    assert abs(deg(base["Oz"], lifted["Oz"]) - 0.0) < 1e-12
+    assert abs(deg(base["Cz"], lifted["Cz"]) - 0.0) < 1e-12
+    # the whole frontal chain moved WITH Fpz (still anchored to it)
+    assert deg(base["Fp1"], lifted["Fp1"]) > 5.0
+    assert abs(deg(lifted["Fpz"], lifted["Fp1"])
+               - deg(base["Fpz"], base["Fp1"])) < 1e-6
+    # AFz remains the arc midpoint of Fpz-Fz
+    afz_mid = lifted["Fpz"] + lifted["Fz"]
+    afz_mid /= np.linalg.norm(afz_mid)
+    assert deg(afz_mid, lifted["AFz"]) < 1e-6
+
+
 def test_electrode_dirs_capped_excludes_face_and_neck():
     from ffbm.vizprep import ELEC_DEFAULTS
     face = np.array([0.0, 0.0, 1.0])

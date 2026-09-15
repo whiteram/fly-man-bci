@@ -534,53 +534,36 @@ function initScene() {
     // mounting sphere clearly outside the topomap globe, so the disks do
     // not sit on the flickering color layer
     const rDisk = i === 0 ? 3400 : 2600, hDisk = 1400;
-    const eGap = 2600, embed = 300;
     const s = new THREE.Mesh(
       new THREE.CylinderGeometry(rDisk, rDisk, hDisk, 20),
       new THREE.MeshLambertMaterial({ color: i === 0 ? 0xe879f9 : 0xf0abfc }));
-    s.quaternion.setFromUnitVectors(UP, dir);
-    s.position.copy(dir.clone().multiplyScalar(globeR + eGap - embed + hDisk / 2));
     humanHead.add(s);
     scalpElecMeshes.push(s);
     // channel-name label floating just above its disk; visibility is
     // re-evaluated each frame (front hemisphere + layer checkbox)
     if (elecNames[i]) {
       const lb = makeTextSprite(elecNames[i], "#f2f7ff", 13000, 6500);
-      lb.position.copy(dir).multiplyScalar(
-        globeR + eGap - embed + hDisk + 2800);
-      lb.userData.dir = dir.clone();
+      lb.userData.dir = new THREE.Vector3();
       lb.userData.on = true;
       humanHead.add(lb);
       scalpElecLabels.push(lb);
     }
+    positionElecMesh(i, dir);
   });
 
   // scalp potential topomap: an outer "display globe" clearly separated
   // from (outside) the scalp shell rim, so the red/blue map reads as the
   // frontmost layer
   const topoGeo = new THREE.SphereGeometry(R_SCALP_UM * 1.04, 64, 40);
-  const tPos = topoGeo.attributes.position;
-  const nV = tPos.count, nE = eDirs.length;
-  topoWeights = new Float32Array(nV * nE);
-  for (let v = 0; v < nV; v++) {
-    const x = tPos.getX(v), y = tPos.getY(v), z = tPos.getZ(v);
-    const l = Math.hypot(x, y, z) || 1;
-    let sum = 0;
-    for (let e = 0; e < nE; e++) {
-      const c = (x / l) * eDirs[e][0] + (y / l) * eDirs[e][1]
-              + (z / l) * eDirs[e][2];
-      const w = Math.exp(7.0 * (c - 1.0));
-      topoWeights[v * nE + e] = w;
-      sum += w;
-    }
-    for (let e = 0; e < nE; e++) topoWeights[v * nE + e] /= sum;
-  }
   topoGeo.setAttribute("color",
-    new THREE.BufferAttribute(new Float32Array(nV * 3), 3));
+    new THREE.BufferAttribute(new Float32Array(
+      topoGeo.attributes.position.count * 3), 3));
   scalpTopo = new THREE.Mesh(topoGeo, new THREE.MeshBasicMaterial(
     { vertexColors: true, transparent: true, opacity: 0.80,
       depthWrite: false }));
   humanHead.add(scalpTopo);
+  buildTopoWeights(
+    eDirs.map(d => new THREE.Vector3(d[0], d[1], d[2])));
   // faint silhouette so the display globe stays outlined even when the
   // interpolated potential is ~0 (dark blue on dark background)
   const topoRim = new THREE.Mesh(
@@ -647,6 +630,28 @@ function divColor(t, out) {
 }
 
 // paint the scalp sphere with the interpolated potential at sample i
+// interpolation weights vertex->electrodes for the scalp topomap
+// (rebuilt live while the 10-20 calibration drags move electrodes)
+function buildTopoWeights(dirVecs) {
+  const tPos = scalpTopo.geometry.attributes.position;
+  const nV = tPos.count, nE = dirVecs.length;
+  if (!topoWeights || topoWeights.length !== nV * nE)
+    topoWeights = new Float32Array(nV * nE);
+  for (let v = 0; v < nV; v++) {
+    const x = tPos.getX(v), y = tPos.getY(v), z = tPos.getZ(v);
+    const l = Math.hypot(x, y, z) || 1;
+    let sum = 0;
+    for (let e = 0; e < nE; e++) {
+      const d = dirVecs[e];
+      const c = (x / l) * d.x + (y / l) * d.y + (z / l) * d.z;
+      const w = Math.exp(7.0 * (c - 1.0));
+      topoWeights[v * nE + e] = w;
+      sum += w;
+    }
+    for (let e = 0; e < nE; e++) topoWeights[v * nE + e] /= sum;
+  }
+}
+
 function updateScalpTopo(i) {
   if (!scalpTopo || !scalpAll) return;
   const S = scalpData(), vmax = scalpScale();
@@ -976,6 +981,8 @@ function addSceneButtons() {
   mk("人头校准", "打开人头位置校准面板", 10, 44, () => buildHeadPanel());
   mk("电极编辑", "进入标准电极位拖拽编辑模式", 10, 76,
     () => toggleElecEdit());
+  mk("10-20标定", "锚点手柄标定：拖动 Cz/Fz/Fpz/Oz/A1/A2，整帽按 10-20 规则实时重建", 10, 108,
+    () => toggleCalib());
 }
 
 // ---------- electrode editing: drag named balls on the scalp sphere
@@ -1030,16 +1037,16 @@ function addElecBall(name, dirArr) {
 // drag-preview: a moved channel's trace is interpolated from the OTHER
 // channels' exact traces (spherical distance weights) -- approximate
 // until a re-export with --elec-layout bakes the new positions in
-function interpTrace(idx, dirNew) {
-  const src = DATA.phi_scalp_all_uV;
-  const dirs = DATA.meta.scalp.elec_dirs;
+function interpTraceFrom(src, dirs, idx, dirNew) {
   const n = src[idx].length;
   const dNew = dirNew.clone ? dirNew : new THREE.Vector3(...dirNew);
   let wsum = 0;
   const acc = new Float64Array(n);
   for (let j = 0; j < dirs.length; j++) {
     if (j === idx) continue;
-    const w = Math.max(0, dNew.dot(new THREE.Vector3(...dirs[j])) - 0.2) ** 3 + 1e-6;
+    const dj = dirs[j];
+    const v = dj.isVector3 ? dj : new THREE.Vector3(dj[0], dj[1], dj[2]);
+    const w = Math.max(0, dNew.dot(v) - 0.2) ** 3 + 1e-6;
     wsum += w;
     const tr = src[j];
     for (let t = 0; t < n; t++) acc[t] += w * tr[t];
@@ -1049,21 +1056,31 @@ function interpTrace(idx, dirNew) {
   return out;
 }
 
+function interpTrace(idx, dirNew) {
+  return interpTraceFrom(DATA.phi_scalp_all_uV,
+    DATA.meta.scalp.elec_dirs, idx, dirNew);
+}
+
 function stdDir(i) {
   return new THREE.Vector3(...DATA.meta.scalp.elec_dirs[i]);
 }
 
-function applyStdDir(i, dir) {
-  const mesh = scalpElecMeshes[i];
-  const R = globeRadius(), embed = 300, hDisk = 1400;
-  const UP = new THREE.Vector3(0, 1, 0);
-  mesh.position.copy(dir).multiplyScalar(R - embed + hDisk / 2);
-  mesh.quaternion.setFromUnitVectors(UP, dir);
+const UPV = new THREE.Vector3(0, 1, 0);
+// single placement rule for an electrode disk + its name label
+function positionElecMesh(i, dir) {
+  const R = globeRadius(), eGap = 2600, embed = 300, hDisk = 1400;
+  scalpElecMeshes[i].quaternion.setFromUnitVectors(UPV, dir);
+  scalpElecMeshes[i].position.copy(dir).multiplyScalar(
+    R + eGap - embed + hDisk / 2);
   const lb = scalpElecLabels[i];
   if (lb) {
-    lb.position.copy(dir).multiplyScalar(R - embed + hDisk + 2800);
+    lb.position.copy(dir).multiplyScalar(R + eGap - embed + hDisk + 2800);
     lb.userData.dir.copy(dir);
   }
+}
+
+function applyStdDir(i, dir) {
+  positionElecMesh(i, dir);
 }
 
 function saveStdLayout() {
@@ -1210,6 +1227,7 @@ function toggleElecEdit() {
   }
   // enter: standard 45 electrodes become drag targets; moved-channel
   // traces switch to live interpolation previews
+  if (calib) toggleCalib();                  // modes are exclusive
   elecEdit = { balls: [], ray: new THREE.Raycaster(), dragging: null,
                sphere: null, std: [] };
   const R = globeRadius();
@@ -1236,6 +1254,318 @@ function toggleElecEdit() {
   renderer.domElement.addEventListener("pointermove", onElecMove);
   renderer.domElement.addEventListener("pointerup", onElecUp);
   buildElecPanel();
+}
+
+// ---------- 10-20 calibration mode: constrained anchor handles ----------
+// Six handles drive the whole cap; after every pointer move the full
+// 45-channel layout is re-derived LIVE by the 10-20 rules:
+//   Cz          slides on the ear-line circle -> pitches the whole cap
+//   Fz/Fpz/Oz   slide on the sagittal arc; the dragged handle re-derives
+//               the nasion-inion arc ni from its own 10-20 percentage
+//               (Fz 20%, Fpz 40%, Oz 40%) and the midline re-proports
+//   A1/A2       slide on the ear circle; either sets the elevation,
+//               the other mirrors about the sagittal plane
+// Traces shown are interpolation previews; exact numbers need the
+// re-export (copy the panel JSON to the pipeline).
+let calib = null;
+const CALIB_DEFS = [
+  ["Cz", 0xffd166], ["Fz", 0xffd166], ["Fpz", 0xffd166],
+  ["Oz", 0xffd166], ["A1", 0x67d4ff], ["A2", 0x67d4ff]];
+
+function calibDir(name) {
+  return new THREE.Vector3(
+    ...DATA.meta.scalp.elec_dirs[DATA.meta.scalp.elec_names.indexOf(name)]);
+}
+
+function rotAbout(v, axis, deg) {
+  const th = deg * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+  return v.clone().multiplyScalar(c)
+    .add(new THREE.Vector3().crossVectors(axis, v).multiplyScalar(s))
+    .addScaledVector(axis, axis.dot(v) * (1 - c));
+}
+
+function slerpDeg(a, b, deg) {
+  const tot = Math.max(Math.acos(
+    THREE.MathUtils.clamp(a.dot(b), -1, 1)), 1e-9);
+  const t = deg * Math.PI / 180 / tot;
+  return a.clone().multiplyScalar(Math.sin((1 - t) * tot))
+    .addScaledVector(b, Math.sin(t * tot))
+    .divideScalar(Math.sin(tot));
+}
+
+function gcMid(a, b) { return a.clone().add(b).normalize(); }
+
+// full 10-20/10-10 derivation, mirroring ffbm.vizprep.standard_1020:
+// nEar = sagittal normal toward A1 (frozen per session), nRot = +/-nEar
+// signed so rotations by +phi go ANTERIOR, cz = cap center on the
+// ear-line circle, ni = nasion-inion arc deg, th = Cz->ear elevation
+function deriveCap(nEar, nRot, cz, ni, th) {
+  // the meta dirs are 5-decimal rounded -- renormalize everything so
+  // the derivation is exact regardless of input precision
+  nEar = nEar.clone().normalize();
+  nRot = nRot.clone().normalize();
+  cz = cz.clone().normalize();
+  const uAnt = new THREE.Vector3().crossVectors(nRot, cz).normalize();
+  // +phi of the coronal ring must go toward A2 (= -nEar); probe the
+  // sign instead of hardcoding it (scene handedness decides)
+  const corAx = uAnt.clone();
+  if (rotAbout(cz, corAx, 10).dot(nEar) > 0) corAx.negate();
+  const sag = phi => rotAbout(cz, nRot, phi).normalize();
+  const cor = phi => rotAbout(cz, corAx, phi).normalize();
+  const d = {
+    Cz: cz.clone(),
+    Fz: sag(0.20 * ni), Pz: sag(-0.20 * ni),
+    Fpz: sag(0.40 * ni), Oz: sag(-0.40 * ni),
+    Nasion: sag(0.50 * ni), Inion: sag(-0.50 * ni),
+    C3: cor(-36.0), C4: cor(36.0),
+    T7: cor(-72.0), T8: cor(72.0),
+  };
+  const thr = th * Math.PI / 180;
+  d.A1 = cz.clone().multiplyScalar(Math.cos(thr))
+         .addScaledVector(nEar, Math.sin(thr)).normalize();
+  d.A2 = cz.clone().multiplyScalar(Math.cos(thr))
+         .addScaledVector(nEar, -Math.sin(thr)).normalize();
+  const fp = 0.10 * ni;
+  const fp1 = slerpDeg(d.Fpz, d.T7, fp), fp2 = slerpDeg(d.Fpz, d.T8, fp);
+  const o1 = slerpDeg(d.Oz, d.T7, fp), o2 = slerpDeg(d.Oz, d.T8, fp);
+  // two sequential merges (the 10-10 block reads F3/F4/P3/P4/F7/F8/
+  // P7/P8 set by the first one -- one merged literal would see them
+  // before assignment)
+  Object.assign(d, {
+    Fp1: fp1, Fp2: fp2, O1: o1, O2: o2,
+    F7: gcMid(fp1, d.T7), F8: gcMid(fp2, d.T8),
+    P7: gcMid(o1, d.T7), P8: gcMid(o2, d.T8),
+    F3: gcMid(d.Fz, gcMid(fp1, d.T7)),
+    F4: gcMid(d.Fz, gcMid(fp2, d.T8)),
+    P3: gcMid(d.Pz, gcMid(o1, d.T7)),
+    P4: gcMid(d.Pz, gcMid(o2, d.T8)),
+  });
+  Object.assign(d, {
+    FCz: gcMid(d.Fz, cz), CPz: gcMid(cz, d.Pz),
+    AFz: gcMid(d.Fpz, d.Fz), POz: gcMid(d.Pz, d.Oz),
+    F1: gcMid(d.Fz, d.F3), F2: gcMid(d.Fz, d.F4),
+    C1: gcMid(cz, d.C3), C2: gcMid(cz, d.C4),
+    P1: gcMid(d.Pz, d.P3), P2: gcMid(d.Pz, d.P4),
+    FC3: gcMid(d.F3, d.C3), FC4: gcMid(d.F4, d.C4),
+    CP3: gcMid(d.C3, d.P3), CP4: gcMid(d.C4, d.P4),
+    FC5: gcMid(d.F7, d.C3), FC6: gcMid(d.F8, d.C4),
+    CP5: gcMid(d.C3, d.P7), CP6: gcMid(d.C4, d.P8),
+    AF3: gcMid(d.Fpz, d.F3), AF4: gcMid(d.Fpz, d.F4),
+    PO3: gcMid(d.P3, d.O1), PO4: gcMid(d.P4, d.O2),
+  });
+  return d;
+}
+
+function applyCap(d) {
+  const names = DATA.meta.scalp.elec_names;
+  const dirs = names.map(nm => d[nm]);
+  dirs.forEach((v, i) => positionElecMesh(i, v));
+  buildTopoWeights(dirs);
+  calib.dirs = dirs;
+  names.forEach((nm, i) => {
+    if (calib.baseDirs[i].angleTo(dirs[i]) * 180 / Math.PI > 0.05)
+      editTraces[i] = interpTraceFrom(calib.baseTr, calib.baseDirs,
+                                      i, dirs[i]);
+  });
+}
+
+function addCalibHandle(name, color) {
+  const dir = calibDir(name);
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(4200, 16, 12),
+    new THREE.MeshBasicMaterial({ color }));
+  mesh.position.copy(dir).multiplyScalar(globeRadius() + 5200);
+  humanHead.add(mesh);
+  calib.handles.push({ name, mesh });
+}
+
+function setCalibHandle(name, dir) {
+  const h = calib.handles.find(x => x.name === name);
+  if (h) h.mesh.position.copy(dir).multiplyScalar(globeRadius() + 5200);
+}
+
+function onCalibDown(e) {
+  if (!calib) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1);
+  calib.ray.setFromCamera(ndc, camera);
+  const hit = calib.ray.intersectObjects(
+      calib.handles.map(h => h.mesh))[0];
+  if (hit) {
+    calib.drag = calib.handles.find(h => h.mesh === hit.object);
+    controls.enabled = false;
+  }
+}
+
+function onCalibMove(e) {
+  if (!calib || !calib.drag) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1);
+  calib.ray.setFromCamera(ndc, camera);
+  const hit = calib.ray.intersectObject(calib.sphere)[0];
+  if (!hit) return;
+  const d = hit.point.clone().normalize();
+  const st = calib.st, name = calib.drag.name;
+  if (name === "Cz") {
+    st.cz = d.clone().addScaledVector(
+      calib.nEar, -d.dot(calib.nEar)).normalize();
+  } else if (name === "A1" || name === "A2") {
+    const s = name === "A1" ? 1 : -1;
+    const th = Math.atan2(s * d.dot(calib.nEar), d.dot(st.cz))
+               * 180 / Math.PI;
+    st.th = Math.min(155, Math.max(25, th));
+  } else {                       // Fz / Fpz / Oz: ni vote from percentage
+    const uAnt = new THREE.Vector3().crossVectors(
+      calib.nRot, st.cz).normalize();
+    const phi = Math.atan2(d.dot(uAnt), d.dot(st.cz)) * 180 / Math.PI;
+    // Fz/Fpz live anterior of Cz, Oz posterior -- reject wrong-side drags
+    const sideOk = name === "Oz" ? phi < 0 : phi > 0;
+    const ni = Math.abs(phi) / (name === "Fz" ? 0.20 : 0.40);
+    if (sideOk && ni >= 150 && ni <= 340) st.ni = ni;
+  }
+  if (!calib.raf)
+    calib.raf = requestAnimationFrame(() => {
+      calib.raf = 0; calibApply();
+    });
+}
+
+function calibApply() {
+  if (!calib) return;
+  const st = calib.st;
+  applyCap(deriveCap(calib.nEar, calib.nRot, st.cz, st.ni, st.th));
+  const names = DATA.meta.scalp.elec_names;
+  calib.handles.forEach(h => setCalibHandle(
+    h.name, calib.dirs[names.indexOf(h.name)]));
+  const elNi = document.getElementById("calib-ni");
+  const elTh = document.getElementById("calib-th");
+  if (elNi) elNi.textContent = st.ni.toFixed(0);
+  if (elTh) elTh.textContent = st.th.toFixed(0);
+}
+
+function onCalibUp() {
+  if (!calib) return;
+  if (calib.drag)
+    localStorage.setItem("calib1020", JSON.stringify({
+      cz: calib.st.cz.toArray().map(x => +x.toFixed(5)),
+      ni: +calib.st.ni.toFixed(2), th: +calib.st.th.toFixed(2) }));
+  calib.drag = null;
+  controls.enabled = true;
+}
+
+function toggleCalib() {
+  if (calib) {   // exit: the cap keeps its calibrated state (preview)
+    renderer.domElement.removeEventListener("pointerdown", onCalibDown);
+    renderer.domElement.removeEventListener("pointermove", onCalibMove);
+    renderer.domElement.removeEventListener("pointerup", onCalibUp);
+    calib.handles.forEach(h => humanHead.remove(h.mesh));
+    scene.remove(calib.sphere);
+    const p = document.getElementById("calibpanel");
+    if (p) p.remove();
+    calib = null;
+    return;
+  }
+  if (elecEdit) toggleElecEdit();            // modes are exclusive
+  if (!editTraces)
+    editTraces = DATA.phi_scalp_all_uV.map(tr => tr.slice());
+  const cz0 = calibDir("Cz");
+  const rawAnt = calibDir("Fz").sub(calibDir("Oz"));
+  rawAnt.addScaledVector(cz0, -rawAnt.dot(cz0)).normalize();
+  const nEar = new THREE.Vector3().crossVectors(cz0, rawAnt).normalize();
+  if (nEar.dot(calibDir("A1")) < 0) nEar.negate();
+  const nRot = nEar.clone();
+  if (rotAbout(cz0, nRot, 10).dot(rawAnt) < 0) nRot.negate();
+  calib = { handles: [], ray: new THREE.Raycaster(), sphere: null,
+            drag: null, nEar, nRot, raf: 0, dirs: null,
+            baseDirs: DATA.meta.scalp.elec_names.map((n, i) => stdDir(i)),
+            baseTr: editTraces.map(tr => tr.slice()),
+            st: { cz: cz0, ni: null, th: null } };
+  // starting ni/th read from the current layout (Fz/Oz votes; used as
+  //-is until a handle is actually dragged)
+  const uAnt0 = new THREE.Vector3().crossVectors(nRot, cz0).normalize();
+  const phiOf = d =>
+    Math.atan2(d.dot(uAnt0), d.dot(cz0)) * 180 / Math.PI;
+  calib.st.ni = 0.5 * (Math.abs(phiOf(calibDir("Fz"))) / 0.20
+                       + Math.abs(phiOf(calibDir("Oz"))) / 0.40);
+  calib.st.th = Math.atan2(calibDir("A1").dot(nEar),
+                           calibDir("A1").dot(cz0)) * 180 / Math.PI;
+  calib.dirs = calib.baseDirs.map(v => v.clone());
+  calib.sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(globeRadius(), 64, 40),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0,
+                                  depthWrite: false }));
+  scene.add(calib.sphere);
+  CALIB_DEFS.forEach(([nm, c]) => addCalibHandle(nm, c));
+  const saved = JSON.parse(localStorage.getItem("calib1020") || "null");
+  if (saved) {
+    calib.st = { cz: new THREE.Vector3(...saved.cz),
+                 ni: saved.ni, th: saved.th };
+    calibApply();
+  }
+  renderer.domElement.addEventListener("pointerdown", onCalibDown);
+  renderer.domElement.addEventListener("pointermove", onCalibMove);
+  renderer.domElement.addEventListener("pointerup", onCalibUp);
+  buildCalibPanel();
+}
+
+function buildCalibPanel() {
+  const div = document.createElement("div");
+  div.id = "calibpanel";
+  div.style.cssText = "position:absolute;bottom:34px;right:10px;" +
+      "background:#0d131cee;border:1px solid #2a3a4d;border-radius:6px;" +
+      "padding:8px 10px;font-size:12px;line-height:1.7;z-index:7;" +
+      "width:260px";
+  div.innerHTML = "<b>10-20 标定</b><br>" +
+      "<span style='color:#8aa0b4'>拖动 <b style='color:#ffd166'>金色手柄</b>" +
+      "（中轴，沿矢状弧）和 <b style='color:#67d4ff'>青色手柄</b>" +
+      "（耳位，A1/A2 自动镜像）。每次拖动后整帽按 10-20 比例实时重建。" +
+      "拖 Cz 使整帽前后俯仰。</span><br>" +
+      "中轴弧 ni：<span id='calib-ni'>–</span>°　" +
+      "耳位角 th：<span id='calib-th'>–</span>°<br>" +
+      "<button id='calib-copy' style='margin-top:4px'>复制JSON</button> " +
+      "<button id='calib-reset'>恢复标准位</button> " +
+      "<button id='calib-exit' style='float:right'>退出</button>" +
+      "<br><span style='color:#8aa0b4'>波形为插值预览；" +
+      "复制JSON交给管线重导出后才成为精确数据。</span>";
+  document.getElementById("scene-wrap").appendChild(div);
+  div.querySelector("#calib-copy").onclick = async () => {
+    const names = DATA.meta.scalp.elec_names;
+    const layout = {};
+    names.forEach((nm, i) => layout[nm] =
+      calib.dirs[i].toArray().map(x => +x.toFixed(5)));
+    await navigator.clipboard.writeText(JSON.stringify({
+      ni_arc_deg: +calib.st.ni.toFixed(1),
+      ear_th_deg: +calib.st.th.toFixed(1),
+      sag_normal: calib.nEar.toArray().map(x => +x.toFixed(5)),
+      handles: Object.fromEntries(CALIB_DEFS.map(([nm]) => [nm,
+        calib.dirs[names.indexOf(nm)].toArray()
+          .map(x => +x.toFixed(5))])),
+      layout }));
+    const b = div.querySelector("#calib-copy");
+    b.textContent = "已复制!";
+    setTimeout(() => b.textContent = "复制JSON", 1200);
+  };
+  div.querySelector("#calib-reset").onclick = () => {
+    localStorage.removeItem("calib1020");
+    calib.st = { cz: calibDir("Cz"), ni: 260, th: calib.st.th };
+    DATA.meta.scalp.elec_names.forEach((nm, i) =>
+      positionElecMesh(i, stdDir(i)));
+    buildTopoWeights(calib.baseDirs.map(v => v.clone()));
+    editTraces = calib.baseTr.map(tr => tr.slice());
+    calib.dirs = calib.baseDirs.map(v => v.clone());
+    calib.handles.forEach(h => setCalibHandle(h.name, calibDir(h.name)));
+    document.getElementById("calib-ni").textContent = "260";
+    document.getElementById("calib-th").textContent =
+      calib.st.th.toFixed(0);
+  };
+  div.querySelector("#calib-exit").onclick = () => toggleCalib();
+  document.getElementById("calib-ni").textContent =
+    calib.st.ni.toFixed(0);
+  document.getElementById("calib-th").textContent =
+    calib.st.th.toFixed(0);
 }
 
 function initUI() {
