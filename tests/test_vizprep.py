@@ -108,6 +108,38 @@ def test_standard_1020_transverse_ring_scales_with_ear_elevation():
     assert abs(deg(lay90["T7"], cz) - 72.0) < 1e-6
 
 
+def test_standard_1020_yaw_rotates_whole_cap_about_cz():
+    cz = np.array([0.0, np.cos(np.radians(30.0)), np.sin(np.radians(30.0))])
+    ant = np.array([0.0, np.sin(np.radians(30.0)), -np.cos(np.radians(30.0))])
+    left = np.cross(cz, ant)
+    anchors = {
+        "CZ": cz,
+        "FZ": cz * np.cos(np.radians(48.46))
+              + ant * np.sin(np.radians(48.46)),
+        "OZ": cz * np.cos(np.radians(48.46))
+              - ant * np.sin(np.radians(48.46)),
+        "A1": cz * np.cos(np.radians(130.8)) + left * np.sin(np.radians(130.8)),
+        "A2": cz * np.cos(np.radians(130.8)) - left * np.sin(np.radians(130.8)),
+    }
+    base = standard_1020(anchors, system="1010", ni_arc_deg=242.3)
+    yawed = standard_1020(anchors, system="1010", ni_arc_deg=242.3,
+                          yaw_deg=5.0)
+    deg = lambda a, b: np.degrees(np.arccos(np.clip(a @ b, -1, 1)))
+    # every electrode equals an independent Rodrigues rotation of the
+    # base placement about Cz (note: the DISPLACEMENT angle is < 5 deg
+    # away from the equator -- the azimuthal rotation is exactly 5 deg)
+    def rodr(v, th):
+        c, s = np.cos(th), np.sin(th)
+        return v * c + np.cross(cz, v) * s + cz * (cz @ v) * (1 - c)
+    for k in ("Fpz", "Fz", "Oz", "A1", "A2", "T7", "C3"):
+        assert np.linalg.norm(
+            yawed[k] - rodr(base[k], np.radians(5.0))) < 1e-9
+    # arcs to Cz are invariant (Cz sits on the rotation axis)
+    for k in ("Fpz", "Oz", "A1", "T7"):
+        assert abs(deg(yawed[k], yawed["Cz"])
+                   - deg(base[k], base["Cz"])) < 1e-9
+
+
 def test_electrode_dirs_capped_excludes_face_and_neck():
     from ffbm.vizprep import ELEC_DEFAULTS
     face = np.array([0.0, 0.0, 1.0])

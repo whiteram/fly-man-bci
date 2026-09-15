@@ -51,7 +51,8 @@ def _sph_mid(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 def standard_1020(anchors: dict, system: str = "1020",
                   ni_arc_deg: float = 180.0,
-                  fpz_arc_deg: float | None = None) -> dict:
+                  fpz_arc_deg: float | None = None,
+                  yaw_deg: float = 0.0) -> dict:
     """Standard 10-20 / 10-10 electrode directions from hand-placed
     anchors (Cz, Fz, Oz, A1, A2 unit vectors, any consistent head frame).
 
@@ -82,7 +83,10 @@ def standard_1020(anchors: dict, system: str = "1020",
         10% from Oz toward T7, F7/P7 as arc midpoints (Fp1-T7 /
         O1-T7), F3/P3 as midpoints of Fz-F7 / Pz-P7 (mirrored right);
       - system="1010" adds the 10-10 midpoint subdivisions (FCz, CPz,
-        F1/F2, C1/C2, P1/P2, FC3-6, CP3-6, AF3/AF4/AFz, PO3/PO4/POz).
+        F1/F2, C1/C2, P1/P2, FC3-6, CP3-6, AF3/AF4/AFz, PO3/PO4/POz);
+      - yaw_deg rotates the WHOLE cap about the Cz (crown) axis, so the
+        sagittal plane can be aligned with the head mesh's nose midline
+        and the fly-brain midline (visual calibration).
 
     Returns dict name -> unit vector in the SAME frame as the anchors.
     """
@@ -199,7 +203,12 @@ def standard_1020(anchors: dict, system: str = "1020",
             "PO3": mid(out["P3"], out["O1"]),
             "PO4": mid(out["P4"], out["O2"]),
         })
-    return {k: v / np.linalg.norm(v) for k, v in out.items()}
+    out = {k: v / np.linalg.norm(v) for k, v in out.items()}
+    if yaw_deg:
+        # global yaw of the whole cap about the Cz (crown) axis
+        for k in out:
+            out[k] = _sph_rotate(out[k], cz, yaw_deg)
+    return out
 
 
 def regularize_report(anchors: dict) -> dict:
