@@ -145,6 +145,7 @@ function scalpScale() {
 // ---------- 3D scene (human-head view only) ----------
 let renderer, camera, controls, layerMeshes = [], flowMeshes = [];
 let netGroup, humanHead, eyeDirVec, shellMeshes = [], scalpElecMeshes = [];
+let scalpElecLabels = [];
 let connMeshes = [];
 let headForm = null;
 let stimLight, scene;
@@ -527,6 +528,7 @@ function initScene() {
   elecLight.position.set(-0.6, 1.0, 0.8);
   scene.add(elecLight);
   const UP = new THREE.Vector3(0, 1, 0);
+  const elecNames = DATA.meta.scalp.elec_names || [];
   eDirs.forEach((d, i) => {
     const dir = new THREE.Vector3(d[0], d[1], d[2]).normalize();
     // mounting sphere clearly outside the topomap globe, so the disks do
@@ -540,6 +542,17 @@ function initScene() {
     s.position.copy(dir.clone().multiplyScalar(globeR + eGap - embed + hDisk / 2));
     humanHead.add(s);
     scalpElecMeshes.push(s);
+    // channel-name label floating just above its disk; visibility is
+    // re-evaluated each frame (front hemisphere + layer checkbox)
+    if (elecNames[i]) {
+      const lb = makeTextSprite(elecNames[i], "#f2f7ff", 13000, 6500);
+      lb.position.copy(dir).multiplyScalar(
+        globeR + eGap - embed + hDisk + 2800);
+      lb.userData.dir = dir.clone();
+      lb.userData.on = true;
+      humanHead.add(lb);
+      scalpElecLabels.push(lb);
+    }
   });
 
   // scalp potential topomap: an outer "display globe" clearly separated
@@ -864,6 +877,15 @@ function tick() {
   document.getElementById("overlay").style.opacity = stimOn ? 0.55 : 0;
   stimLight.intensity = stimOn ? 1.6 : 0.0;
 
+  // electrode name labels: only the front-hemisphere ones stay visible,
+  // so the 45 names never stack up on the far side of the head
+  if (scalpElecLabels.length) {
+    const camDir = camera.position.clone().normalize();
+    scalpElecLabels.forEach(lb => {
+      lb.visible = lb.userData.on && lb.userData.dir.dot(camDir) > 0.05;
+    });
+  }
+
   controls.update();
   renderer.render(scene, camera);
   updateScalpTopo(i);
@@ -915,8 +937,10 @@ function buildLayerBox() {
     updateConnVisibility();
     if (t.dataset.extra === "flow")
       flowMeshes.forEach(m => m.visible = t.checked);
-    else if (t.dataset.extra === "elecs")
+    else if (t.dataset.extra === "elecs") {
       scalpElecMeshes.forEach(m => m.visible = t.checked);
+      scalpElecLabels.forEach(lb => lb.userData.on = t.checked);
+    }
     else if (t.dataset.extra === "headform")
       headForm.visible = t.checked;
     else if (t.dataset.extra === "topo") {
@@ -959,20 +983,22 @@ function addSceneButtons() {
 // layout as JSON for the pipeline calibration ----------
 let elecEdit = null;
 
-function makeTextSprite(text) {
+function makeTextSprite(text, fill = "#ffd166", scaleW = 9000, scaleH = 4500) {
   const cv = document.createElement("canvas");
-  cv.width = 128; cv.height = 64;
+  cv.width = 256; cv.height = 128;
   const ctx = cv.getContext("2d");
-  ctx.font = "bold 40px Microsoft YaHei, sans-serif";
-  ctx.fillStyle = "#ffd166";
-  ctx.strokeStyle = "#0a0e14"; ctx.lineWidth = 6;
+  // bold large glyphs with a heavy dark rim: readable over the red/blue
+  // topomap, the pale shells and the dark background alike
+  ctx.font = "bold 84px Consolas, Microsoft YaHei, sans-serif";
+  ctx.fillStyle = fill;
+  ctx.strokeStyle = "#05080d"; ctx.lineWidth = 12; ctx.lineJoin = "round";
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.strokeText(text, 64, 32);
-  ctx.fillText(text, 64, 32);
+  ctx.strokeText(text, 128, 66);
+  ctx.fillText(text, 128, 66);
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({
     map: new THREE.CanvasTexture(cv), transparent: true,
     depthTest: false }));
-  sp.scale.set(9000, 4500, 1);
+  sp.scale.set(scaleW, scaleH, 1);
   return sp;
 }
 
@@ -1033,6 +1059,11 @@ function applyStdDir(i, dir) {
   const UP = new THREE.Vector3(0, 1, 0);
   mesh.position.copy(dir).multiplyScalar(R - embed + hDisk / 2);
   mesh.quaternion.setFromUnitVectors(UP, dir);
+  const lb = scalpElecLabels[i];
+  if (lb) {
+    lb.position.copy(dir).multiplyScalar(R - embed + hDisk + 2800);
+    lb.userData.dir.copy(dir);
+  }
 }
 
 function saveStdLayout() {
