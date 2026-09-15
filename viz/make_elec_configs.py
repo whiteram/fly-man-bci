@@ -116,6 +116,59 @@ def similarity(src, dst):
     return R, t, s
 
 
+def build_egi_256(cap64):
+    """EGI HydroCel GSN 256 (MNE 'EGI_256', E1..E256): transform the real
+    geodesic geometry into our calibrated frame.  Alignment uses the
+    montage's own fiducials (nasion/lpa/rpa) -- identical Gram-Schmidt
+    triads on both frames give an exact, chirality-correct rotation.
+    Face/neck cone sites are dropped (38/40 deg, matching the
+    pipeline's electrode-placement rules)."""
+    from mne.channels import make_standard_montage
+    import warnings
+    warnings.filterwarnings("ignore")
+    m = make_standard_montage("EGI_256")
+    pos = m.get_positions()
+    ch_pos = pos["ch_pos"]
+    nas, lpa = (np.asarray(pos[k], float) for k in ("nasion", "lpa"))
+    names = [n for n in ch_pos if np.linalg.norm(ch_pos[n]) > 1e-6]
+    P = np.array([ch_pos[n] for n in names])
+    # algebraic sphere fit (Kasa): net center
+    A = np.hstack([2 * P, np.ones((len(P), 1))])
+    b = (P ** 2).sum(1)
+    sol, *_ = np.linalg.lstsq(A, b, rcond=None)
+    c = sol[:3]
+
+    def unit(v):
+        v = np.asarray(v, dtype=np.float64)
+        return v / np.linalg.norm(v)
+
+    def triad(ant_dir, left_dir):
+        ba = unit(ant_dir)
+        bl = unit(left_dir - ba * (ba @ left_dir))
+        return np.column_stack([ba, bl, np.cross(ba, bl)])
+
+    # our calibrated frame
+    cz = unit(cap64["Cz"])
+    ant = unit(cap64["Fz"] - cap64["Oz"])
+    ant = ant - cz * (ant @ cz)
+    ant = unit(ant)
+    l_ours = unit(cap64["A1"] - ant * (ant @ cap64["A1"]))
+    R_ours = triad(ant, l_ours)
+    # EGI frame triad from its fiducials (relative to the net center)
+    R_mne = triad(unit(nas - c), unit(lpa - c))
+    R = R_ours @ R_mne.T                      # MNE frame -> our frame
+    out = {}
+    for i, n in enumerate(names):
+        v = unit(P[i] - c)
+        v = R @ v
+        # neck cone only: brow-level midline sites (Fpz equivalents) are
+        # legitimate scalp electrodes and must survive
+        if v @ (-cz) > np.cos(np.radians(40.0)):
+            continue
+        out[n] = v
+    return out
+
+
 def build_105_sites(cap64):
     """5%-subdivision candidates on the 10-10 chains.  Naming: each
     chain-adjacent pair (a, b) also exists in MNE's standard_1005; the
@@ -201,6 +254,19 @@ def main():
               f"kept {len(new_sites)} (total {len(order128)})")
     except ImportError:
         print("  mne not available -- skipping the 10-5/128 config")
+
+    try:
+        egi = build_egi_256(cap64)
+        order_egi = sorted(egi.keys())
+        configs.append(
+            {"id": "egi_256", "label": "EGI 256 导",
+             "kind": "egi_256", "count": len(order_egi),
+             "channels": {k: [round(float(x), 5) for x in egi[k]]
+                          for k in order_egi}})
+        print(f"  EGI HydroCel 256: {len(order_egi)} sites on the cap "
+              "(face/neck cones excluded)")
+    except ImportError:
+        print("  mne not available -- skipping the EGI 256 config")
 
     cat = {
         "_schema": "electrode configs: name -> unit direction [x,y,z]; "
