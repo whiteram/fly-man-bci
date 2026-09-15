@@ -17,9 +17,11 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ffbm.simulation import (_HAVE_NUMBA, ExponentialSynapses,
-                             GradedSynapsePool, _drive_cond,
-                             _edge_currents, _graded_step)
+from ffbm.simulation import (_HAVE_NUMBA, ColoredCurrentNoise,
+                             ExponentialSynapses, GradedSynapsePool,
+                             LIFPopulation, _drive_cond, _edge_currents,
+                             _exp_step, _exp_step_delayed, _graded_step,
+                             _lif_step, _ou_step)
 
 
 def _pool(n_pre=50, n_edge=4000, seed=0):
@@ -129,6 +131,90 @@ def test_signless_conductance_pool_parity():
     assert np.array_equal(ec1, ec2), "signless edge currents differ"
 
 
+def _exp_pool(seed, delayed):
+    rng = np.random.default_rng(seed)
+    n_pre, n_edge, n_post = 30, 4000, 50
+    pre = rng.integers(0, n_pre, n_edge)          # duplicates -> one
+    post = rng.integers(0, n_post, n_edge)        # pre hits many edges
+    weight = (rng.random(n_edge) + 0.2).astype(np.float32)
+    post_index = {}
+    post_local = np.array([post_index.setdefault(int(p), len(post_index))
+                           for p in post])
+    delay = (rng.random(n_edge) * 4.0) if delayed else None
+    return ExponentialSynapses(
+        pre, post, weight, post_local, dt=0.5, gain=1.5, tau_s=5.0,
+        n_post=n_post, delay_ms=delay)
+
+
+def _run_steps(pool, spikes_seq):
+    for spiked in spikes_seq:
+        pool.step(spiked)
+    return pool.y.copy(), pool.buffer.copy() if pool.delayed else None
+
+
+def test_exp_step_parity():
+    """Non-delayed and delayed step kernels vs the numpy path, over a
+    spike sequence engineered for duplicate targets and every delay bin
+    (incl. bin 0)."""
+    if not _HAVE_NUMBA:
+        return
+    import ffbm.simulation as sim
+    rng = np.random.default_rng(7)
+    spikes = [np.array(sorted(rng.choice(30, size=rng.integers(1, 12),
+                                           replace=False)))
+              for _ in range(60)]
+    for delayed in (False, True):
+        # same construction + same deliveries in both modes
+        sim._HAVE_NUMBA = False
+        try:
+            ref = _run_steps(_exp_pool(11, delayed), spikes)
+        finally:
+            sim._HAVE_NUMBA = True
+        got = _run_steps(_exp_pool(11, delayed), spikes)
+        assert np.array_equal(ref[0], got[0]), \
+            f"y differs (delayed={delayed}): " \
+            f"max {np.abs(ref[0] - got[0]).max():.3e}"
+        if delayed:
+            assert np.array_equal(ref[1], got[1]), \
+                f"ring buffer differs (delayed): " \
+                f"max {np.abs(ref[1] - got[1]).max():.3e}"
+
+
+def test_lif_ou_parity():
+    if not _HAVE_NUMBA:
+        return
+    import ffbm.simulation as sim
+    rng = np.random.default_rng(9)
+    n = 500
+    # LIF with conductance input (f32 drives like the synapse kernels
+    # return) and with plain current input
+    for g_none in (True, False):
+        lif1 = LIFPopulation(n, 0.5, tau_m=10.0, R_m=0.1)
+        lif2 = LIFPopulation(n, 0.5, tau_m=10.0, R_m=0.1)
+        ou1 = ColoredCurrentNoise(n, 0.5, np.random.default_rng(3), 8.0, 60.0)
+        ou2 = ColoredCurrentNoise(n, 0.5, np.random.default_rng(3), 8.0, 60.0)
+        for _ in range(80):
+            noise1, noise2 = ou1.step(), ou2.step()  # same rng seeds
+            i1 = noise1 + rng.random(n) * 90.0
+            i2 = i1.copy()
+            # g_tot is float64 in the real stack (np.zeros accumulation
+            # of the f32 drives); f32 g would follow a different numpy
+            # promotion in the semi-implicit denominator
+            g1 = None if g_none else rng.random(n) * 0.5
+            g2 = None if g_none else g1.copy()
+            sim._HAVE_NUMBA = False
+            try:
+                s1 = lif1.step(i1, g1)
+            finally:
+                sim._HAVE_NUMBA = True
+            s2 = lif2.step(i2, g2)
+            assert np.array_equal(lif1.v, lif2.v), \
+                f"LIF v differs (g_none={g_none})"
+            assert np.array_equal(lif1.refrac, lif2.refrac), \
+                f"LIF refrac differs (g_none={g_none})"
+            assert np.array_equal(s1, s2), f"spikes differ (g_none={g_none})"
+            assert np.array_equal(ou1.x, ou2.x), "OU state differs"
+
 def test_smoke_export_bitwise():
     """End-to-end A/B: the smoke export's debug phi arrays must be
     BITWISE identical with numba on vs off."""
@@ -157,7 +243,15 @@ if __name__ == "__main__":
     print("drive_cond parity OK")
     test_edge_currents_parity()
     print("edge_currents parity OK")
+    test_exp_step_parity()
+    print("exp_step parity OK")
+    test_lif_ou_parity()
+    print("LIF/OU parity OK")
     test_signless_conductance_pool_parity()
     print("signless conductance pool parity OK")
+    test_exp_step_parity()
+    print("exp_step parity OK")
+    test_lif_ou_parity()
+    print("LIF/OU parity OK")
     test_smoke_export_bitwise()
     print("ALL_PASS")

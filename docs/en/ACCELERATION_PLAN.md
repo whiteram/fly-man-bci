@@ -2,16 +2,16 @@
 
 *(English translation — authoritative version: [../../docs/ACCELERATION_PLAN.md](../../docs/ACCELERATION_PLAN.md))*
 
-Status (updated 2026-09-15): **P0 + P2 phase 1 implemented and
+Status (updated 2026-09-15): **P0 + P2 (phases 1 and 2) implemented and
 verified** — numba 0.67 + CuPy 14.2 installed in the conda `ffbm` env
-(GPU compute verified); three JIT kernels (graded-synapse step /
-conductance drive / edge currents) landed with **bitwise-identical
-trajectories** (unit parity + smoke end-to-end A/B,
-tests/test_numba_parity.py), and the biology loop measured at
-**1.65×** (600 ms full-region in-process A/B: 77.3 s → 46.8 s; full
-export est. 22.5 → 13.6 min). P2 phase 2 (decay+delivery fusion,
-target +0.2× more) and P3 remain. The prerequisite work (Route A) is
-in PERFORMANCE.md §7.
+(GPU compute verified); seven JIT kernels (graded-synapse step /
+conductance drive / edge currents / exponential-synapse decay+delivery
+(delayed and non-delayed) / OU noise / LIF explicit and semi-implicit)
+landed with **bitwise-identical trajectories** (unit parity + smoke
+end-to-end A/B, tests/test_numba_parity.py), and the biology loop
+measured at **2.38×** (600 ms full-region in-process A/B: 75.7 s →
+31.8 s; full export est. 22.1 → 9.3 min). P3 (CuPy) remains. The
+prerequisite work (Route A) is in PERFORMANCE.md §7.
 
 ---
 
@@ -57,28 +57,41 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
   (hand-written CSR loop);
 - expected 55 → ~40 min; verified by bit-exact A/B comparison.
 
-### P2 Numba JIT (phase 1 implemented 2026-09-15)
-- **Landed**: three `@njit` kernels — `_graded_step` (release-rate
-  smoothing + weight, in-place), `_drive_cond` (the two conductance CSR
-  matvecs fused into a single-pass f32 accumulation with per-row add
-  order matching scipy csr_matvec), `_edge_currents` (f64 output so the
-  downstream mixed-dtype dot stays on the exact same BLAS path);
-- **RNG stays in numpy throughout**: noise drawn inside the loop by
-  numpy, random sequence unchanged; bitwise identity verified (four
-  unit parity checks + smoke end-to-end FFBM_NUMBA=0/1 A/B);
-- **Measured**: biology loop **1.65×** (46.8 s vs 77.3 s @600 ms
+### P2 Numba JIT (phases 1+2 implemented 2026-09-15)
+- **Landed (7 kernels)**: `_graded_step` (release-rate smoothing +
+  weight, in-place), `_drive_cond` (the two conductance CSR matvecs
+  fused into a single-pass f32 accumulation with per-row add order
+  matching scipy csr_matvec), `_edge_currents` (f64 output so the
+  downstream mixed-dtype dot stays on the exact same BLAS path),
+  `_exp_step` / `_exp_step_delayed` (decay+delivery fused; the
+  non-delayed path replicates numpy's BUFFERED fancy-add semantics —
+  duplicate targets last-write-wins — and the delayed path replicates
+  ascending-bin order with buffered bin-0 and add.at bins >= 1),
+  `_ou_step` (noise still drawn by the numpy rng), `_lif_step` /
+  `_lif_step_g32` (explicit + semi-implicit Euler; the f32-g_tot
+  variant keeps the whole denominator rounding in f32 per numpy's
+  weak-scalar promotion);
+- **RNG stays in numpy throughout**: random sequence unchanged; bitwise
+  identity verified (unit parity + smoke end-to-end FFBM_NUMBA=0/1 A/B
+  + a first-step per-state probe);
+- **Measured**: biology loop **2.38×** (31.8 s vs 75.7 s @600 ms
   full-region, scripts/profile_export_loop.py in-process A/B); full
-  export est. 22.5 → 13.6 min (excluding the 68 s kernel build and
+  export est. 22.1 → 9.3 min (excluding the 68 s kernel build and
   assembly);
-- **Phase 2 remaining**: fuse `ExponentialSynapses.step` decay +
-  delayed delivery (still numpy fancy-indexing, ~20% of step cost) and
-  JIT the LIF/OU steps (Python dispatch overhead); expected +0.3–0.5×;
-- dtype-semantics traps on record: GradedSynapsePool without signs used
-  to keep e_rev as a scalar and ExponentialSynapses without signs used
-  to produce a 0-d array from np.where — both now per-edge 1-D arrays
-  (numpy fallback unaffected); weak-scalar promotion keeps `g_unit * y`
-  in f32, and the kernels must multiply-add in the same order to stay
-  bitwise-aligned.
+- **dtype-semantics traps on record** (what it takes to replicate
+  numpy bitwise): (1) e_rev_edge must be a per-edge 1-D array (was a
+  scalar / 0-d np.where result in the signless cases); (2) weak-scalar
+  promotion keeps `g_unit * y` in f32 while `y *= np.float64 decay`
+  multiplies in f64 then stores f32 (verified across all taus); (3)
+  **L/MID receive f32 g_tot** (the drive arrays passed straight
+  through) while T45/extra regions accumulate into f64 zeros — the
+  semi-implicit denominator rounds differently, so the kernel
+  dispatches on dtype; (4) an empty delivery selection must be an
+  empty int array, never None (numba cannot type None); (5) the fancy
+  add `y[t] += k[t]` is buffered (last-write-wins) — different from
+  add.at accumulation — and each delivery path must use its own;
+- **remaining candidates**: the release-rate sigmoids, PhotoCascade,
+  spike-mask overhead — small shares now; head straight to P3.
 
 ### P3 CuPy full GPU (2-4 days, second stage)
 - Architecture (dual precedent: FastFly + GeNN/Brian2GeNN): **all state f32

@@ -1,12 +1,13 @@
 # 计算加速路线图（下一阶段，暂缓执行）
 
-状态（2026-09-15 更新）：**P0 + P2 第一阶段已实施并验证**——
+状态（2026-09-15 更新）：**P0 + P2（第一、二阶段）已实施并验证**——
 numba 0.67 + CuPy 14.2 已装入 conda `ffbm` 环境（GPU 实测可算）；
-三个 JIT 内核（分级突触 step / 电导 drive / edge_currents）以
-**逐位一致**落地（单元对拍 + smoke 端到端 A/B，tests/test_numba_parity.py），
-生物学循环实测 **1.65×**（600 ms 全区域单进程双轮基准：77.3 s →
-46.8 s，全量估 22.5 → 13.6 min）。P2 第二阶段（衰减+投递融合，目标
-再 +0.2×）与 P3 待续。前置工作（路线 A）见 PERFORMANCE.md §7。
+七个 JIT 内核（分级突触 step / 电导 drive / edge_currents / 指数突触
+衰减+投递（延迟与非延迟）/ OU 噪声 / LIF 显式与半隐式）以**逐位一致**
+落地（单元对拍 + smoke 端到端 A/B，tests/test_numba_parity.py），
+生物学循环实测 **2.38×**（600 ms 全区域单进程双轮基准：75.7 s →
+31.8 s，全量估 22.1 → 9.3 min）。P3（CuPy）待续。前置工作（路线 A）
+见 PERFORMANCE.md §7。
 
 ---
 
@@ -46,23 +47,32 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
 - `to_neuron_drive` 的两次 CSR matvec 合并为一次遍历（手写 CSR 循环）；
 - 预期 55 → ~40 min；逐位对拍验证。
 
-### P2 Numba JIT（第一阶段已实施，2026-09-15）
-- **已落地**：`@njit` 三个内核——`_graded_step`（释放率平滑+权重，
-  原地写）、`_drive_cond`（电导 drive 双 CSR matvec 融合为单遍 f32
-  累加，逐行加法次序与 scipy csr_matvec 相同）、`_edge_currents`
-  （f64 输出，保持下游混合 dtype 点积走原 BLAS 路径）；
-- **RNG 全程 numpy**：噪声在循环内 numpy 抽取，随机序列不变；
-  逐位一致已验证（单元四对拍 + smoke 端到端 FFBM_NUMBA=0/1 A/B）；
-- **实测**：生物学循环 **1.65×**（46.8 s vs 77.3 s @600 ms 全区域，
+### P2 Numba JIT（第一、二阶段均已实施，2026-09-15）
+- **已落地（7 内核）**：`_graded_step`（释放率平滑+权重，原地写）、
+  `_drive_cond`（电导 drive 双 CSR matvec 融合为单遍 f32 累加，逐行
+  加法次序与 scipy csr_matvec 相同）、`_edge_currents`（f64 输出，
+  保持下游混合 dtype 点积走原 BLAS 路径）、`_exp_step` /
+  `_exp_step_delayed`（衰减+投递融合；非延迟=缓冲式花式加法语义
+  （重复目标 last-wins），延迟=按 bin 升序、bin0 缓冲式、bin≥1
+  add.at 累加——逐条复刻 numpy 语义）、`_ou_step`（噪声仍由 numpy
+  rng 抽取）、`_lif_step` / `_lif_step_g32`（显式 + 半隐式 Euler；
+  g_tot f32 变体把分母全程按 f32 舍入，复刻 weak-scalar 提升）；
+- **RNG 全程 numpy**：随机序列不变；逐位一致已验证（单元对拍 +
+  smoke 端到端 FFBM_NUMBA=0/1 A/B + 首步逐状态探针）；
+- **实测**：生物学循环 **2.38×**（31.8 s vs 75.7 s @600 ms 全区域，
   scripts/profile_export_loop.py 单进程双轮）；全量导出估
-  22.5 → 13.6 min（不含核构建 68 s 与装配）；
-- **第二阶段待做**：`ExponentialSynapses.step` 的衰减+延迟投递
-  融合（现仍 numpy fancy-index，约剩 20% 步进成本）、LIF/OU 步进
-  JIT（Python 调度开销），预期再 +0.3~0.5×；
-- dtype 语义陷阱记录：GradedSynapsePool 无 sign 时 e_rev 曾是标量、
-  ExponentialSynapses 无 sign 时 np.where 曾给 0 维数组——均已改
-  逐边 1-D 数组（numpy 回退路径不受影响）；weak-scalar 提升使
-  `g_unit * y` 保持 f32，内核按同一次序乘加才逐位对齐。
+  22.1 → 9.3 min（不含核构建 68 s 与装配）；
+- **dtype 语义陷阱记录**（复刻 numpy 必须）：① GradedSynapsePool 无
+  sign 时 e_rev 曾是标量、ExponentialSynapses 无 sign 时 np.where 曾
+  给 0 维数组——均已改逐边 1-D 数组；② weak-scalar 提升使
+  `g_unit * y` 保持 f32、`y *= np.float64 衰减` 为 f64 乘后 f32 存
+  （已全 tau 扫描验证）；③ **L/MID 的 g_tot 是 f32**（直接传 drive
+  数组）而 T45/extra 是 f64 累加——半隐式分母的舍入路径不同，内核
+  按 dtype 分派；④ 投递空选集必须传空数组而非 None（numba 无法
+  类型化 None）；⑤ 花式加法 `y[t] += k[t]` 是缓冲式（last-wins），
+  与 add.at（累加）语义不同，两条投递路径各用各的；
+- **剩余候选**：释放率 sigmoid（r/l_release）、PhotoCascade、
+  spikes 掩码开销——占比已小，进一步收益有限；直接进 P3。
 
 ### P3 CuPy 全 GPU（2-4 天，二阶段）
 - 架构（FastFly + GeNN/Brian2GeNN 双重先例）：**全部状态 f32 常驻显存，

@@ -72,6 +72,128 @@ def _edge_currents(y, g_unit, e_rev, post_local, v_post, out):
         out[i] = np.float64(t1) * t2
 
 
+@njit
+def _exp_step(y, decay, sel, deliv_starts, deliv_counts, flat_idx,
+              kick, tmp_t, tmp_v):
+    """Non-delayed ExponentialSynapses.step as one pass.  The delivery
+    replicates numpy's BUFFERED fancy add (y[targets] += kick[targets]):
+    gather-all against the post-decay y, add, then scatter with
+    last-write-wins for duplicate targets -- NOT sequential accumulate."""
+    for i in range(y.size):
+        y[i] = np.float32(y[i] * decay)
+    m = 0
+    for ri in range(sel.size):
+        r = sel[ri]
+        for j in range(deliv_starts[r], deliv_starts[r] + deliv_counts[r]):
+            t = flat_idx[j]
+            tmp_t[m] = t
+            tmp_v[m] = y[t] + kick[t]
+            m += 1
+    for i in range(m):
+        y[tmp_t[i]] = tmp_v[i]
+
+
+@njit
+def _exp_step_delayed(y, decay, buffer, ptr, sel, deliv_starts,
+                      deliv_counts, flat_idx, delay_bins, kick,
+                      ts, bs, vs, pos0):
+    """Delayed ExponentialSynapses.step.  Semantics copied from the
+    numpy version exactly: decay (f64 mult, f32 store), ring row added
+    into y and cleared, then delivery split by delay bin in ASCENDING
+    order -- bin 0 uses the buffered last-write-wins fancy add into y,
+    bins >= 1 use np.add.at accumulation into buffer rows."""
+    for i in range(y.size):
+        y[i] = np.float32(y[i] * decay)
+    for i in range(y.size):
+        y[i] += buffer[ptr, i]
+        buffer[ptr, i] = np.float32(0.0)
+    ptr = (ptr + 1) % buffer.shape[0]
+    m = 0
+    for ri in range(sel.size):
+        r = sel[ri]
+        for j in range(deliv_starts[r], deliv_starts[r] + deliv_counts[r]):
+            t = flat_idx[j]
+            ts[m] = t
+            bs[m] = delay_bins[t]
+            m += 1
+    m0 = 0
+    for i in range(m):
+        if bs[i] == 0:
+            pos0[m0] = i
+            vs[m0] = y[ts[i]] + kick[ts[i]]
+            m0 += 1
+    for i in range(m0):
+        y[ts[pos0[i]]] = vs[i]
+    bmax = 0
+    for i in range(m):
+        if bs[i] > bmax:
+            bmax = bs[i]
+    for b in range(1, bmax + 1):
+        row = (ptr + b - 1) % buffer.shape[0]
+        for i in range(m):
+            if bs[i] == b:
+                buffer[row, ts[i]] += kick[ts[i]]
+    return ptr
+
+
+@njit
+def _ou_step(x, noise, a, k):
+    """ColoredCurrentNoise.step with the noise drawn outside (numpy
+    rng): x = a*x + k*w, float64 throughout."""
+    for i in range(x.size):
+        x[i] = a * x[i] + k * noise[i]
+
+
+@njit
+def _lif_step(v, refrac, i_ext, g_tot, g_is_none, dt, tau_m, v_rest,
+              v_th, v_reset, t_refrac, R_m, spike):
+    """LIFPopulation.step, g_tot float64 variant (the T45 / extra-region
+    callers accumulate drives into float64 zeros arrays)."""
+    for i in range(v.size):
+        if refrac[i] > 0.0:
+            v[i] = v_reset
+        if g_is_none:
+            v[i] = v[i] + dt * (-(v[i] - v_rest) + R_m * i_ext[i]) / tau_m
+        else:
+            a = dt / tau_m
+            v[i] = (v[i] + a * (v_rest + R_m * i_ext[i])) \
+                / (1.0 + a * (1.0 + R_m * g_tot[i]))
+        spike[i] = v[i] >= v_th
+        if spike[i]:
+            v[i] = v_reset
+        refrac[i] = refrac[i] - dt
+        if refrac[i] < 0.0:
+            refrac[i] = 0.0
+        if spike[i]:
+            refrac[i] = t_refrac
+
+
+@njit
+def _lif_step_g32(v, refrac, i_ext, g_tot, dt, tau_m, v_rest,
+                  v_th, v_reset, t_refrac, R_m, spike):
+    """g_tot float32 variant (the L / MID callers pass the f32 drive
+    arrays straight through).  numpy weak-scalar promotion keeps the
+    whole semi-implicit DENOMINATOR in f32: 1 + a*(1 + R*g) rounds to
+    f32 at every step, then the f64 numerator divides by its exact
+    f64-widened value."""
+    one = np.float32(1.0)
+    a32 = np.float32(dt / tau_m)
+    for i in range(v.size):
+        if refrac[i] > 0.0:
+            v[i] = v_reset
+        num = v[i] + (dt / tau_m) * (v_rest + R_m * i_ext[i])
+        den = one + a32 * (one + np.float32(R_m) * g_tot[i])
+        v[i] = num / np.float64(den)
+        spike[i] = v[i] >= v_th
+        if spike[i]:
+            v[i] = v_reset
+        refrac[i] = refrac[i] - dt
+        if refrac[i] < 0.0:
+            refrac[i] = 0.0
+        if spike[i]:
+            refrac[i] = t_refrac
+
+
 def _repeat_ranges(starts: np.ndarray, counts: np.ndarray) -> np.ndarray:
     """Concatenated [start, start+count) ranges for each (start, count) pair."""
     starts = np.asarray(starts, dtype=np.int64)
@@ -107,6 +229,10 @@ class ColoredCurrentNoise:
         self.rng = rng
 
     def step(self) -> np.ndarray:
+        if _HAVE_NUMBA:
+            w = self.rng.standard_normal(self.x.shape)
+            _ou_step(self.x, w, self.a, self.k)
+            return self.x
         self.x = self.a * self.x + self.k * self.rng.standard_normal(
             self.x.shape)
         return self.x
@@ -149,6 +275,22 @@ class LIFPopulation:
         synaptic conductance)."""
         hold = self.refrac > 0
         v = np.where(hold, self.v_reset, self.v)
+        if _HAVE_NUMBA:
+            spike = np.empty(self.n, dtype=np.bool_)
+            if g_tot is None:
+                # placeholder g; the kernel branches on g_is_none
+                _lif_step(self.v, self.refrac, i_ext, self.refrac, True,
+                          self.dt, self.tau_m, self.v_rest, self.v_th,
+                          self.v_reset, self.t_refrac, self.R_m, spike)
+            elif g_tot.dtype == np.float32:
+                _lif_step_g32(self.v, self.refrac, i_ext, g_tot,
+                              self.dt, self.tau_m, self.v_rest, self.v_th,
+                              self.v_reset, self.t_refrac, self.R_m, spike)
+            else:
+                _lif_step(self.v, self.refrac, i_ext, g_tot, False,
+                          self.dt, self.tau_m, self.v_rest, self.v_th,
+                          self.v_reset, self.t_refrac, self.R_m, spike)
+            return spike
         if g_tot is None:
             v = v + self.dt * (-(v - self.v_rest)
                                + self.R_m * i_ext) / self.tau_m
@@ -357,13 +499,28 @@ class ExponentialSynapses:
 
         self.decay = np.exp(-dt / tau_s)
         self.y = np.zeros(self.n_edges, dtype=np.float32)
+        # numba step-kernel scratch (delivery spans; sized for the worst
+        # case of every presynaptic neuron spiking in one step)
+        self._tmp_t = np.empty(self.n_edges, dtype=np.int64)
+        self._tmp_v = np.empty(self.n_edges, dtype=np.float32)
+        self._tmp_ts = np.empty(self.n_edges, dtype=np.int64)
+        self._tmp_bs = np.empty(self.n_edges, dtype=np.int64)
+        self._tmp_vs = np.empty(self.n_edges, dtype=np.float32)
+        self._tmp_p0 = np.empty(self.n_edges, dtype=np.int64)
+
+    def _sel_rows(self, spiked_pre: np.ndarray):
+        """Delivery rows for the spiked presynaptic ids; an EMPTY int64
+        array (never None) when nothing matches -- the numba kernels
+        cannot type a None argument."""
+        rows = [self.pre_row[int(p)] for p in spiked_pre
+                if int(p) in self.pre_row]
+        return (np.array(rows) if rows
+                else np.empty(0, dtype=np.int64))
 
     def deliver(self, spiked_pre: np.ndarray):
         if len(spiked_pre):
-            rows = [self.pre_row[int(p)] for p in spiked_pre
-                    if int(p) in self.pre_row]
-            if rows:
-                sel = np.array(rows)
+            sel = self._sel_rows(spiked_pre)
+            if sel.size:
                 spans = _repeat_ranges(self.deliv_starts[sel],
                                        self.deliv_counts[sel])
                 targets = self.flat_idx[spans]
@@ -391,6 +548,21 @@ class ExponentialSynapses:
 
     def step(self, spiked_pre: np.ndarray) -> np.ndarray:
         """One dt advance; returns per-edge current state (pA)."""
+        if _HAVE_NUMBA and self.n_edges:
+            sel = (self._sel_rows(spiked_pre) if len(spiked_pre)
+                   else np.empty(0, dtype=np.int64))
+            if self.delayed:
+                self.ptr = _exp_step_delayed(
+                    self.y, self.decay, self.buffer, self.ptr,
+                    sel, self.deliv_starts, self.deliv_counts,
+                    self.flat_idx, self.delay_bins, self.kick,
+                    self._tmp_ts, self._tmp_bs, self._tmp_vs, self._tmp_p0)
+            else:
+                _exp_step(self.y, self.decay, sel,
+                          self.deliv_starts, self.deliv_counts,
+                          self.flat_idx, self.kick,
+                          self._tmp_t, self._tmp_v)
+            return self.y
         self.y *= self.decay
         if self.delayed:
             self.y += self.buffer[self.ptr]
