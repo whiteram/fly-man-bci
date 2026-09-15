@@ -1,0 +1,122 @@
+# 计算加速路线图（下一阶段，暂缓执行）
+
+状态：**计划已定稿，未开始实施**（2026-09-13 定稿）。前置工作
+（路线 A：线程池核构建 + f32 分块 GEMM 前向，见 PERFORMANCE.md §7）
+已落地并全量对拍通过。本文是下一阶段的完整计划，恢复工作时直接
+从 P0 开始。
+
+---
+
+## 0. 基线事实（2026-09 实测）
+
+全量导出（45 导 / 10.5 s 生物学时间 / 全 CNS 5 区域 / 123 万投影
+偶极）当前总耗时 **~55 min**，构成：
+
+| 构成 | 占比 | 实测热点（scripts/profile_export_loop.py） |
+|---|---|---|
+| 每步生物学（21,000 步） | ~70% | `to_neuron_drive` 的 scipy CSR matvec（每步 ~38 次小矩阵乘，32%）+ 指数突触衰减（15%，gather + 4 遍整数组临时对象） |
+| 每毫秒前向记录（10,500 次） | ~28% | `edge_currents` 对 123 万边算电流；v_post 为 f64 会把 f32 状态**隐式升精度**，流量翻倍 |
+| 其他（延迟投递/OU/LIF） | 散布 | — |
+
+每步 ~80-120 次 numpy 调用、每次分配整数组临时对象。
+
+## 1. 执行环境
+
+**一切跑数用 conda `ffbm` 环境**
+（`C:\Software\Devel\Anaconda3\envs\ffbm\python.exe`，
+Python 3.12.14 + numpy 2.5.3 + scipy 1.18.1）。已认证：该环境跑
+smoke 的 phi_scalp 校验和与系统 Python（numpy 2.4.4）逐位一致
+（L2=4.798226e-05）。环境内**尚无** numba/cupy/torch，P0 安装。
+
+## 2. 分阶段计划
+
+### P0 环境准备（半小时）
+```bash
+C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cupy-cuda12x
+```
+- numba ≥0.65 才支持 numpy 2.5（0.64 支持 2.4）；
+- cupy-cuda12x 匹配驱动 CUDA 12.x（驱动 591.86 ✓，RTX 4060 Ti 16GB）；
+- 装完各跑一次 smoke 认证校验和不变。
+
+### P1 CPU 微优化（半天，低风险）
+- `edge_currents`：v_post 预转 f32（消隐式升精度）、预分配缓冲消临时对象；
+- `to_neuron_drive` 的两次 CSR matvec 合并为一次遍历（手写 CSR 循环）；
+- 预期 55 → ~40 min；逐位对拍验证。
+
+### P2 Numba JIT（一天，推荐先做）
+- `@njit` 融合：GradedSynapses.step、ExponentialSynapses.step（衰减+投递）、
+  edge_currents、手写 CSR matvec；
+- **RNG 留在 numpy 侧**：噪声数组在循环外抽好传入 → 随机序列不变，
+  float64 同序运算逐位一致 → 现有红线对拍（<0.1 μV 或 <1%）照常适用；
+- `parallel=True` 用于 123 万边的记录路径；
+- 预期 **55 → ~15 min**。
+
+### P3 CuPy 全 GPU（2-4 天，二阶段）
+- 架构（FastFly + GeNN/Brian2GeNN 双重先例）：**全部状态 f32 常驻显存，
+  整场仿真零回传**；~15 种逐元素操作用 `cupy.fuse`/`RawKernel`（NVRTC
+  运行时编译，**不需要 Visual Studio/nvcc**）；整步用
+  `cupy.cuda.Graph` 流捕获 + replay 21,000 次；Y 缓冲与 45×N GEMM
+  留 GPU（cublas），最后只传回 45×10,500 头皮电位；
+- 可选借鉴 FastFly：尖峰驱动组（MT_*/V2C/CEN_*）的事件驱动 push；
+  FP16 权重（远期，需单独校准验证）；
+- 预期 **全导出 <2 min**（步进工作内存受限 ~5-10 s 量级）；
+- **验证判据改为统计性**（见 §3 RNG 决策）。
+
+### P4 多 trial 并行（零风险，随时可加）
+- SNR 场景 d′=2 需 ~1,630 trials → **吞吐比延迟重要**；
+- multiprocessing 16 seed 并行，代码零改动，与 P2/P3 叠乘（16 核）。
+
+## 3. ⚠️ B3 前必须决策：RNG 流一致性（外部审查发现的暗礁）
+
+红线原文要求"GPU 与 CPU 轨迹逐点对拍"，但 CPU 仿真的 OU 噪声/投递
+抖动来自固定种子的 numpy 随机流。GPU 化后二选一：
+
+- **方案 a（推荐）**：噪声仍在 CPU numpy 生成，分批（如每 100 步一批）
+  传 GPU（pin memory，21k 步 × 每批 ~4 个小数组 ≈ 总计 ~百 MB 传输，
+  ~秒级）→ GPU 轨迹与 CPU **逐位一致**，红线不变；
+- **方案 b**：噪声用 CuPy 计数器型 RNG（philox）在 GPU 生成 → 序列与
+  numpy 不同 → 轨迹统计去相关（与"漏 --regions 事故"同款现象），
+  **必须把红线改为统计判据**（带限功率谱/相关系数/rate 轨迹 + SNR
+  量级复算），并记录在案。
+
+默认走方案 a；只有方案 a 的传输成为新瓶颈时才考虑 b。
+
+## 4. 内存备忘
+
+- 默认精确路径：45 × 123 万 float64 系数 ≈ **443 MB**（已按组分批
+  构建；非 pool 模式下 f64 副本用后即释，仅保留 f32 应用副本）；
+- 将来 EGI 256 导全量精确波形：系数内存 ×5（~2.2 GB f64）——
+  f32 化 + 分组批放可解，但不耐free运行内存；届时先跑一次实测。
+
+## 5. 明确不做 / 已否决
+
+- **B1 GPU 核构建**：线程池已拿到 68 s（15×），GPU 边际收益 ~1 min，
+  不值得；
+- **迁移 Brian2/Brian2GeNN**：现成 GPU 引擎，但需重写 PhotoCascade、
+  分级突触、延迟环等自定义模型，漂移风险远大于自移植 ~15 种算子；
+- **kernel pooling（A1）**：曾有 24% 精度问题，维持 `--pool` 显式
+  opt-in + in-run 校验的现状。
+
+## 6. 恢复工作的第一步
+
+1. `git log --oneline -5` 确认在含路线 A 的版本之后；
+2. 执行 P0 装包 + smoke 认证；
+3. P1 改 `src/ffbm/simulation.py`（edge_currents / to_neuron_drive），
+   每步跑 `scripts/profile_export_loop.py 600` 看收益；
+4. P2 逐函数 JIT，每个函数跑 tests/ + smoke 对拍后再做下一个；
+5. 全量验证命令（后台）：
+   `python viz/export_data.py --visual-input demo_bounce --elec-layout viz/data/elec_layout_1010.json --regions visual_bilateral,vpn_central,ol_rest,central_brain,vnc`
+   （勿漏 --regions！）
+
+## 7. 参考资料
+
+- FastFly（eonfathom）：果蝇全脑 connectome 单卡实时仿真，
+  Python/CuPy + NVRTC 运行时编译kernel 的完整先例
+  <https://github.com/eonfathom/FastFly>
+- Brian2GeNN（状态常驻架构，35-400×）：
+  <https://pmc.ncbi.nlm.nih.gov/articles/PMC6962409/>
+- Brian2CUDA：<https://www.frontiersin.org/articles/10.3389/fninf.2022.883700/full>
+- cupy.cuda.Graph：<https://docs.cupy.dev/en/latest/reference/generated/cupy.cuda.Graph.html>
+- CuPy 自定义 kernel（fuse/RawKernel）：<https://docs.cupy.dev/en/latest/user_guide/kernel.html>
+- Numpy 2.5 需 numba ≥0.65：<https://github.com/numba/numba/releases>
+- NVIDIA CUDA Graphs：<https://developer.nvidia.com/blog/cuda-graphs/>

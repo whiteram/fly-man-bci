@@ -495,7 +495,20 @@ def main():
                   "kind=video -- falling back to the natural 1/f protocol")
         else:
             frames = np.load(ROOT / "viz" / cfg["source"])
-            if frames.ndim == 4:               # RGB(A) frames -> luma
+            if frames.dtype == np.uint8:       # display-referred [0,255]
+                frames = frames.astype(np.float64) / 255.0
+            else:
+                frames = frames.astype(np.float64)   # float: expect [0,1]
+            if cfg.get("linearize_srgb", True):
+                # stored frames are gamma-encoded (sRGB display values);
+                # the BT.709 luma weights and the Gaussian PSF below are
+                # linear-domain operations -- decode first.  Opt out per
+                # input with "linearize_srgb": false for already-linear
+                # synthetic stacks.
+                frames = np.where(frames <= 0.04045,
+                                  frames / 12.92,
+                                  ((frames + 0.055) / 1.055) ** 2.4)
+            if frames.ndim == 4:               # RGB(A) frames -> BT.709 luma
                 frames = (frames[..., 0] * 0.2126
                           + frames[..., 1] * 0.7152
                           + frames[..., 2] * 0.0722)
@@ -504,7 +517,8 @@ def main():
             if blur > 0:                       # ommatidial PSF blur
                 frames = np.stack([gaussian_filter(
                     f.astype(np.float64), blur) for f in frames])
-            lo_p, hi_p = np.percentile(frames, [1, 99])
+            pct = np.asarray(cfg.get("norm_pct", [1.0, 99.0]), float)
+            lo_p, hi_p = np.percentile(frames, pct)
             frames = np.clip((frames - lo_p)
                              / max(float(hi_p - lo_p), 1e-9), 0.0, 1.0)
             H, W = frames.shape[1:3]
@@ -517,21 +531,31 @@ def main():
             y_lo, y_hi = np.percentile(y_i, [1, 99])
             x_pad = (x_hi - x_lo) * mg
             y_pad = (y_hi - y_lo) * mg
-            pxi = np.clip(np.round(
-                (x_i - (x_lo - x_pad))
-                / max((x_hi + x_pad) - (x_lo - x_pad), 1e-9)
-                * (W - 1)).astype(int), 0, W - 1)
-            pyi = np.clip(np.round(
-                (y_i - (y_lo - y_pad))
-                / max((y_hi + y_pad) - (y_lo - y_pad), 1e-9)
-                * (H - 1)).astype(int), 0, H - 1)
+            # float coords -> bilinear sampling: nearest-neighbour
+            # aliases at low video resolutions (sub-ommatidial pixels)
+            pxf = np.clip((x_i - (x_lo - x_pad))
+                          / max((x_hi + x_pad) - (x_lo - x_pad), 1e-9)
+                          * (W - 1), 0, W - 1)
+            pyf = np.clip((y_i - (y_lo - y_pad))
+                          / max((y_hi + y_pad) - (y_lo - y_pad), 1e-9)
+                          * (H - 1), 0, H - 1)
+            pxi = np.round(pxf).astype(int)     # ints only for the
+            pyi = np.round(pyf).astype(int)     # sparse preview binning
+            from scipy.ndimage import map_coordinates
             lo_l = float(cfg.get("lo", 0.05))
             hi_l = float(cfg.get("hi", 3.0))
-            S = lo_l + (hi_l - lo_l) * frames[:, pyi, pxi]  # (T, n_r)
+            S = lo_l + (hi_l - lo_l) * np.stack([
+                map_coordinates(frames[f], [pyf, pxf], order=1,
+                                mode="nearest")
+                for f in range(frames.shape[0])])          # (T, n_r)
             fps_v = float(cfg.get("fps", 30.0))
+            loop_v = bool(cfg.get("loop", False))
 
             def luminance(t):
-                return S[min(int(t / 1000.0 * fps_v), S.shape[0] - 1)]
+                f = int(t / 1000.0 * fps_v)
+                if loop_v:
+                    f %= S.shape[0]            # loop instead of freezing
+                return S[min(f, S.shape[0] - 1)]
 
             video_frames = frames              # kept for preview export
             visual_meta = {"id": cfg["id"], "kind": "video",
@@ -565,6 +589,11 @@ def main():
     gnames = list(group_pairs) + ["PHOTO"]
     coef_f32 = {name: coef_scalp[name].astype(np.float32)
                 for name in gnames}
+    if not pool_info:
+        # the float64 kernels are only consumed by the in-run pooling
+        # validation (pool mode); drop them in exact mode -- 45 x 1.23M
+        # f64 is ~443 MB and the application path is all-f32
+        coef_scalp.clear()
     # row-major (CHUNK, N): records append CONTIGUOUS rows (a strided
     # column write costs a cache miss per dipole); flush feeds the
     # transposed view straight into the GEMM (BLAS native, no copy)

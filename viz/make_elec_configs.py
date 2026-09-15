@@ -7,7 +7,7 @@ Configs:
   std_105_128 : the 128-level cap -- the 64 subdivided once more to 5%
                 steps (10-5 family); new sites are named by matching
                 MNE-Python's standard_1005 montage (343 official 10-05
-                positions) after a similarity-transform frame alignment
+                positions) to chain-pair midpoints
 
 All are derived with the SAME calibrated frame (the handles / ni / yaw /
 roll of viz/data/calib_1020_export.json when present, else the ANCHORS
@@ -102,18 +102,6 @@ def mne_1005_unit_dirs():
     pos = m.get_positions()["ch_pos"]
     return {k: np.asarray(v, dtype=np.float64) /
             np.linalg.norm(v) for k, v in pos.items()}
-
-
-def similarity(src, dst):
-    """Least-squares similarity (R, t, s) with s*R@src + t ~= dst."""
-    mu_s, mu_d = src.mean(0), dst.mean(0)
-    s0, d0 = src - mu_s, dst - mu_d
-    U, S, Vt = np.linalg.svd(s0.T @ d0)
-    D = np.diag([1.0, 1.0, np.sign(np.linalg.det(Vt.T @ U.T))])
-    R = Vt.T @ D @ U.T
-    s = float((S * np.diag(D)).sum() / (s0 ** 2).sum())
-    t = mu_d - s * R @ mu_s
-    return R, t, s
 
 
 def build_egi_256(cap64):

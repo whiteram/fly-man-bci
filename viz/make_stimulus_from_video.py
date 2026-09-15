@@ -5,7 +5,11 @@ visual-input pipeline consumes:
         [--fps 30] [--width 96] [--start 0] [--duration 10.5]
 
 Frames are center-cropped to 4:3, rescaled, converted to grayscale, and
-stored as (frames, H, W) uint8.  Requires imageio + imageio-ffmpeg:
+stored as (frames, H, W) uint8 in display-referred (gamma-encoded) form
+-- export_data.py decodes sRGB -> linear at load time.  Frames are read
+SEQUENTIALLY: indexed reads force the demuxer to re-decode from the
+previous keyframe, which is orders of magnitude slower on long clips.
+Requires imageio + imageio-ffmpeg:
     pip install imageio imageio-ffmpeg
 """
 import argparse
@@ -31,26 +35,30 @@ meta = iio.immeta(args.src, plugin="pyav")
 src_fps = float(meta.get("fps", 30.0))
 stride = max(1, round(src_fps / args.fps))
 H = round(args.width * 3 / 4)
+start_frame = int(args.start * src_fps)
+want = int(args.duration * args.fps)
+
 frames = []
-t = args.start
-while len(frames) < args.duration * args.fps:
-    try:
-        img = iio.imread(args.src, plugin="pyav", index=int(t * src_fps))
-    except Exception:
-        break
-    h0, w0 = img.shape[:2]
-    # center-crop 4:3 then rescale to (H, args.width)
-    if w0 > h0 * 4 / 3:
-        cw = int(h0 * 4 / 3)
-        img = img[:, (w0 - cw) // 2:(w0 - cw) // 2 + cw]
-    else:
-        ch = int(w0 * 3 / 4)
-        img = img[(h0 - ch) // 2:(h0 - ch) // 2 + ch]
-    yy = np.linspace(0, img.shape[0] - 1, H).astype(int)
-    xx = np.linspace(0, img.shape[1] - 1, args.width).astype(int)
-    g = (img[yy][:, xx] * np.array([0.2126, 0.7152, 0.0722])).sum(-1)
-    frames.append(np.clip(g, 0, 255).astype(np.uint8))
-    t += stride / src_fps
+taken = 0
+for idx, img in enumerate(iio.imiter(args.src, plugin="pyav")):
+    if idx < start_frame:
+        continue
+    if (idx - start_frame) % stride == 0:
+        h0, w0 = img.shape[:2]
+        # center-crop 4:3 then rescale to (H, args.width)
+        if w0 > h0 * 4 / 3:
+            cw = int(h0 * 4 / 3)
+            img = img[:, (w0 - cw) // 2:(w0 - cw) // 2 + cw]
+        else:
+            ch = int(w0 * 3 / 4)
+            img = img[(h0 - ch) // 2:(h0 - ch) // 2 + ch]
+        yy = np.linspace(0, img.shape[0] - 1, H).astype(int)
+        xx = np.linspace(0, img.shape[1] - 1, args.width).astype(int)
+        g = (img[yy][:, xx] * np.array([0.2126, 0.7152, 0.0722])).sum(-1)
+        frames.append(np.clip(g, 0, 255).astype(np.uint8))
+        taken += 1
+        if taken >= want:
+            break
 
 out = np.stack(frames)
 Path(args.dst).parent.mkdir(parents=True, exist_ok=True)
