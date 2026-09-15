@@ -101,6 +101,19 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
   潜在注意：合成数据下 graded 的 numba 与纯 numpy 路径存在
   ~1e-7 级差异（numba 的 k 为 f64、numpy weak-scalar 全 f32），
   生产 r_pre∈[0,1] 未触发；GPU 对拍基准 = numba（生产路径）。
+- **P3-2 PoC 实测（2026-09-16，scripts/poc_cupy_graph.py）**：
+  ① **CUDA Graph 无收益**（eager 与 graph 每步差 <2%，启动开销
+  在真实内核耗时下可忽略）→ 放弃 Graph，工程更简单；
+  ② 合成随机布局下 per-post gather 内核 61.6 ms/步（随机 gather
+  是延迟硬地板：64M 次随机读 ~29 ms，unroll/int32 都救不了）；
+  ③ **生产布局无此问题**：y 本就按 `lexsort((pre, post))` post 主序
+  连续存储，drive = 流式段求和（实测 64M 边 6.8 ms，逐位次序与
+  numba 全局边序相同），无需 permute/gather；
+  ④ edge_currents 真实规模是 123 万投影边（PoC 误用 64M）；
+  ⑤ 生产布局全步估算 ~16 ms/步（decay 2.1 + ringadd 3.2 + 稀疏
+  deliver ~3 + drive 流式 6.8 + ecur@1.23M ~0.5）→ 21k 步 ≈
+  5.6 min；decay+ring+clear 可融合（traffic 减半）→ ~10-12 ms/步
+  ≈ 4 min。结论：先按生产布局落地 P3-3 实测，融合优化视实测再做。
 
 ### P4 多 trial 并行（零风险，随时可加）
 - SNR 场景 d′=2 需 ~1,630 trials → **吞吐比延迟重要**；
