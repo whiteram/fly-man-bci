@@ -1335,14 +1335,17 @@ function deriveCap(nEar, nRot, cz, ni, th) {
     Fz: sag(0.20 * ni), Pz: sag(-0.20 * ni),
     Fpz: sag(0.40 * ni), Oz: sag(-0.40 * ni),
     Nasion: sag(0.50 * ni), Inion: sag(-0.50 * ni),
-    C3: cor(-36.0), C4: cor(36.0),
-    T7: cor(-72.0), T8: cor(72.0),
   };
   const thr = th * Math.PI / 180;
   d.A1 = cz.clone().multiplyScalar(Math.cos(thr))
          .addScaledVector(nEar, Math.sin(thr)).normalize();
   d.A2 = cz.clone().multiplyScalar(Math.cos(thr))
          .addScaledVector(nEar, -Math.sin(thr)).normalize();
+  // transverse ring scaled to the measured ear elevation: T7/T8 sit
+  // 10% of the ear-to-ear arc inward from the ears, C3/C4 are the
+  // Cz-T7/T8 arc midpoints (th = 90 deg -> the classical 36/72 deg)
+  d.C3 = cor(-0.40 * th); d.C4 = cor(0.40 * th);
+  d.T7 = cor(-0.80 * th); d.T8 = cor(0.80 * th);
   const fp = 0.10 * ni;
   const fp1 = slerpDeg(d.Fpz, d.T7, fp), fp2 = slerpDeg(d.Fpz, d.T8, fp);
   const o1 = slerpDeg(d.Oz, d.T7, fp), o2 = slerpDeg(d.Oz, d.T8, fp);

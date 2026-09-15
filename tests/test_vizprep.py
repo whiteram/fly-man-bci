@@ -77,6 +77,37 @@ def test_standard_1020_fpz_override_rebuilds_chain():
     assert deg(afz_mid, lifted["AFz"]) < 1e-6
 
 
+def test_standard_1020_transverse_ring_scales_with_ear_elevation():
+    # the coronal chain follows the measured Cz-ear elevation th:
+    # C3/C4 at 0.4*th, T7/T8 at 0.8*th (th=90 deg -> classical 36/72)
+    cz = np.array([0.0, np.cos(np.radians(30.0)), np.sin(np.radians(30.0))])
+    ant = np.array([0.0, np.sin(np.radians(30.0)), -np.cos(np.radians(30.0))])
+    left = np.cross(cz, ant)
+    anchors = {
+        "CZ": cz,
+        "FZ": cz * np.cos(np.radians(48.46))
+              + ant * np.sin(np.radians(48.46)),
+        "OZ": cz * np.cos(np.radians(48.46))
+              - ant * np.sin(np.radians(48.46)),
+        "A1": cz * np.cos(np.radians(130.8)) + left * np.sin(np.radians(130.8)),
+        "A2": cz * np.cos(np.radians(130.8)) - left * np.sin(np.radians(130.8)),
+    }
+    lay = standard_1020(anchors, system="1010", ni_arc_deg=242.3)
+    deg = lambda a, b: np.degrees(np.arccos(np.clip(a @ b, -1, 1)))
+    assert abs(deg(lay["C3"], cz) - 0.40 * 130.8) < 1e-6
+    assert abs(deg(lay["C4"], cz) - 0.40 * 130.8) < 1e-6
+    assert abs(deg(lay["T7"], cz) - 0.80 * 130.8) < 1e-6
+    assert abs(deg(lay["T8"], cz) - 0.80 * 130.8) < 1e-6
+    assert abs(deg(lay["A1"], cz) - 130.8) < 1e-6
+    # and the idealized case reproduces the classical fixed placements
+    anchors90 = dict(anchors)
+    anchors90["A1"] = -left
+    anchors90["A2"] = left
+    lay90 = standard_1020(anchors90, system="1010", ni_arc_deg=180.0)
+    assert abs(deg(lay90["C3"], cz) - 36.0) < 1e-6
+    assert abs(deg(lay90["T7"], cz) - 72.0) < 1e-6
+
+
 def test_electrode_dirs_capped_excludes_face_and_neck():
     from ffbm.vizprep import ELEC_DEFAULTS
     face = np.array([0.0, 0.0, 1.0])

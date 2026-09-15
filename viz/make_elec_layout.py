@@ -33,9 +33,20 @@ old = json.loads(dst.read_text(encoding="utf-8"))
 export = Path(__file__).parent / "data" / "calib_1020_export.json"
 if export.exists():
     exp = json.loads(export.read_text(encoding="utf-8"))
-    out = {k: [float(x) for x in v] for k, v in exp["layout"].items()}
-    print(f"source: calibration export (ni={exp.get('ni_arc_deg')} deg, "
-          f"ear th={exp.get('ear_th_deg')} deg)")
+    if "handles" in exp and "ni_arc_deg" in exp:
+        # preferred: re-derive from the 6 handles so the CURRENT rules
+        # (incl. the th-scaled transverse ring) apply
+        h = exp["handles"]
+        anchors = {k: h[k] for k in ("Cz", "Fz", "Oz", "A1", "A2")}
+        layout = vp.standard_1020(anchors, system="1010",
+                                  ni_arc_deg=exp["ni_arc_deg"])
+        out = {k: [round(float(x), 5) for x in v]
+               for k, v in layout.items()}
+        print(f"source: calibration handles re-derived "
+              f"(ni={exp['ni_arc_deg']} deg, ear th={exp.get('ear_th_deg')} deg)")
+    else:
+        out = {k: [float(x) for x in v] for k, v in exp["layout"].items()}
+        print("source: calibration export layout (verbatim)")
 else:
     layout = vp.standard_1020(ANCHORS, system="1010",
                               ni_arc_deg=NI_ARC_DEG,
@@ -43,7 +54,9 @@ else:
     out = {k: [round(float(x), 5) for x in v] for k, v in layout.items()}
     print(f"source: anchors + ni_arc={NI_ARC_DEG}, fpz_arc={FPZ_ARC_DEG}")
 
-assert list(old.keys()) == list(out.keys()), "channel order changed!"
+assert set(old.keys()) == set(out.keys()), "channel set changed!"
+# canonical channel order = the existing file's (index alignment!)
+out = {k: out[k] for k in old}
 moved = {}
 for k in out:
     dot = sum(old[k][i] * out[k][i] for i in range(3))

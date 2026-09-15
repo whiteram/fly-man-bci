@@ -69,8 +69,12 @@ def standard_1020(anchors: dict, system: str = "1020",
         head mesh -- the whole frontal chain (Fp1/2, F7/8, F3/4, AFz,
         AF3/4, F1/2, FC5/6) is rebuilt from the moved Fpz;
       - the coronal great circle through Cz (perpendicular to the
-        sagittal one) carries C3/C4 at 20% of the LPA-RPA arc on either
-        side of Cz (=36 deg at ni_arc=180) and T7/T8 at 40% (=72 deg);
+        sagittal one) carries the transverse chain, SCALED to the
+        measured Cz-ear elevation th: the ears A1/A2 are the chain
+        endpoints at +/-th, T7/T8 sit 10% of the ear-to-ear arc inward
+        from the ears (=-/+0.8*th) and C3/C4 are the Cz-T7/T8 arc
+        midpoints (=-/+0.4*th; at the spherical idealization th=90 deg
+        these are the classical -/+36 / -/+72 deg placements);
       - A1/A2 keep the USER'S elevation (earlobes sit below the
         N-I plane), mirrored exactly about the sagittal plane;
       - the lateral chains are built by the arc rules scaled to the
@@ -119,8 +123,6 @@ def standard_1020(anchors: dict, system: str = "1020",
                    else 0.40 * ni),
         "Oz": sag(-0.40 * ni),
         "Nasion": sag(0.50 * ni), "Inion": sag(-0.50 * ni),
-        "C3": cor(-36.0), "C4": cor(36.0),
-        "T7": cor(-72.0), "T8": cor(72.0),
     }
     # A1/A2: keep the USER'S elevation (real earlobes sit below the
     # nasion-inion plane -- snapping them onto the coronal great circle
@@ -135,6 +137,14 @@ def standard_1020(anchors: dict, system: str = "1020",
                 + np.arccos(np.clip(get["A2"] @ cz, -1, 1)))
     out["A1"] = cz * np.cos(th) + L_s * np.sin(th)
     out["A2"] = cz * np.cos(th) - L_s * np.sin(th)
+    # transverse ring: scaled to the measured Cz-ear elevation th (at
+    # the spherical idealization th = 90 deg this reproduces the fixed
+    # -/+36 / -/+72 deg placement)
+    th_deg = np.degrees(th)
+    out["C3"] = cor(-0.40 * th_deg)
+    out["C4"] = cor(0.40 * th_deg)
+    out["T7"] = cor(-0.80 * th_deg)
+    out["T8"] = cor(0.80 * th_deg)
     # lateral chains: Fp1 at 10% of ni_arc from Fpz toward T7, O1 at
     # 10% from Oz toward T7, then F7/P7 as arc midpoints, F3/P3 as
     # midpoints of the Fz/Pz spokes
