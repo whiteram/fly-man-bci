@@ -1560,9 +1560,10 @@ function toggleCalib() {
   }
   if (elecEdit) toggleElecEdit();            // modes are exclusive
   if (viewCalib) toggleViewCalib();
-  if (ACTIVE_CONFIG_ID && (!ELEC_CONFIGS ||
-      (configById(ACTIVE_CONFIG_ID) || {}).kind === "custom")) {
-    alert("自定义电极布局不适用 10-20 规则标定");
+  const activeKind = (configById(ACTIVE_CONFIG_ID) || {}).kind;
+  if (activeKind !== "std_1020_45" && activeKind !== "std_1010_64") {
+    alert("当前配置（" + ACTIVE_CONFIG_ID + "）不适用 10-20 规则标定；" +
+          "请切换到 45/64 导配置进行标定");
     return;
   }
   if (!editTraces)

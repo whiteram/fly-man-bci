@@ -4,8 +4,12 @@ catalogue consumed by the visualization page.
 Configs:
   std_1020_45 : the 45-channel 10-20/10-10 hybrid currently in use
   std_1010_64 : the classic 64-channel 10-10 cap (chain midpoints + Iz)
+  std_105_128 : the 128-level cap -- the 64 subdivided once more to 5%
+                steps (10-5 family); new sites are named by matching
+                MNE-Python's standard_1005 montage (343 official 10-05
+                positions) after a similarity-transform frame alignment
 
-Both are derived with the SAME calibrated frame (the handles / ni / yaw /
+All are derived with the SAME calibrated frame (the handles / ni / yaw /
 roll of viz/data/calib_1020_export.json when present, else the ANCHORS
 defaults below), so switching between them never changes the calibration.
 
@@ -13,11 +17,13 @@ To add a CUSTOM config: append an entry to the generated file (or better,
 extend this script) -- {"id", "label", "kind": "custom", "count",
 "channels": {name: [x, y, z]}} -- and reload the page.  Custom configs are
 displayed as-is; the rule-based 10-20 calibration sliders are disabled for
-them.
+them.  See ELEC_CONFIGS.md for the full documentation.
 """
 import json
 import sys
 from pathlib import Path
+
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 import ffbm.vizprep as vp
@@ -65,6 +71,97 @@ def as_channels(layout, order=None, extra_order=None):
     return chan
 
 
+# 10-10 chains (adjacent sites 10% apart) used for the 5% subdivision
+CHAINS = [
+    ["Nasion", "Fpz", "AFz", "Fz", "FCz", "Cz", "CPz", "Pz", "POz", "Oz",
+     "Inion"],
+    ["Fp1", "AF3", "F3", "FC3", "C3", "CP3", "P3", "PO3", "O1"],
+    ["Fp2", "AF4", "F4", "FC4", "C4", "CP4", "P4", "PO4", "O2"],
+    ["F1", "FC1", "C1", "CP1", "P1"],
+    ["F2", "FC2", "C2", "CP2", "P2"],
+    ["Fp1", "AF7", "F7", "FT7", "T7", "TP7", "P7", "PO7", "O1"],
+    ["Fp2", "AF8", "F8", "FT8", "T8", "TP8", "P8", "PO8", "O2"],
+    ["F7", "F5", "F3", "F1", "Fz", "F2", "F4", "F6", "F8"],
+    ["FT7", "FC5", "FC3", "FC1", "FCz", "FC2", "FC4", "FC6", "FT8"],
+    ["T7", "C5", "C3", "C1", "Cz", "C2", "C4", "C6", "T8"],
+    ["TP7", "CP5", "CP3", "CP1", "CPz", "CP2", "CP4", "CP6", "TP8"],
+    ["P7", "P5", "P3", "P1", "Pz", "P2", "P4", "P6", "P8"],
+    ["PO7", "PO3", "POz", "PO4", "PO8"],
+    ["O1", "Oz", "O2"],
+    ["AF7", "AF3", "AFz", "AF4", "AF8"],
+]
+
+
+def mne_1005_unit_dirs():
+    """MNE standard_1005 (the 10-05 system, 343 named sites) as
+    {name: unit vector}, in the montage's own frame."""
+    from mne.channels import make_standard_montage
+    import warnings
+    warnings.filterwarnings("ignore")
+    m = make_standard_montage("standard_1005")
+    pos = m.get_positions()["ch_pos"]
+    return {k: np.asarray(v, dtype=np.float64) /
+            np.linalg.norm(v) for k, v in pos.items()}
+
+
+def similarity(src, dst):
+    """Least-squares similarity (R, t, s) with s*R@src + t ~= dst."""
+    mu_s, mu_d = src.mean(0), dst.mean(0)
+    s0, d0 = src - mu_s, dst - mu_d
+    U, S, Vt = np.linalg.svd(s0.T @ d0)
+    D = np.diag([1.0, 1.0, np.sign(np.linalg.det(Vt.T @ U.T))])
+    R = Vt.T @ D @ U.T
+    s = float((S * np.diag(D)).sum() / (s0 ** 2).sum())
+    t = mu_d - s * R @ mu_s
+    return R, t, s
+
+
+def build_105_sites(cap64):
+    """5%-subdivision candidates on the 10-10 chains.  Naming: each
+    chain-adjacent pair (a, b) also exists in MNE's standard_1005; the
+    midpoint of the MNE pair identifies the official 10-05 name (nearest
+    10-05 site within the MNE frame -- no cross-frame fitting needed).
+    Returns {name: unit dir} for confidently named new sites."""
+    mne_dirs = mne_1005_unit_dirs()
+    used = set(cap64) | {"Nasion", "Inion"}
+    out, skipped = {}, 0
+    for chain in CHAINS:
+        for a, b in zip(chain, chain[1:]):
+            if a not in cap64 or b not in cap64:
+                continue
+            if a not in mne_dirs or b not in mne_dirs:
+                skipped += 1
+                continue
+            m = cap64[a] + cap64[b]
+            m = m / np.linalg.norm(m)
+            m_mne = mne_dirs[a] + mne_dirs[b]
+            m_mne = m_mne / np.linalg.norm(m_mne)
+            best_n, best_d = None, 1.0
+            for n, p in mne_dirs.items():
+                d = float(np.degrees(np.arccos(np.clip(m_mne @ p, -1, 1))))
+                if d < best_d:
+                    best_n, best_d = n, d
+            if best_n is None or best_d > 2.0:
+                skipped += 1
+                continue
+            if best_n in used or best_n in out:
+                continue
+            out[best_n] = m
+    if skipped:
+        print(f"  ({skipped} chain segments skipped -- no confident name)")
+    return out
+
+
+def prune_to_target(new_sites, cap64, target):
+    """Keep `target` new sites: prefer plain 10-10-grid names over the
+    exotic 'h'-suffixed 10-05 ones, then alphabetical for stability."""
+    def score(item):
+        name = item[0]
+        return (name.endswith("h"), name)
+    keep = sorted(new_sites.items(), key=score)[:target]
+    return dict(keep)
+
+
 def main():
     anchors, ni, yaw, roll = frame_params()
     cap45 = vp.standard_1020(anchors, system="1010", ni_arc_deg=ni,
@@ -78,19 +175,39 @@ def main():
     order45 = meta["elec_names"]
     extras = [n for n, _a, _b in vp.MIDPOINT_SITES] + ["Iz"]
     order64 = order45 + [n for n in extras if n not in order45]
+
+    configs = [
+        {"id": "std_1020_45", "label": "10-20 系统",
+         "kind": "std_1020_45", "count": 45,
+         "channels": as_channels(cap45, order=order45)},
+        {"id": "std_1010_64", "label": "10-10 扩展",
+         "kind": "std_1010_64", "count": 64,
+         "channels": as_channels(cap64, extra_order=order64)},
+    ]
+
+    try:
+        new_sites = build_105_sites(cap64)
+        n_cand = len(new_sites)
+        new_sites = prune_to_target(new_sites, cap64,
+                                    128 - len(order64))
+        order128 = order64 + sorted(new_sites)
+        cap128 = dict(cap64)
+        cap128.update(new_sites)
+        configs.append(
+            {"id": "std_105_128", "label": "10-5 细分",
+             "kind": "std_105_128", "count": len(order128),
+             "channels": as_channels(cap128, extra_order=order128)})
+        print(f"  10-5 subdivision: {n_cand} named candidates -> "
+              f"kept {len(new_sites)} (total {len(order128)})")
+    except ImportError:
+        print("  mne not available -- skipping the 10-5/128 config")
+
     cat = {
         "_schema": "electrode configs: name -> unit direction [x,y,z]; "
                    "add a custom entry with kind='custom' and reload",
-        "version": 2,
+        "version": 3,
         "frame": {"ni_arc_deg": ni, "yaw_deg": yaw, "roll_deg": roll},
-        "configs": [
-            {"id": "std_1020_45", "label": "10-20 系统",
-             "kind": "std_1020_45", "count": 45,
-             "channels": as_channels(cap45, order=order45)},
-            {"id": "std_1010_64", "label": "10-10 扩展",
-             "kind": "std_1010_64", "count": 64,
-             "channels": as_channels(cap64, extra_order=order64)},
-        ],
+        "configs": configs,
     }
     dst = Path(__file__).parent / "data" / "elec_configs.json"
     dst.write_text(json.dumps(cat, indent=1), encoding="utf-8")
