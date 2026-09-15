@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "experiments" / "exp015_bilateral"))
 
 from ffbm import pipeline as fp
+from ffbm import params as fparams
 from ffbm import regions as freg
 from ffbm import vizprep as vp
 from ffbm.forward import FourSpherePairField, SealedHeadPairField
@@ -42,7 +43,7 @@ DT = exp005.DT
 # flashes -- the resulting EEG traces are wavy, not blocky.  All protocol
 # hyperparameters live in the user-modifiable registry (src/ffbm/
 # params.py -> docs/PARAMS.md); edit there, not here.
-_ST = fp.SECTIONS["stimulus"]
+_ST = fparams.SECTIONS["stimulus"]
 SEED = _ST["seed"][0]
 T_EPOCHS = [tuple(e) for e in _ST["t_epochs"][0]]
 T_END = T_EPOCHS[-1][2]
@@ -69,6 +70,11 @@ def main():
                          "directions (standard_1020 output or the "
                          "electrode-editor export); overrides the "
                          "capped Fibonacci layout")
+    ap.add_argument("--visual-input", type=str, default="natural_1d",
+                    help="visual input id from viz/data/"
+                         "visual_inputs.json (natural_1d = 1/f flicker "
+                         "+ drift protocol; video ids map grayscale "
+                         "frames through the ommatidia sampling)")
     args = ap.parse_args()
     regions = ({r.strip(): True for r in args.regions.split(",")}
                if args.regions else None)
@@ -347,6 +353,61 @@ def main():
                 x_r - DRIFT_SPEED * s, texture_bp), 0.05)
         return one
 
+    # ---- alternative visual input: grayscale video -> ommatidia ----
+    # mapping config catalogue: viz/data/visual_inputs.json; the frames
+    # are blurred (ommatidial PSF), percentile-normalized, then sampled
+    # at each photoreceptor's eye-plane coordinate -> per-R luminance
+    visual_meta = {"id": args.visual_input, "kind": "line_scan",
+                   "label": "自然协议（1/f 闪烁+漂移）"}
+    video_frames = None
+    if args.visual_input != "natural_1d":
+        vi_path = ROOT / "viz" / "data" / "visual_inputs.json"
+        cfg = None
+        if vi_path.exists():
+            cat = json.loads(vi_path.read_text(encoding="utf-8"))
+            cfg = next((v for v in cat["inputs"]
+                        if v["id"] == args.visual_input), None)
+        if cfg is None or cfg.get("kind") != "video":
+            print(f"visual input '{args.visual_input}' not found or not "
+                  "kind=video -- falling back to the natural 1/f protocol")
+        else:
+            frames = np.load(ROOT / "viz" / cfg["source"])
+            if frames.ndim == 4:               # RGB(A) frames -> luma
+                frames = (frames[..., 0] * 0.2126
+                          + frames[..., 1] * 0.7152
+                          + frames[..., 2] * 0.0722)
+            from scipy.ndimage import gaussian_filter
+            blur = float(cfg.get("blur_px", 0.0))
+            if blur > 0:                       # ommatidial PSF blur
+                frames = np.stack([gaussian_filter(
+                    f.astype(np.float64), blur) for f in frames])
+            lo_p, hi_p = np.percentile(frames, [1, 99])
+            frames = np.clip((frames - lo_p)
+                             / max(float(hi_p - lo_p), 1e-9), 0.0, 1.0)
+            H, W = frames.shape[1:3]
+            x_i = r_pos @ a1                   # eye-plane coordinates
+            y_i = r_pos @ b1
+            pxi = np.clip(np.round(
+                (x_i - x_i.min()) / max(x_i.max() - x_i.min(), 1e-9)
+                * (W - 1)).astype(int), 0, W - 1)
+            pyi = np.clip(np.round(
+                (y_i - y_i.min()) / max(y_i.max() - y_i.min(), 1e-9)
+                * (H - 1)).astype(int), 0, H - 1)
+            lo_l = float(cfg.get("lo", 0.05))
+            hi_l = float(cfg.get("hi", 3.0))
+            S = lo_l + (hi_l - lo_l) * frames[:, pyi, pxi]  # (T, n_r)
+            fps_v = float(cfg.get("fps", 30.0))
+
+            def luminance(t):
+                return S[min(int(t / 1000.0 * fps_v), S.shape[0] - 1)]
+
+            video_frames = frames              # kept for preview export
+            visual_meta = {"id": cfg["id"], "kind": "video",
+                           "label": cfg.get("label", cfg["id"]),
+                           "fps": fps_v}
+            print(f"visual input: {cfg['id']} -> {S.shape[0]} frames "
+                  f"@ {fps_v} fps, {len(pxi)} photoreceptors sampled")
+
     is_t4 = np.array([str(s).startswith("T4") for s in t45_type])
     is_t5 = np.array([str(s).startswith("T5") for s in t45_type])
     n_field = int(T_END / DT) // 2
@@ -429,6 +490,34 @@ def main():
           f"(band {snr['band_hz'][0]:.0f}-{snr['band_hz'][1]:.0f} Hz: "
           f"~{snr['k_for_dprime2_band']})")
 
+    # ---- stimulus view frames (human video | fly-eye sampling) ----
+    stim_view_meta = None
+    if video_frames is not None:
+        from scipy.ndimage import zoom
+        ph, pw = 72, 96
+        fps_v = visual_meta["fps"]
+        human_u8 = np.zeros((video_frames.shape[0], ph, pw), np.uint8)
+        for f in range(video_frames.shape[0]):
+            z = zoom(video_frames[f],
+                     (ph / video_frames.shape[1],
+                      pw / video_frames.shape[2]), order=1)
+            human_u8[f] = (z * 255).astype(np.uint8)
+        gh, gw = 72, 96
+        gyi = np.clip(pyi * gh // H, 0, gh - 1)
+        gxi = np.clip(pxi * gw // W, 0, gw - 1)
+        fly_u8 = np.zeros((S.shape[0], gh, gw), np.uint8)
+        for f in range(S.shape[0]):
+            acc = np.zeros((gh, gw))
+            np.add.at(acc, (gyi, gxi), S[f])
+            fly_u8[f] = ((acc / max(float(acc.max()), 1e-9))
+                         * 255).astype(np.uint8)
+        (OUT / "stim_frames.bin").write_bytes(
+            human_u8.tobytes() + fly_u8.tobytes())
+        stim_view_meta = {"n": int(S.shape[0]), "human": [ph, pw],
+                          "fly": [gh, gw], "fps": fps_v}
+        print(f"stim view frames: {OUT / 'stim_frames.bin'} "
+              f"({(OUT / 'stim_frames.bin').stat().st_size / 1e6:.1f} MB)")
+
     # ---- assemble viz data ----
     def pts(arr):
         return np.round(arr - center, 1).tolist()
@@ -447,16 +536,22 @@ def main():
 
     # phi in uV, rounded
     phi_uv = np.round(phi * 1e6, 2)
+    is_video = visual_meta["kind"] == "video"
     data = {
         "meta": {
             "t_end_ms": T_END,
-            "epochs": [
-                {"name": name, "t0": t0, "t1": t1,
-                 "color": EPOCH_COLORS[name]}
-                for name, t0, t1 in T_EPOCHS],
-            "epoch_labels": {"dark": "黑暗", "flicker": "1/f 闪烁",
-                             "drift+": "纹理漂移 →", "drift-": "纹理漂移 ←",
-                             "band+": "带通纹理 →", "band-": "带通纹理 ←"},
+            "visual_input": visual_meta,
+            "epochs": (
+                [{"name": "video", "t0": 0.0, "t1": T_END,
+                  "color": "#94a3b8"}] if is_video else
+                [{"name": name, "t0": t0, "t1": t1,
+                  "color": EPOCH_COLORS[name]}
+                 for name, t0, t1 in T_EPOCHS]),
+            "epoch_labels": (
+                {"video": "视频输入"} if is_video else
+                {"dark": "黑暗", "flicker": "1/f 闪烁",
+                 "drift+": "纹理漂移 →", "drift-": "纹理漂移 ←",
+                 "band+": "带通纹理 →", "band-": "带通纹理 ←"}),
             "head_r_um": round(r1, 1),
             "scalp": {"model": "4sphere", "place": "occipital",
                       "scale": round(SCALE, 1),
@@ -471,6 +566,7 @@ def main():
                                    [round(float(x), 4) for x in neck_dir]),
                       "elec_dirs": [[round(float(x), 4) for x in d]
                                     for d in scalp_dirs],
+                      "stim_view": stim_view_meta,
                       "elec_deg": [round(float(a), 1)
                                    for a in scalp_ang],
                       "elec_names": elec_names},

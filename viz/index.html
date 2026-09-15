@@ -82,6 +82,23 @@
       <span id="time">0.00 s</span>
       <input id="scrub" type="range" min="0" max="1000" value="0">
     </div>
+    <div id="stimview" style="display:none;margin-top:6px">
+      <div class="chart-title">刺激视图
+        <span style="float:right;font-weight:normal;color:#8aa0b4">
+          人类视频 ▸ 果蝇眼采样（同步）</span></div>
+      <div style="display:flex;gap:6px">
+        <div><canvas id="stim-human" width="96" height="72"
+              style="border:1px solid #2a3a4d;border-radius:4px;display:block">
+          </canvas>
+          <div style="font-size:10px;color:#8aa0b4;text-align:center">人类视频</div></div>
+        <div><canvas id="stim-fly" width="96" height="72"
+              style="border:1px solid #2a3a4d;border-radius:4px;display:block">
+          </canvas>
+          <div style="font-size:10px;color:#8aa0b4;text-align:center">果蝇眼采样</div></div>
+        <div id="stim-info" style="font-size:10px;color:#8aa0b4;
+             align-self:center;line-height:1.6"></div>
+      </div>
+    </div>
     <div class="chart-title">刺激亮度（各时段颜色见右上）</div>
     <canvas id="stim" class="chart" height="64"></canvas>
     <div class="chart-title"><span id="elec-title">人脑头皮电极阵列</span>
@@ -912,6 +929,7 @@ function tick() {
   controls.update();
   renderer.render(scene, camera);
   updateScalpTopo(i);
+  drawStimView(i);
 
   // charts (progressive: redraw fully is fine at these sizes)
   drawStimChart(i);
@@ -2077,6 +2095,52 @@ function initUI() {
       buildConfigSelector();
     })
     .catch(() => { /* no catalogue file -> single baked config */ });
+  loadStimView();
+}
+
+// ---------- stimulus view: human video | fly-eye sampling, synced ----------
+let stimView = null;
+function loadStimView() {
+  const sv = DATA.meta.scalp.stim_view;
+  if (!sv) return;
+  fetch("data/stim_frames.bin?v=" + Date.now())
+    .then(r => r.arrayBuffer())
+    .then(buf => {
+      const u = new Uint8Array(buf);
+      const nh = sv.n * sv.human[0] * sv.human[1];
+      stimView = { ...sv, human: u.subarray(0, nh),
+                   fly: u.subarray(nh), lastF: -1 };
+      document.getElementById("stimview").style.display = "";
+      const vi = DATA.meta.visual_input || {};
+      document.getElementById("stim-info").innerHTML =
+        `${vi.label || sv.id || ""}<br>${sv.n} 帧 @ ${sv.fps} fps<br>` +
+        `亮度映射 [${(vi.lo ?? 0.05).toFixed(2)}, 3.00]`;
+    })
+    .catch(() => {});
+}
+function drawGrayCanvas(cv, data, f, h, w) {
+  const ctx = cv.getContext("2d");
+  const img = ctx.createImageData(w, h);
+  const base = f * h * w;
+  for (let p = 0; p < w * h; p++) {
+    const v = data[base + p];
+    img.data[p * 4] = v;
+    img.data[p * 4 + 1] = v;
+    img.data[p * 4 + 2] = v;
+    img.data[p * 4 + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function drawStimView(i) {
+  if (!stimView) return;
+  const f = Math.floor(DATA.t_ms[Math.floor(i)] / 1000 * stimView.fps)
+            % stimView.n;
+  if (f === stimView.lastF) return;
+  stimView.lastF = f;
+  drawGrayCanvas(document.getElementById("stim-human"),
+    stimView.human, f, stimView.human[0], stimView.human[1]);
+  drawGrayCanvas(document.getElementById("stim-fly"),
+    stimView.fly, f, stimView.fly[0], stimView.fly[1]);
 }
 
 // ---------- boot ----------

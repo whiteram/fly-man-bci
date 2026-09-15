@@ -104,6 +104,12 @@ python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
 - 建议后台运行，结束后 `viz/data/viz_data.json` 即页面新数据。
 - 刺激协议参数（时段/对比度/漂移速度等）在 `src/ffbm/params.py` 的
   `stimulus` 节修改，详见 docs/STIMULUS.md。
+- `--visual-input <id>`：选择视觉输入（`viz/data/visual_inputs.json`）。
+  默认 `natural_1d`（1/f 闪烁+漂移自然协议）；`demo_bounce` 为内置的
+  "弹跳球"灰度视频（人类视频→小网膜采样）。自己的视频用
+  `viz/make_stimulus_from_video.py` 转换（需 imageio）。视频输入会同步
+  产出 `stim_frames.bin`，页面"刺激视图"面板双画布同步播放：
+  人类视频 | 果蝇眼采样亮度图，与脑电/放电曲线共用时间轴。
 
 ## 7. 常见问题
 
