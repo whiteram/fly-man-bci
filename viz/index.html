@@ -2118,15 +2118,21 @@ function loadStimView() {
     })
     .catch(() => {});
 }
-function drawGrayCanvas(cv, data, f, h, w) {
+function drawGrayCanvas(cv, data, f, h, w, bg) {
   const ctx = cv.getContext("2d");
   const img = ctx.createImageData(w, h);
   const base = f * h * w;
   for (let p = 0; p < w * h; p++) {
     const v = data[base + p];
-    img.data[p * 4] = v;
-    img.data[p * 4 + 1] = v;
-    img.data[p * 4 + 2] = v;
+    if (bg && v === 0) {            // empty bin -> dark navy backdrop
+      img.data[p * 4] = bg[0];
+      img.data[p * 4 + 1] = bg[1];
+      img.data[p * 4 + 2] = bg[2];
+    } else {
+      img.data[p * 4] = v;
+      img.data[p * 4 + 1] = v;
+      img.data[p * 4 + 2] = v;
+    }
     img.data[p * 4 + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
@@ -2140,7 +2146,7 @@ function drawStimView(i) {
   drawGrayCanvas(document.getElementById("stim-human"),
     stimView.human, f, stimView.human[0], stimView.human[1]);
   drawGrayCanvas(document.getElementById("stim-fly"),
-    stimView.fly, f, stimView.fly[0], stimView.fly[1]);
+    stimView.fly, f, stimView.fly[0], stimView.fly[1], [24, 32, 46]);
 }
 
 // ---------- boot ----------
