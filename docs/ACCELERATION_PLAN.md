@@ -83,7 +83,24 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
 - 可选借鉴 FastFly：尖峰驱动组（MT_*/V2C/CEN_*）的事件驱动 push；
   FP16 权重（远期，需单独校准验证）；
 - 预期 **全导出 <2 min**（步进工作内存受限 ~5-10 s 量级）；
-- **验证判据改为统计性**（见 §3 RNG 决策）。
+- **验证判据改为统计性**（见 §3 RNG 决策）；
+- **P3-1 PoC 已通过（2026-09-16，scripts/poc_cupy_parity.py，
+  16/16 逐位一致）**：LIF 三变体 / OU / graded / 投递 scatter 的
+  RawKernel 与 numba 参考逐位相等，关键结论——
+  ① **NVRTC 必须 `-fmad=false`**（默认 fma 收缩使 OU 偏差 ~1e5，
+  实测复现）；
+  ② **drive 改突触后主序 CSR**：numba 按全局边序累加到 out[post]，
+  GPU 原子加会打乱次序；稳定 argsort(post) 的 CSR 每线程串行累加
+  与之逐位相同（构建期一次性，如路线 A）；
+  ③ graded 的 numba 语义：clip 字面量 0.0/1.0 把 r 统一成 **f64**，
+  `(r - s)` 是 f64 精确减法（CUDA 里按 double 复刻即逐位一致）；
+  ④ 投递目标唯一（pre 行是不相交边区间）→ gather-add-scatter
+  无竞争，免原子、逐位确定；
+  ⑤ NVRTC 无系统头文件（stdint.h 不可用，用 `long long`）；
+  CuPy 14 RawKernel 调用签名为 `kernel(grid, block, args元组)`。
+  潜在注意：合成数据下 graded 的 numba 与纯 numpy 路径存在
+  ~1e-7 级差异（numba 的 k 为 f64、numpy weak-scalar 全 f32），
+  生产 r_pre∈[0,1] 未触发；GPU 对拍基准 = numba（生产路径）。
 
 ### P4 多 trial 并行（零风险，随时可加）
 - SNR 场景 d′=2 需 ~1,630 trials → **吞吐比延迟重要**；

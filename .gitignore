@@ -13,7 +13,7 @@ dist/
 # local scratch
 .ab/
 viz/data/_debug_*.npy
-viz/data/_baseline_*.npy
+viz/data/_baseline_*
 data/derived/_circuit_full.pkl
 # OS
 Thumbs.db
