@@ -248,6 +248,133 @@ class ScalpPairField:
     field_timeseries = StaticPairField.field_timeseries
 
 
+_FG_CACHE = {}
+
+
+def _four_sphere_fg(r1, r2, r3, r4, sigma1, sigma2, sigma3, sigma4,
+                    n_terms):
+    """Legendre (f_n, g_n) scalp-layer pair table for a head geometry,
+    shared across all dipoles and electrodes (7x7 boundary solves per
+    order, independent of source/electrode positions)."""
+    key = (float(r1), float(r2), float(r3), float(r4), float(sigma1),
+           float(sigma2), float(sigma3), float(sigma4), int(n_terms))
+    hit = _FG_CACHE.get(key)
+    if hit is not None:
+        return hit
+    r2n, r3n, r4n = r2 / r1, r3 / r1, r4 / r1
+    fg = np.zeros((n_terms, 2))
+    for n in range(1, n_terms):
+        src, dsrc = 1.0, -(n + 1)
+        m = np.zeros((7, 7))
+        rhs = np.zeros(7)
+        m[0] = [1.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0]
+        rhs[0] = -src
+        m[1] = [sigma1 * n, -sigma2 * n, sigma2 * (n + 1),
+                0.0, 0.0, 0.0, 0.0]
+        rhs[1] = -sigma1 * dsrc
+        m[2] = [0.0, r2n ** n, r2n ** (-(n + 1)), -r2n ** n,
+                -r2n ** (-(n + 1)), 0.0, 0.0]
+        m[3] = [0.0, sigma2 * n * r2n ** (n - 1),
+                -sigma2 * (n + 1) * r2n ** (-(n + 2)),
+                -sigma3 * n * r2n ** (n - 1),
+                sigma3 * (n + 1) * r2n ** (-(n + 2)), 0.0, 0.0]
+        m[4] = [0.0, 0.0, 0.0, r3n ** n, r3n ** (-(n + 1)),
+                -r3n ** n, -r3n ** (-(n + 1))]
+        m[5] = [0.0, 0.0, 0.0, sigma3 * n * r3n ** (n - 1),
+                -sigma3 * (n + 1) * r3n ** (-(n + 2)),
+                -sigma4 * n * r3n ** (n - 1),
+                sigma4 * (n + 1) * r3n ** (-(n + 2))]
+        m[6] = [0.0, 0.0, 0.0, 0.0, 0.0, n * r4n ** (n - 1),
+                -(n + 1) * r4n ** (-(n + 2))]
+        for i in range(7):
+            s = np.abs(m[i]).max()
+            if s > 0:
+                m[i] /= s
+                rhs[i] /= s
+        sol = np.linalg.solve(m, rhs)
+        fg[n] = sol[5], sol[6]          # f_n, g_n
+    _FG_CACHE[key] = fg
+    return fg
+
+
+def four_sphere_rows(pre_pos, post_pos, electrodes, center, r1, r2, r3,
+                     r4, sigma1=0.33, sigma2=1.79, sigma3=0.013,
+                     sigma4=0.33, n_terms=60, n_threads=None):
+    """(n_elec, n_dip) scalp-potential coefficient rows for one
+    source-sink pair set and MANY electrodes.
+
+    Mathematically identical to stacking FourSpherePairField rows over
+    the same electrodes (same series, same row normalization), but the
+    fg table and per-dipole radii are computed once and the
+    per-electrode series evaluations run in a thread pool (numpy
+    elementwise kernels release the GIL, so threads scale).  The series
+    uses running products R_n = (r0*re)^n instead of per-order pow --
+    accumulated rounding ~ n * eps (~1e-14), far below model error.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    center = np.asarray(center, dtype=np.float64)
+    pre = np.asarray(pre_pos, dtype=np.float64) - center
+    post = np.asarray(post_pos, dtype=np.float64) - center
+    elec = np.atleast_2d(np.asarray(electrodes, dtype=np.float64)) - center
+    for arr, name in ((pre, "pre"), (post, "post")):
+        r = np.linalg.norm(arr, axis=-1)
+        if r.max() >= r1:
+            raise ValueError(f"{name} outside brain sphere")
+    re_all = np.linalg.norm(elec, axis=1)
+    if not ((re_all > r3) & (re_all < r4)).all():
+        raise ValueError("electrodes must lie in the scalp layer "
+                         "(r3 < r < r4)")
+    pre, post, elec = pre * 1e-6, post * 1e-6, elec * 1e-6
+    r1_m = r1 * 1e-6
+    fg = _four_sphere_fg(r1, r2, r3, r4, sigma1, sigma2, sigma3, sigma4,
+                         n_terms)
+    r0_pre = np.linalg.norm(pre, axis=1) / r1_m
+    r0_post = np.linalg.norm(post, axis=1) / r1_m
+
+    def series(r0n, cos_th, re_n):
+        # V = sum_n P_n(cos) * R_n * (f_n + g_n * re_n^-(2n+1)),
+        # R_n = (r0n*re_n)^n as a running product; n=0 cancels for
+        # sealed source-sink pairs (fg[0] = 0).
+        total = np.zeros(r0n.size)
+        base = r0n * re_n
+        R = base.copy()
+        p_nm2 = np.ones(r0n.size)
+        p_nm1 = cos_th.copy()
+        for n in range(1, n_terms):
+            if n > 1:
+                p_n = ((2 * n - 1) * cos_th * p_nm1
+                       - (n - 1) * p_nm2) / n
+                p_nm2 = p_nm1
+                p_nm1 = p_n
+            cn = fg[n, 0] + fg[n, 1] * re_n ** (-(2 * n + 1))
+            total += (p_nm1 * R) * cn
+            R *= base
+        return total
+
+    def one_row(k):
+        re = elec[k]
+        re_n = np.linalg.norm(re) / r1_m
+        cpre = (pre @ re) / (np.linalg.norm(pre, axis=1)
+                             * np.linalg.norm(re))
+        cpost = (post @ re) / (np.linalg.norm(post, axis=1)
+                               * np.linalg.norm(re))
+        return (series(r0_pre, cpre, re_n)
+                - series(r0_post, cpost, re_n)) \
+            / (4.0 * np.pi * sigma1 * r1_m)
+
+    n_elec = len(elec)
+    if n_elec == 1 or n_threads == 1:
+        coef = np.empty((n_elec, len(pre)))
+        for k in range(n_elec):
+            coef[k] = one_row(k)
+        return coef
+    with ThreadPoolExecutor(max_workers=n_threads) as ex:
+        coef = np.empty((n_elec, len(pre)))
+        for k, row in enumerate(ex.map(one_row, range(n_elec))):
+            coef[k] = row
+    return coef
+
+
 class FourSpherePairField:
     """Source-sink pair kernel in the standard 4-layer human head.
 
@@ -260,101 +387,17 @@ class FourSpherePairField:
     classical 4-sphere EEG forward model (brain/CSF/skull/scalp), same
     API and sign conventions as ScalpPairField. Setting sigma2 = sigma1
     merges the CSF into the brain and must reproduce ScalpPairField
-    exactly (verified in tests).
+    exactly (verified in tests).  Coefficient rows are delegated to
+    four_sphere_rows (shared fg table + optional threading).
     """
 
     def __init__(self, pre_pos, post_pos, electrodes, center, r1, r2, r3,
                  r4, sigma1=0.33, sigma2=1.79, sigma3=0.013, sigma4=0.33,
                  n_terms=60):
-        center = np.asarray(center, dtype=np.float64)
-        pre = np.asarray(pre_pos, dtype=np.float64) - center
-        post = np.asarray(post_pos, dtype=np.float64) - center
-        elec = np.atleast_2d(np.asarray(electrodes, dtype=np.float64)) - center
-        for arr, name in ((pre, "pre"), (post, "post")):
-            r = np.linalg.norm(arr, axis=-1)
-            if r.max() >= r1:
-                raise ValueError(f"{name} outside brain sphere")
-        re_all = np.linalg.norm(elec, axis=1)
-        if not ((re_all > r3) & (re_all < r4)).all():
-            raise ValueError("electrodes must lie in the scalp layer "
-                             "(r3 < r < r4)")
-        pre, post, elec = pre * 1e-6, post * 1e-6, elec * 1e-6
-        r1_m = r1 * 1e-6
-        r2n, r3n, r4n = r2 / r1, r3 / r1, r4 / r1
-
-        def solve_fg(n):
-            """[a..g] for a unit source pattern (r0^n factored out, radii
-            normalized r1 = 1); returns the scalp-layer pair (f_n, g_n).
-            n = 0 (monopole) is inadmissible in a sealed head and cancels
-            exactly for source-sink pairs -> (0, 0)."""
-            if n == 0:
-                return 0.0, 0.0
-            src, dsrc = 1.0, -(n + 1)
-            m = np.zeros((7, 7))
-            rhs = np.zeros(7)
-            m[0] = [1.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0]
-            rhs[0] = -src
-            m[1] = [sigma1 * n, -sigma2 * n, sigma2 * (n + 1),
-                    0.0, 0.0, 0.0, 0.0]
-            rhs[1] = -sigma1 * dsrc
-            m[2] = [0.0, r2n ** n, r2n ** (-(n + 1)), -r2n ** n,
-                    -r2n ** (-(n + 1)), 0.0, 0.0]
-            m[3] = [0.0, sigma2 * n * r2n ** (n - 1),
-                    -sigma2 * (n + 1) * r2n ** (-(n + 2)),
-                    -sigma3 * n * r2n ** (n - 1),
-                    sigma3 * (n + 1) * r2n ** (-(n + 2)), 0.0, 0.0]
-            m[4] = [0.0, 0.0, 0.0, r3n ** n, r3n ** (-(n + 1)),
-                    -r3n ** n, -r3n ** (-(n + 1))]
-            m[5] = [0.0, 0.0, 0.0, sigma3 * n * r3n ** (n - 1),
-                    -sigma3 * (n + 1) * r3n ** (-(n + 2)),
-                    -sigma4 * n * r3n ** (n - 1),
-                    sigma4 * (n + 1) * r3n ** (-(n + 2))]
-            m[6] = [0.0, 0.0, 0.0, 0.0, 0.0, n * r4n ** (n - 1),
-                    -(n + 1) * r4n ** (-(n + 2))]
-            for i in range(7):
-                s = np.abs(m[i]).max()
-                if s > 0:
-                    m[i] /= s
-                    rhs[i] /= s
-            sol = np.linalg.solve(m, rhs)
-            return sol[5], sol[6]          # f_n, g_n
-
-        fg = np.array([solve_fg(n) for n in range(n_terms)])
-        n_orders = np.arange(n_terms)
-
-        def series(r0n, cos_th, re_n):
-            """V in the scalp layer: sum_n P_n [f_n r0^n r^n + g_n r0^n
-            r^-(n+1)] (normalized radii)."""
-            total = np.zeros(len(r0n))
-            p_nm2 = np.ones(len(r0n))
-            p_nm1 = cos_th.copy()
-            for n in n_orders:
-                if n == 0:
-                    p_n = p_nm2
-                elif n == 1:
-                    p_n = p_nm1
-                else:
-                    p_n = ((2 * n - 1) * cos_th * p_nm1
-                           - (n - 1) * p_nm2) / n
-                    p_nm2, p_nm1 = p_nm1, p_n
-                reg = fg[n, 0] * (r0n ** n) * (re_n ** n)
-                irr = fg[n, 1] * (r0n ** n) * (re_n ** (-(n + 1)))
-                total += p_n * (reg + irr)
-            return total
-
-        coef = np.empty((len(elec), len(pre)))
-        for k, re in enumerate(elec):
-            re_n = np.linalg.norm(re) / r1_m
-            r0_pre = np.linalg.norm(pre, axis=1) / r1_m
-            r0_post = np.linalg.norm(post, axis=1) / r1_m
-            cpre = (pre @ re) / (np.linalg.norm(pre, axis=1)
-                                 * np.linalg.norm(re))
-            cpost = (post @ re) / (np.linalg.norm(post, axis=1)
-                                   * np.linalg.norm(re))
-            coef[k] = (series(r0_pre, cpre, re_n)
-                       - series(r0_post, cpost, re_n))                  / (4.0 * np.pi * sigma1 * r1_m)
-        self.coef = coef
-        self.n_electrodes = len(elec)
+        self.coef = four_sphere_rows(
+            pre_pos, post_pos, electrodes, center, r1, r2, r3, r4,
+            sigma1, sigma2, sigma3, sigma4, n_terms)
+        self.n_electrodes = self.coef.shape[0]
 
     field = StaticPairField.field
     field_timeseries = StaticPairField.field_timeseries

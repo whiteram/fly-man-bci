@@ -415,6 +415,8 @@ def generate_background_eeg(dirs: np.ndarray, u_eye: np.ndarray,
 
 
 def _band_var(x: np.ndarray, dt_ms: float, band_hz: tuple) -> float:
+    if len(x) == 0:
+        return 0.0
     f = np.fft.rfftfreq(len(x), d=dt_ms / 1000.0)
     X = np.fft.rfft(x - x.mean())
     m = (f >= band_hz[0]) & (f <= band_hz[1])
@@ -430,6 +432,10 @@ def snr_metrics(clean_uv: np.ndarray, bg_uv: np.ndarray, i0: int, i1: int,
     std ratio. Band-limited: variance within `band_hz` (the honest
     measure where the alpha peak overlaps the broadband signal band).
     Returns metrics at the best (broadband) channel."""
+    # clamp the analysis window: short runs (smoke 400 ms) may not
+    # reach the default [1500, 4500) sample slice
+    i0 = max(0, min(int(i0), clean_uv.shape[1] - 1))
+    i1 = max(i0 + 1, min(int(i1), clean_uv.shape[1]))
     clean_w = clean_uv[:, i0:i1]
     bg_w = bg_uv[:, i0:i1]
     sig_std = clean_w.std(axis=1)

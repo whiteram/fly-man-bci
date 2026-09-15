@@ -32,7 +32,8 @@ from ffbm import pipeline as fp
 from ffbm import params as fparams
 from ffbm import regions as freg
 from ffbm import vizprep as vp
-from ffbm.forward import FourSpherePairField, SealedHeadPairField
+from ffbm.forward import FourSpherePairField, SealedHeadPairField, \
+    four_sphere_rows
 
 from circuit import exp005
 
@@ -284,8 +285,6 @@ def main():
             np.clip(scalp_dirs @ u_anchor, -1, 1)))
         print(f"electrode layout: {len(elec_names)} named channels "
               f"from {args.elec_layout}")
-    coef_scalp = {name: [] for name in
-                  list(group_pairs) + ["PHOTO"]}
 
     def pool_cluster(gname, pr_s, po_s, k):
         """Cluster the group's (pre, post) 6D coordinates into k
@@ -321,16 +320,11 @@ def main():
         """Rebuild all 45 electrode coefficient rows for one pooled
         group (after an accuracy-driven k increase)."""
         pi = pool_info[gname]
-        rows = []
-        for d in scalp_dirs:
-            elec_k = center + 0.985 * R_SCALP * d
-            rows.append(FourSpherePairField(
-                pi["rep_pr"], pi["rep_po"], elec_k[None, :],
-                center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
-                r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
-                sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0]
-                * reweight.get(gname, 1.0))
-        coef_scalp[gname] = np.vstack(rows)
+        coef_scalp[gname] = four_sphere_rows(
+            pi["rep_pr"], pi["rep_po"], scalp_elec,
+            center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
+            r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
+            sigma3=SIGMAS[2], sigma4=SIGMAS[3]) * reweight.get(gname, 1.0)
 
     # ---- runtime kernel pooling ----
     # The 4-sphere field is smooth in dipole position: cluster each
@@ -358,23 +352,25 @@ def main():
 
     import time as _time
     _t0 = _time.time()
-    for k, d in enumerate(scalp_dirs):
-        elec_k = center + 0.985 * R_SCALP * d
-        for name, (pr_s, po_s) in scaled_pairs.items():   # shift included
-            pi = pool_info.get(name)
-            pr_use, po_use = ((pi["rep_pr"], pi["rep_po"]) if pi
-                              else (pr_s, po_s))
-            coef_scalp[name].append(FourSpherePairField(
-                pr_use, po_use, elec_k[None, :],
-                center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
-                r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
-                sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0]
-                * reweight.get(name, 1.0))
-        print(f"scalp kernel {k + 1}/{len(scalp_dirs)} "
+    # all electrodes in one batched call per group: shared fg table +
+    # thread-parallel per-electrode series (four_sphere_rows)
+    scalp_elec = center + 0.985 * R_SCALP * scalp_dirs       # (S, 3)
+    coef_scalp = {}
+    for name, (pr_s, po_s) in scaled_pairs.items():   # shift included
+        pi = pool_info.get(name)
+        pr_use, po_use = ((pi["rep_pr"], pi["rep_po"]) if pi
+                          else (pr_s, po_s))
+        coef_scalp[name] = four_sphere_rows(
+            pr_use, po_use, scalp_elec,
+            center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
+            r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
+            sigma3=SIGMAS[2], sigma4=SIGMAS[3]) * reweight.get(name, 1.0)
+        print(f"scalp kernel {name}: {coef_scalp[name].shape[1]} dipoles "
               f"({_time.time() - _t0:.0f} s)", flush=True)
-    coef_scalp = {k: np.vstack(v) for k, v in coef_scalp.items()}
     print(f"scalp kernels built (S=400, 4-sphere, {len(scalp_dirs)} electrodes, "
           f"{_time.time() - _t0:.0f} s)")
+    print("kernel rows per group: "
+          + ", ".join(f"{k}={v.shape[1]}" for k, v in coef_scalp.items()))
 
     # exact single-electrode coefficient: pooling accuracy reference
     pool_exact0 = None
@@ -551,7 +547,39 @@ def main():
     extra_post = {g: s["post"] for g, s in
                   (circuit.get("extra_edges") or {}).items()}
 
+    # ---- forward application: buffer per-record currents and project
+    # with one float32 GEMM per CHUNK records.  Per-record (S,N)@(N,)
+    # GEMVs are bandwidth-bound; batching keeps the coefficient rows in
+    # cache and lets BLAS stream the reads.  Pooling (reduceat) moves to
+    # flush time so a mid-run pool refinement stays consistent with the
+    # buffered records (they store kept per-edge y, pooled only at
+    # flush with the then-current clustering).
+    CHUNK = 256
+    gnames = list(group_pairs) + ["PHOTO"]
+    coef_f32 = {name: coef_scalp[name].astype(np.float32)
+                for name in gnames}
+    # row-major (CHUNK, N): records append CONTIGUOUS rows (a strided
+    # column write costs a cache miss per dipole); flush feeds the
+    # transposed view straight into the GEMM (BLAS native, no copy)
+    ybuf = {name: np.zeros((CHUNK, coef_f32[name].shape[1]), np.float32)
+            for name in gnames}
+    print(f"forward buffers: {CHUNK} records x "
+          f"{sum(b.shape[1] for b in ybuf.values())} dipoles "
+          f"({sum(b.nbytes for b in ybuf.values()) / 1e6:.0f} MB)",
+          flush=True)
+    jbuf = 0
+
+    def flush_scalp(j0, c):
+        for name in gnames:
+            Y = ybuf[name][:c]                       # (c, N) view
+            pi = pool_info.get(name)
+            if pi is not None:                       # pool over dipoles
+                Y = np.add.reduceat(Y, pi["starts"], axis=1)
+            phi_scalp[j0:j0 + c] += (coef_f32[name] @ Y.T).T
+        phi_scalp[j0:j0 + c] *= 1e-12
+
     def record(j, k, t, st, inc_f, sp):
+        nonlocal jbuf
         syn, pops = st["syn"], st["pops"]
         i_photo = cal["I_R_BASE"] + inc_f
         mech = st["mech"]
@@ -568,54 +596,45 @@ def main():
             post = extra_post.get(name, "T45")
             return syn[name].edge_currents(pops[post].v)
 
-        for i in range(3):
-            acc = 0.0
-            for name in list(group_pairs) + ["PHOTO"]:
-                if name in ker:
-                    acc += ker[name].coef[i] @ y_of(name)
-            phi[j, i] = acc * 1e-12
-        acc_s = np.zeros(len(scalp_dirs))
-        for attempt in range(3):
-            pool_err.clear()                   # keep the final attempt only
-            fail = {}
-            pool_err_checkpoint = (j in (0, n_field // 2)
-                                   and pool_exact0 is not None)
-            for name in list(group_pairs) + ["PHOTO"]:
-                y = y_of(name)
-                keep = kernel_keep.get(name)
-                if keep is not None:
-                    y = y[keep]
-                pi = pool_info.get(name)
-                if pi is not None:
-                    yp = np.add.reduceat(y[pi["order"]], pi["starts"])
-                    acc_s += coef_scalp[name] @ yp
-                else:
-                    acc_s += coef_scalp[name] @ y
-                if pool_err_checkpoint:
-                    ex = float(pool_exact0[name] @ y)
-                    pl = float(
-                        coef_scalp[name][0]
-                        @ (np.add.reduceat(y[pi["order"]], pi["starts"])
-                           if pi is not None else y))
-                    rel = abs(ex - pl) / max(abs(ex), 1e-30)
-                    pool_err.append(rel)
-                    if rel > 0.01 and attempt < 2:
-                        fail[name] = rel
-            if not fail:
-                break
-            # accuracy-driven refinement: 3x the representatives of the
-            # failing groups, rebuild their 45-electrode rows, re-sum
-            for name, rel in fail.items():
-                pi = pool_info[name]
-                pi["k"] = min(int(pi["k"] * 3), 20000)
-                pi.update(pool_cluster(name, scaled_pairs[name][0],
-                                       scaled_pairs[name][1], pi["k"]))
-                rebuild_group_kernel(name)
-                print(f"pooling: group {name} refined to k={pi['k']} "
-                      f"(rel err {rel * 100:.1f}% -> retry)",
-                      flush=True)
-            pool_err = [e for e in pool_err][:0] or pool_err[-len(fail):]
-        phi_scalp[j] = acc_s * 1e-12
+        ys = {}
+        for name in gnames:
+            y = y_of(name)
+            keep = kernel_keep.get(name)
+            if keep is not None:
+                y = y[keep]
+            ys[name] = y
+            ybuf[name][jbuf] = y
+        # fly-head reference channels: one GEMV per core group
+        acc3 = np.zeros(3)
+        for name in ker:
+            acc3 += ker[name].coef @ ys[name]
+        phi[j] = acc3 * 1e-12
+        # in-run pooling accuracy check (two records per run): exact
+        # single-electrode row vs pooled projection; refine failing
+        # groups in place -- flush-time reduceat picks the new
+        # clustering up for every record still in the buffer
+        if pool_exact0 is not None and j in (0, n_field // 2):
+            pool_err.clear()
+            for name, pi in pool_info.items():
+                y = ys[name]
+                ex = float(pool_exact0[name] @ y)
+                pl = float(coef_scalp[name][0]
+                           @ np.add.reduceat(y[pi["order"]], pi["starts"]))
+                rel = abs(ex - pl) / max(abs(ex), 1e-30)
+                pool_err.append(rel)
+                if rel > 0.01:
+                    pi["k"] = min(int(pi["k"] * 3), 20000)
+                    pi.update(pool_cluster(
+                        name, scaled_pairs[name][0],
+                        scaled_pairs[name][1], pi["k"]))
+                    rebuild_group_kernel(name)
+                    coef_f32[name] = coef_scalp[name].astype(np.float32)
+                    print(f"pooling: group {name} refined to k={pi['k']} "
+                          f"(rel err {rel * 100:.1f}%)", flush=True)
+        jbuf += 1
+        if jbuf == CHUNK:
+            flush_scalp(j - CHUNK + 1, CHUNK)
+            jbuf = 0
         if mech:   # graded R/L: display their release rates (%) instead
             rate["R"][j] = float(st["r_release"](
                 pops["R"].v, cal["R_RELEASE_MAP_MV"]).mean()) * 100.0
@@ -630,8 +649,17 @@ def main():
         stim[j] = float(np.mean(luminance(t)))
 
     print(f"simulating {T_END / 1000:.1f} s ...")
+    _t1 = _time.time()
     fp.simulate(circuit, cal, lambda t: I_LUM * (luminance(t) - 1.0),
                 SEED, T_END, on_sample=record)
+    if jbuf:
+        flush_scalp(n_field - jbuf, jbuf)
+    print(f"biology loop: {_time.time() - _t1:.0f} s "
+          f"({n_field} records)")
+    np.save(OUT / "_debug_phi_scalp.npy", phi_scalp * 1.7)
+    np.save(OUT / "_debug_phi.npy", phi)
+    print(f"phi_scalp checksum: L2={np.linalg.norm(phi_scalp) * 1.7:.6e} "
+          f"(baseline A/B file: {OUT / '_debug_phi_scalp.npy'})")
 
     # absolute-amplitude calibration: the return-current geometry was
     # discriminated to NEURITE (exp013): all scalp amplitudes scale by
@@ -641,18 +669,22 @@ def main():
 
     # ---- background human EEG + SNR (shared helpers, unit-tested) ----
     bg = vp.generate_background_eeg(scalp_dirs, u_anchor, n_field)
-    snr = vp.snr_metrics(phi_scalp.T * 1e6, bg, 1500, 4500)
-    snr["best_elec_deg"] = round(float(scalp_ang[snr["best_elec"]]), 1)
-    snr["best_elec_name"] = (elec_names[snr["best_elec"]]
-                             if elec_names else None)
-    best_tag = (snr["best_elec_name"]
-                if snr["best_elec_name"]
-                else f"{snr['best_elec_deg']:.0f} deg")
-    print(f"background EEG: fly signal {snr['sig_uv']:.2f} uV vs bg "
-          f"{snr['bg_uv']:.2f} uV at {best_tag} -> "
-          f"d'=2 needs ~{snr['k_for_dprime2']} trials "
-          f"(band {snr['band_hz'][0]:.0f}-{snr['band_hz'][1]:.0f} Hz: "
-          f"~{snr['k_for_dprime2_band']})")
+    # SNR reads the [1500, 4500) sample window -- shorter runs (smoke)
+    # skip it; the page treats a missing snr as "not computed"
+    snr = None
+    if n_field >= 4500:
+        snr = vp.snr_metrics(phi_scalp.T * 1e6, bg, 1500, 4500)
+        snr["best_elec_deg"] = round(float(scalp_ang[snr["best_elec"]]), 1)
+        snr["best_elec_name"] = (elec_names[snr["best_elec"]]
+                                 if elec_names else None)
+        best_tag = (snr["best_elec_name"]
+                    if snr["best_elec_name"]
+                    else f"{snr['best_elec_deg']:.0f} deg")
+        print(f"background EEG: fly signal {snr['sig_uv']:.2f} uV vs bg "
+              f"{snr['bg_uv']:.2f} uV at {best_tag} -> "
+              f"d'=2 needs ~{snr['k_for_dprime2']} trials "
+              f"(band {snr['band_hz'][0]:.0f}-{snr['band_hz'][1]:.0f} Hz: "
+              f"~{snr['k_for_dprime2_band']})")
     if pool_err:
         print(f"kernel pooling accuracy: max rel err "
               f"{max(pool_err) * 100:.3f}% over {len(pool_err)} checks "
