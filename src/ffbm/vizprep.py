@@ -223,6 +223,40 @@ def standard_1020(anchors: dict, system: str = "1020",
     return out
 
 
+# 10-10 extension: chain midpoints added to the 45-channel set, giving
+# the classic 64-channel 10-10 cap; Iz sits at the inion landmark
+MIDPOINT_SITES = [
+    ("AF7", "Fp1", "F7"), ("AF8", "Fp2", "F8"),
+    ("F5", "F3", "F7"), ("F6", "F4", "F8"),
+    ("FC1", "F1", "C1"), ("FC2", "F2", "C2"),
+    ("C5", "C3", "T7"), ("C6", "C4", "T8"),
+    ("CP1", "C1", "P1"), ("CP2", "C2", "P2"),
+    ("P5", "P3", "P7"), ("P6", "P4", "P8"),
+    ("FT7", "F7", "T7"), ("FT8", "F8", "T8"),
+    ("TP7", "T7", "P7"), ("TP8", "T8", "P8"),
+    ("PO7", "O1", "P7"), ("PO8", "O2", "P8"),
+]
+
+
+def standard_1010_full(anchors: dict, ni_arc_deg: float = 180.0,
+                       fpz_arc_deg: float | None = None,
+                       yaw_deg: float = 0.0,
+                       roll_deg: float = 0.0) -> dict:
+    """64-channel 10-10 layout: standard_1020(system='1010') plus the
+    chain-midpoint sites (AF7/8, F5/6, FC1/2, C5/6, CP1/2, P5/6,
+    FT7/8, TP7/8, PO7/8) and Iz at the inion.  Same calibration
+    parameters as standard_1020."""
+    base = standard_1020(anchors, system="1010", ni_arc_deg=ni_arc_deg,
+                         fpz_arc_deg=fpz_arc_deg, yaw_deg=yaw_deg,
+                         roll_deg=roll_deg)
+    out = dict(base)
+    for name, a, b in MIDPOINT_SITES:
+        m = out[a] + out[b]
+        out[name] = m / np.linalg.norm(m)
+    out["Iz"] = base["Inion"]
+    return out
+
+
 def regularize_report(anchors: dict) -> dict:
     """Diagnostics for hand-placed anchors: raw arc distances and the
     corrections standard_1020 applies (degrees moved per anchor)."""

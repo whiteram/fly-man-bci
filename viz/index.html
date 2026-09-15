@@ -953,6 +953,8 @@ function buildLayerBox() {
      <span class="dot" style="background:#f0b98a"></span>头皮壳</label>`,
   ];
   box.innerHTML = items.concat(extras).join("<br>");
+  // start collapsed -- the panel obstructs the view on every load
+  box.style.display = "none";
   box.addEventListener("change", e => {
     const t = e.target;
     if (t.dataset.layer !== undefined)
@@ -988,9 +990,9 @@ function addSceneButtons() {
     wrap.appendChild(b);
     return b;
   };
-  // collapse/expand the layerbox ("hide to the left")
+  // collapse/expand the layerbox ("hide to the left"); starts collapsed
   const box = document.getElementById("layerbox");
-  const tgl = mk("⏴", "收起/展开图层面板", 10, 12, () => {
+  const tgl = mk("⏵", "收起/展开图层面板", 10, 12, () => {
     const hidden = box.style.display === "none";
     box.style.display = hidden ? "" : "none";
     tgl.textContent = hidden ? "⏴" : "⏵";
@@ -1058,7 +1060,7 @@ function addElecBall(name, dirArr) {
 // channels' exact traces (spherical distance weights) -- approximate
 // until a re-export with --elec-layout bakes the new positions in
 function interpTraceFrom(src, dirs, idx, dirNew) {
-  const n = src[idx].length;
+  const n = src[Math.max(idx, 0)].length;
   const dNew = dirNew.clone ? dirNew : new THREE.Vector3(...dirNew);
   let wsum = 0;
   const acc = new Float64Array(n);
@@ -1487,11 +1489,34 @@ function onCalibMove(e) {
     });
 }
 
+// derive the ACTIVE config from the calibration frame: the 10-10 cap
+// adds its chain-midpoint sites (+Iz) on top of the 45-channel rules
+const CALIB_MIDPOINT_SITES = [
+  ["AF7", "Fp1", "F7"], ["AF8", "Fp2", "F8"],
+  ["F5", "F3", "F7"], ["F6", "F4", "F8"],
+  ["FC1", "F1", "C1"], ["FC2", "F2", "C2"],
+  ["C5", "C3", "T7"], ["C6", "C4", "T8"],
+  ["CP1", "C1", "P1"], ["CP2", "C2", "P2"],
+  ["P5", "P3", "P7"], ["P6", "P4", "P8"],
+  ["FT7", "F7", "T7"], ["FT8", "F8", "T8"],
+  ["TP7", "T7", "P7"], ["TP8", "T8", "P8"],
+  ["PO7", "O1", "P7"], ["PO8", "O2", "P8"]];
+
+function deriveCapActive(nEar, nRot, cz, ni, th) {
+  const d = deriveCap(nEar, nRot, cz, ni, th);
+  const kind = (configById(ACTIVE_CONFIG_ID) || {}).kind;
+  if (kind === "std_1010_64") {
+    CALIB_MIDPOINT_SITES.forEach(([n, a, b]) => { d[n] = gcMid(d[a], d[b]); });
+    d.Iz = d.Inion;
+  }
+  return d;
+}
+
 function calibApply() {
   if (!calib) return;
   const st = calib.st;
   const fr = rotatedFrameAxes();
-  applyCap(deriveCap(fr.nEar, fr.nRot, fr.cz, st.ni, st.th));
+  applyCap(deriveCapActive(fr.nEar, fr.nRot, fr.cz, st.ni, st.th));
   const names = DATA.meta.scalp.elec_names;
   calib.handles.forEach(h => setCalibHandle(
     h.name, calib.dirs[names.indexOf(h.name)]));
@@ -1535,6 +1560,11 @@ function toggleCalib() {
   }
   if (elecEdit) toggleElecEdit();            // modes are exclusive
   if (viewCalib) toggleViewCalib();
+  if (ACTIVE_CONFIG_ID && (!ELEC_CONFIGS ||
+      (configById(ACTIVE_CONFIG_ID) || {}).kind === "custom")) {
+    alert("自定义电极布局不适用 10-20 规则标定");
+    return;
+  }
   if (!editTraces)
     editTraces = DATA.phi_scalp_all_uV.map(tr => tr.slice());
   const cz0 = calibDir("Cz");
@@ -1673,6 +1703,96 @@ function buildCalibPanel() {
 // copied JSON baked in as code defaults.
 let VIEW_DIRS = null;
 let viewCalib = null;
+
+// ---------- electrode configuration files ----------
+// viz/data/elec_configs.json describes named configs (10-20 x45,
+// 10-10 x64, or user-defined): name -> unit direction per channel.
+// Switching rebuilds the electrodes/topomap/heatmap; exact traces
+// exist only for the exported config, other channels interpolate.
+let ELEC_CONFIGS = null;
+let ACTIVE_CONFIG_ID = null;
+let BAKED_CONFIG_ID = null;      // the config the exported traces belong to
+let CONFIG_BAKED_NAMES = null;
+let CONFIG_BAKED_DIRS = null;
+
+function configById(id) {
+  return (ELEC_CONFIGS.configs.find(c => c.id === id)) || null;
+}
+function configBakedId() {
+  if (!ELEC_CONFIGS) return null;
+  const names = JSON.stringify(DATA.meta.scalp.elec_names);
+  const c = ELEC_CONFIGS.configs.find(
+    c => JSON.stringify(Object.keys(c.channels)) === names);
+  return c ? c.id : null;
+}
+
+function applyElecConfig(id) {
+  const cfg = configById(id);
+  if (!cfg) return;
+  if (calib) toggleCalib();                  // modes are exclusive
+  if (elecEdit) toggleElecEdit();
+  const names = Object.keys(cfg.channels);
+  // rebuild the electrode meshes + name labels
+  scalpElecMeshes.forEach(m => humanHead.remove(m));
+  scalpElecLabels.forEach(l => humanHead.remove(l));
+  scalpElecMeshes = []; scalpElecLabels = [];
+  names.forEach((nm, i) => {
+    const dir = new THREE.Vector3(...cfg.channels[nm]).normalize();
+    const rDisk = i === 0 ? 3400 : 2600, hDisk = 1400;
+    const s = new THREE.Mesh(
+      new THREE.CylinderGeometry(rDisk, rDisk, hDisk, 20),
+      new THREE.MeshLambertMaterial({ color: i === 0 ? 0xe879f9
+                                                      : 0xf0abfc }));
+    humanHead.add(s);
+    scalpElecMeshes.push(s);
+    const lb = makeTextSprite(nm, "#f2f7ff", 13000, 6500);
+    lb.userData.dir = new THREE.Vector3();
+    lb.userData.on = true;
+    humanHead.add(lb);
+    scalpElecLabels.push(lb);
+    positionElecMesh(i, dir);
+  });
+  // swap the active name/dir tables -- every page code path reads these
+  DATA.meta.scalp.elec_names = names;
+  DATA.meta.scalp.elec_dirs = names.map(nm =>
+    cfg.channels[nm].map(x => +x));
+  // traces: exact rows for channels the export covered, interpolated
+  // previews from the baked channels for the rest
+  editTraces = names.map(nm => {
+    const j = CONFIG_BAKED_NAMES.indexOf(nm);
+    if (j >= 0) return DATA.phi_scalp_all_uV[j];
+    return interpTraceFrom(DATA.phi_scalp_all_uV, CONFIG_BAKED_DIRS,
+                           -1, cfg.channels[nm]);
+  });
+  buildTopoWeights(names.map(nm =>
+    new THREE.Vector3(...cfg.channels[nm])));
+  ACTIVE_CONFIG_ID = id;
+  const el = document.getElementById("elec-title");
+  if (el) el.textContent = `${cfg.label} ×${cfg.count}` +
+    (id === BAKED_CONFIG_ID ? "（波形已导出）" : "（插值预览）");
+}
+
+function buildConfigSelector() {
+  const box = document.getElementById("layerbox");
+  const cap = document.createElement("div");
+  cap.textContent = "电极配置";
+  cap.style.cssText = "color:#8aa0b4;margin:2px 0";
+  const sel = document.createElement("select");
+  sel.id = "elec-config-sel";
+  sel.style.cssText = "width:100%;background:#16212e;color:#dbe4ee;" +
+      "border:1px solid #2a3a4d;border-radius:4px;padding:2px";
+  ELEC_CONFIGS.configs.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c.id;
+    o.textContent = `${c.label} ×${c.count}` +
+      (c.id === BAKED_CONFIG_ID ? "（已导出）" : "（预览）");
+    sel.appendChild(o);
+  });
+  sel.value = ACTIVE_CONFIG_ID;
+  sel.onchange = () => applyElecConfig(sel.value);
+  box.prepend(sel);
+  box.prepend(cap);
+}
 
 function capAnteriorDir() {
   const dirOf = n => new THREE.Vector3(
@@ -1942,6 +2062,20 @@ function initUI() {
   };
   buildLayerBox();
   addSceneButtons();
+
+  // capture the exported (baked) channel tables, then load the
+  // electrode-config catalogue and wire the selector
+  CONFIG_BAKED_NAMES = DATA.meta.scalp.elec_names.slice();
+  CONFIG_BAKED_DIRS = DATA.meta.scalp.elec_dirs.map(d => d.slice());
+  fetch("data/elec_configs.json?v=" + Date.now())
+    .then(r => r.json())
+    .then(cfgs => {
+      ELEC_CONFIGS = cfgs;
+      BAKED_CONFIG_ID = configBakedId();
+      ACTIVE_CONFIG_ID = BAKED_CONFIG_ID;
+      buildConfigSelector();
+    })
+    .catch(() => { /* no catalogue file -> single baked config */ });
 }
 
 // ---------- boot ----------

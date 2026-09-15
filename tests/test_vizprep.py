@@ -6,7 +6,7 @@ import numpy as np
 from ffbm.vizprep import (ELEC_DEFAULTS, fit_scale_shift,
                           generate_background_eeg, occipital_shift,
                           scalp_electrode_dirs, scalp_electrode_dirs_capped,
-                          snr_metrics, standard_1020)
+                          snr_metrics, standard_1010_full, standard_1020)
 
 
 def test_standard_1020_from_canonical_anchors():
@@ -174,6 +174,37 @@ def test_standard_1020_roll_tips_cap_toward_ear():
     n_sag = np.cross(base["Cz"], e_ant)
     n_sag = n_sag / np.linalg.norm(n_sag)
     assert abs(rolled["Cz"] @ n_sag) > 0.05
+
+
+def test_standard_1010_full_64_channels():
+    cz = np.array([0.0, np.cos(np.radians(30.0)), np.sin(np.radians(30.0))])
+    ant = np.array([0.0, np.sin(np.radians(30.0)), -np.cos(np.radians(30.0))])
+    left = np.cross(cz, ant)
+    anchors = {
+        "CZ": cz,
+        "FZ": cz * np.cos(np.radians(36.0))
+              + ant * np.sin(np.radians(36.0)),
+        "OZ": cz * np.cos(np.radians(36.0))
+              - ant * np.sin(np.radians(36.0)),
+        "A1": -left, "A2": left,
+    }
+    full = standard_1010_full(anchors, ni_arc_deg=223.6,
+                              yaw_deg=2.0, roll_deg=-0.3)
+    base = standard_1020(anchors, system="1010", ni_arc_deg=223.6,
+                         yaw_deg=2.0, roll_deg=-0.3)
+    n_channels = len(full) - ("Nasion" in full) - ("Inion" in full)
+    assert n_channels == 64         # 45 + 18 midpoints + Iz
+    deg = lambda a, b: np.degrees(np.arccos(np.clip(a @ b, -1, 1)))
+    # midpoints are arc midpoints of their parents
+    import ffbm.vizprep as _vp
+    for name, a, b in _vp.MIDPOINT_SITES:
+        m = base[a] + base[b]
+        m = m / np.linalg.norm(m)
+        assert deg(full[name], m) < 1e-4   # acos noise floor ~1e-6 deg
+    assert deg(full["Iz"], base["Inion"]) < 1e-9
+    # all sites unit norm, on the same yawed/rolled cap
+    for k, v in full.items():
+        assert abs(np.linalg.norm(v) - 1.0) < 1e-12
 
 
 def test_electrode_dirs_capped_excludes_face_and_neck():
