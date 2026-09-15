@@ -62,13 +62,10 @@
   <div id="panel">
     <h1>果蝇视觉系统 · 从神经放电到脑电</h1>
     <div class="sub">
-      MaleCNS v1.0 真实连接组（<b>双侧视叶</b> 3.7 万神经元 / 298 万突触，
-      exp015）放大 <b><span id="scalenote">×—</span></b> 放进人脑四球壳
-      （脑/脑脊液/颅骨/头皮）——单叶可 ×400，双叶原生几何 692μm 在 ×400
-      下宽 277mm 装不进脑球，尺度自动收缩以保持真实相对几何 ·
-      自然视觉刺激 → 光转导 → R1-R6 → L1-L3 → Mi/Tm → T4/T5
-      （突触电流）→ 四球壳前向核 → 头皮 17 电极脑电。
-      机制板层版（R/L 为分级电位细胞，双叶各自朝本侧眼）。
+      MaleCNS v1.0 真实连接组（全 CNS，区域可选装配）仿真 ×<span
+      id="scalenote">—</span> 放入人脑四球壳：视觉刺激 → 光转导 →
+      R1-R6 → L1-L3 → Mi/Tm → T4/T5 → 四球壳前向核 → 头皮电极脑电。
+      详细说明见 docs/（USAGE · TECHNICAL · STIMULUS）。
     </div>
     <div id="controls">
       <button id="play">⏸ 暂停</button>
@@ -83,9 +80,7 @@
       <input id="scrub" type="range" min="0" max="1000" value="0">
     </div>
     <div id="stimview" style="display:none;margin-top:6px">
-      <div class="chart-title">刺激视图
-        <span style="float:right;font-weight:normal;color:#8aa0b4">
-          人类视频 ▸ 果蝇眼采样（同步）</span></div>
+      <div class="chart-title">刺激视图</div>
       <div style="display:flex;gap:6px">
         <div><canvas id="stim-human" width="96" height="72"
               style="border:1px solid #2a3a4d;border-radius:4px;display:block">
@@ -94,15 +89,15 @@
         <div><canvas id="stim-fly" width="96" height="72"
               style="border:1px solid #2a3a4d;border-radius:4px;display:block">
           </canvas>
-          <div style="font-size:10px;color:#8aa0b4;text-align:center">果蝇眼采样（页面端插值）</div></div>
+          <div style="font-size:10px;color:#8aa0b4;text-align:center">果蝇眼采样</div></div>
         <div id="stim-info" style="font-size:10px;color:#8aa0b4;
              align-self:center;line-height:1.6"></div>
       </div>
     </div>
-    <div class="chart-title">刺激亮度（各时段颜色见右上）</div>
+    <div class="chart-title">刺激亮度</div>
     <canvas id="stim" class="chart" height="64"></canvas>
     <div class="chart-title"><span id="elec-title">人脑头皮电极阵列</span>
-      （行按国际标准通道排列，蓝− 红+）
+      （蓝− 红+）
       <label style="float:right;font-weight:normal;cursor:pointer">
         <input type="checkbox" id="zoom"> 近 2 s 放大</label>
       <label style="float:right;font-weight:normal;cursor:pointer;margin-right:12px">
@@ -112,16 +107,10 @@
     <div class="chart-title">各层群体放电率</div>
     <canvas id="rates" class="chart" height="170"></canvas>
     <div class="flash-legend">
-      展示链路：自然视觉刺激（上）→ 五层神经元活动（下，R/L 行为分级
-      释放率%——真实 LMC 不放电）→ 头皮 17 电极脑电（中，果蝇<b>双侧视叶
-      </b>网络放进四层人脑壳、长轴沿头球直径，粉色圆片=贴附式头皮电极，
-      头皮球面按电位实时着色，幅值含回流几何判定 ×1.7 标定）。果蝇自己的
-      头壳外放不了电极（角质层绝缘，外部场严格为零）。左上开关可单独
-      显示/隐藏：每层神经元、连接采样（紫/绿/橙 = R→L / L→Mi,Tm /
-      Mi→T4,T5 三段突触采样）、头皮电极、头皮电位着色（红正蓝负，随时间
-      实时变化）与四个球壳（灰=脑、蓝=脑脊液、白=颅骨、肤色=头皮）。
-      青绿色的腹索 VNC 参与动力学计算但不产生头皮信号——它在 ×202
-      下伸出头壳之外（果蝇"脊髓"无处安放进人脑），属正常现象。
+      展示链路：视觉刺激（上）→ 五层群体活动（下）→ 头皮电极脑电（中，
+      红正蓝负）。左上开关：逐层神经元 · 突触采样 · 头皮电极 ·
+      电位着色 · 四层头壳。青绿色的腹索 VNC 参与动力学计算，但在人头
+      几何中伸出头壳之外，属正常现象。机制细节见 docs/。
     </div>
   </div>
 </div>
@@ -445,9 +434,10 @@ function initScene() {
   // the per-view roll so the per-frame controls.update() keeps it.
   window.snapHeadView = dir => {
     // full-head framing: at 45 deg FOV a sphere of radius r needs
-    // r/sin(22.5 deg) = 2.61 r distance; the disks/handles reach
-    // ~1.05 r, so 3.0 * globe keeps the whole head comfortably in view
-    const R = 3.0 * globeRadius();
+    // r/sin(22.5 deg) = 2.61 r distance; the calibrated ghost head
+    // form extends well past the electrode globe, so 4.6 * globe
+    // keeps the whole composition in frame
+    const R = 4.6 * globeRadius();
     const up0 = VIEW_DIRS ? VIEW_DIRS.top.clone()
                           : new THREE.Vector3(0, 1, 0);
     let p, up = up0;
@@ -611,10 +601,9 @@ function initScene() {
 
   scene.add(humanHead);
 
-  // camera: from the occipital (-eye) side, where the shifted network
-  // (T4/T5 pole) sits under the scalp; network pre-scaled by the
-  // thought-experiment scale and shifted per the export meta (bilateral
-  // drops to ~x202 -- the page must read it, not hardcode 400)
+  // camera: default = calibrated TOP-DOWN view (Cz centered, Fpz at
+  // screen bottom, Oz at top) -- applied after the saved calibration
+  // so boot already shows the user's own frame
   const eye = new THREE.Vector3(...DATA.electrodes_pos[0]);
   eyeDirVec = eye.clone().normalize();
   const scalpMeta = DATA.meta.scalp || {};
@@ -624,10 +613,6 @@ function initScene() {
     const sv = scalpMeta.shift_um;
     netGroup.position.set(sv[0], sv[1], sv[2]);
   }
-  const rCam = R_SCALP_UM;
-  camera.position.copy(eyeDirVec.clone().multiplyScalar(-rCam * 2.9))
-    .add(new THREE.Vector3(0, rCam * 1.25, 0));
-  camera.lookAt(0, 0, 0);
   camera.far = 1e6;
   camera.updateProjectionMatrix();
   stimLight.position.copy(eye.clone().multiplyScalar(3));
@@ -635,6 +620,7 @@ function initScene() {
   // apply the user's saved 10-20 calibration right away (if any), so
   // boot never shows a stale layout and entering the mode never jumps
   applySavedCalibAtBoot();
+  snapHeadView("top");
 
   window.addEventListener("resize", onResize);
 }
@@ -2117,8 +2103,7 @@ function loadStimView() {
       document.getElementById("stimview").style.display = "";
       const vi = DATA.meta.visual_input || {};
       document.getElementById("stim-info").innerHTML =
-        `${vi.label || sv.id || ""}<br>${sv.n} 帧 @ ${sv.fps} fps<br>` +
-        `亮度映射 [${(vi.lo ?? 0.05).toFixed(2)}, 3.00]`;
+        `${vi.label || sv.id || ""}<br>${sv.n} 帧 @ ${sv.fps} fps`;
     })
     .catch(() => {});
 }
@@ -2254,15 +2239,11 @@ fetch("data/viz_data.json?v=" + Date.now()).then(r => r.json()).then(d => {
     const bestTag = snr.best_elec_name
       ? snr.best_elec_name : snr.best_elec_deg + "°";
     document.getElementById("snrinfo").innerHTML =
-      `叠加背景后：最强电极（${bestTag}）上果蝇信号 ` +
-      `${snr.sig_uv} μV vs 人脑背景 ${snr.bg_uv} μV（幅值比 ` +
-      `${snr.amp_ratio}）——单次试验难以看出，d′=2 需约 ` +
-      `<b>${snr.k_for_dprime2}</b> 次试验平均` +
+      `SNR：信号 <b>${snr.sig_uv} µV</b> @ ${bestTag} · 人脑背景 ` +
+      `${snr.bg_uv} µV · d′=2 需 ~<b>${snr.k_for_dprime2}</b> 次平均` +
       (snr.k_for_dprime2_band
-        ? `；按信号带（${snr.band_hz[0]}–${snr.band_hz[1]} Hz，避开 α 峰）
-           计算只需约 <b>${snr.k_for_dprime2_band}</b> 次` : "") +
-      `。背景 = 闭眼 α 波（${DATA.meta.bg_eeg.alpha_hz} Hz，枕区主导）+ ` +
-      `1/f 活动 + 传感器噪声。`;
+        ? `（信号带内 ~${snr.k_for_dprime2_band} 次）` : "") +
+      ` · 详见 docs/TECHNICAL.md`;
   }
   initScene();
   setupEpochs();
