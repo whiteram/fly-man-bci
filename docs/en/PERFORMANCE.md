@@ -70,7 +70,7 @@ projections".
 - No acceleration may change the calibrated dynamics: run trajectory A/B
   comparisons against the existing 45-channel export as the baseline
   (thresholds: scalp-potential error <0.1 μV or <1%);
-- Put the FP32 conversion on record; the SNR numbers (currently 0.15 μV @FC6,
+- Put the FP32 conversion on record; the SNR numbers (currently 0.212 μV @FC6,
   demo video) are sensitive to amplitude scaling and must be recomputed
   before and after any acceleration;
 - CuPy must match CUDA 12.x (driver 591.86 ✓), `pip install cupy-cuda12x`.

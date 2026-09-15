@@ -11,6 +11,10 @@
 
 [English](README.md) · **简体中文**
 
+▶ **[在线演示](https://whiteram.github.io/fly-man-bci/viz/)** ——
+交互式 3D 回放页面直接由本仓库驱动（若链接未生效，需在 GitHub
+Settings → Pages 选 main /(root) 开启；也可本地起服务运行 `viz/`）。
+
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Data](https://img.shields.io/badge/data-MaleCNS%20v1.0-38bdf8)

@@ -11,6 +11,11 @@ external stimulus → brain network activity → EEG recorded at the scalp.*
 
 **English** · [简体中文](README.zh-CN.md)
 
+▶ **[Live demo](https://whiteram.github.io/fly-man-bci/viz/)** — the
+interactive 3D replay runs straight from this repository
+(enable GitHub Pages → main /(root) if the link is not live yet; or serve
+`viz/` locally).
+
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Data](https://img.shields.io/badge/data-MaleCNS%20v1.0-38bdf8)

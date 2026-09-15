@@ -1,5 +1,8 @@
-# Data is large and re-downloadable from the official GCS bucket — never commit
-data/
+# Data is large and re-downloadable from the official GCS bucket — never commit.
+# ANCHORED to the repo root: a bare `data/` would also swallow viz/data/
+# (the demo data that ships with the repo — additions there must be visible
+# to `git add`, not silently ignored).
+/data/
 # Python
 __pycache__/
 *.py[cod]
@@ -7,6 +10,11 @@ __pycache__/
 build/
 dist/
 .ipynb_checkpoints/
+# local scratch
+.ab/
+viz/data/_debug_*.npy
+viz/data/_baseline_*.npy
+data/derived/_circuit_full.pkl
 # OS
 Thumbs.db
 .DS_Store

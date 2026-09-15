@@ -25,7 +25,7 @@ background noise) (§5)
 Quasi-static forward kernels (dipole pair × volume-conductor Green function) (§7)
         ├─ homogeneous infinite-medium kernel StaticPairField
         ├─ sealed two-sphere kernel SealedHeadPairField (electrodes inside the fly head)
-        └─ four-sphere kernel FourSpherePairField (17 electrodes on the human scalp, §8)
+        └─ four-sphere kernel FourSpherePairField (human scalp electrodes; default 45-ch 10-10 layout, §8)
         ▼
 Scalp potential [μV] ──(optional)── superimposed background human EEG (§9) → SNR / detection theory
 ```
@@ -166,7 +166,7 @@ Established by exp010/011; implemented in the viz export. Assertion: **the firin
 
 **8.2 Occipital-pole placement** (maximum offset via quadratic constraints, in-house). The real visual cortex lines the inner skull wall at the occipital pole, not the head center. The T4/T5 end (the output/"cortex" end, −u_eye direction) is pushed toward the sphere wall: goal = the extremum on the T4/T5 side reaches 0.90·R_brain; constraint = |p−center| ≤ 0.98·R_brain for all points, each point contributing one univariate quadratic inequality in the offset d, whose smallest positive root is taken as the feasible upper bound. Result: offset 31.1 mm, minimum margin 1.5 mm. **Effect**: the strongest scalp signal moves from 0° (eye axis) to 141–162° (occipital side), topographically consistent with real visual-evoked-potential occipital sites (Oz/O1/O2); the two poles anticorrelate with corr(0°,162°) ≈ −0.98 (a standard signature of dipole topography).
 
-**8.3 Electrode array**: 17 point electrodes, located at 0.985·R_scalp inside the scalp layer. Layout = 1 electrode anchored on the eye axis + a 17-point Fibonacci sphere with the nearest point removed; channels sorted by angle to the eye axis (0°→162°), so the heat map shows a clean spatial gradient.
+**8.3 Electrode array**: point electrodes at 0.985·R_scalp inside the scalp layer. Default layout = the calibrated international 10-10 system, 45 channels (`viz/data/elec_layout_1010.json`, derived from the 10-20 handle-calibration parameters; 64/128/EGI-241 configs switchable — see viz/ELEC_CONFIGS.md). The historical layout was an eye-axis anchor + a 17-point Fibonacci sphere, channels sorted by angle to the eye axis (0°→162°).
 
 ## 9. Background Human EEG and Detection Theory (in-house model)
 
