@@ -115,9 +115,16 @@ def main():
 
     OUT.mkdir(parents=True, exist_ok=True)
     # region-optional assembly (ffbm.regions): OFF regions are absent
-    # from the circuit -- no populations, synapses or kernels built
+    # from the circuit -- no populations, synapses or kernels built.
+    # The registry default keeps non-visual regions OFF (cheap dev
+    # default): say so loudly, a silent visual-only "full" export
+    # shrinks the page's cell display to the optic lobes
     circuit, active = freg.build_circuit(regions)
-    print(f"regions: {', '.join(active)}")
+    _off = [r for r in freg.known_regions() if r not in active]
+    print(f"regions: ON  = {', '.join(active) or '(none)'}")
+    print(f"regions: OFF = {', '.join(_off) or '(none)'}"
+          + ("   <-- pass --regions to enable" if _off else ""),
+          flush=True)
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]
@@ -784,6 +791,9 @@ def main():
                             "ffbm.pipeline CAL (round-3 winner; see "
                             "scripts/outputs/working_point_calibration_r3.json)"},
             "bg_eeg": {**vp.BG_DEFAULTS, "snr": snr},
+            "regions": {"on": sorted(active),
+                        "off": sorted(r for r in freg.known_regions()
+                                      if r not in active)},
             "layers": [
                 {"name": "R1-R6 光感受器", "color": "#a855f7", "n": n_r},
                 {"name": "L1-L3 板层", "color": "#38bdf8", "n": n_l},
