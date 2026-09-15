@@ -75,9 +75,42 @@ def main():
                          "visual_inputs.json (natural_1d = 1/f flicker "
                          "+ drift protocol; video ids map grayscale "
                          "frames through the ommatidia sampling)")
+    ap.add_argument("--pool", action="store_true",
+                    help="EXPERIMENTAL: runtime kernel pooling (3-5x "
+                         "faster, <1% target projection error -- "
+                         "accuracy refinement still in progress)")
+    ap.add_argument("--smoke", action="store_true",
+                    help="fast end-to-end smoke test: 400 ms protocol, "
+                         "20k kernel-pair cap, output to viz/data_smoke/ "
+                         "(does not touch the real viz_data.json)")
     args = ap.parse_args()
-    regions = ({r.strip(): True for r in args.regions.split(",")}
-               if args.regions else None)
+    global OUT
+    if args.smoke:
+        fparams.SECTIONS["stimulus"]["t_epochs"] = (
+            [("dark", 0.0, 200.0), ("flicker", 200.0, 400.0)],
+            "ms", "chosen", "smoke mode")
+        OUT = ROOT / "viz" / "data_smoke"
+        OUT.mkdir(parents=True, exist_ok=True)
+        print("SMOKE mode: 400 ms protocol, 20k pair cap, "
+              f"output -> {OUT}")
+    # (re-)derive protocol constants here -- smoke may have shortened
+    # them, and the nested stim/record closures read these locals
+    _stim_sec = fparams.SECTIONS["stimulus"]
+    T_EPOCHS = [tuple(e) for e in _stim_sec["t_epochs"][0]]
+    T_END = T_EPOCHS[-1][2]
+    STIM_CONTRAST = _stim_sec["stim_contrast"][0]
+    I_LUM = _stim_sec["i_lum"][0]
+    DRIFT_SPEED = _stim_sec["drift_speed"][0]
+    LAM_UM = _stim_sec["lam_um"][0]
+    SEED = _stim_sec["seed"][0]
+    # smoke defaults to visual-only regions: the CNS-extension assembly
+    # (62k+33k+15k cells) dominates the runtime and is irrelevant when
+    # smoke-testing the stimulus/pooling/page pathway
+    regions_arg = args.regions
+    if args.smoke and regions_arg is None:
+        regions_arg = "visual_bilateral"
+    regions = ({r.strip(): True for r in regions_arg.split(",")}
+               if regions_arg else None)
 
     OUT.mkdir(parents=True, exist_ok=True)
     # region-optional assembly (ffbm.regions): OFF regions are absent
@@ -150,7 +183,7 @@ def main():
     # linear in the per-edge currents, so a stratified subsample only
     # adds sampling noise (~1/sqrt(n) at n=300k); without the cap the
     # 17-electrode kernel build alone costs ~4.5 h
-    KERNEL_PAIR_CAP = 300_000
+    KERNEL_PAIR_CAP = 20_000 if args.smoke else 300_000
     rng_k = np.random.default_rng(7)
     reweight = {name: 1.0 for name in group_pairs}
     kernel_keep = {name: None for name in group_pairs}
@@ -253,13 +286,86 @@ def main():
               f"from {args.elec_layout}")
     coef_scalp = {name: [] for name in
                   list(group_pairs) + ["PHOTO"]}
+
+    def pool_cluster(gname, pr_s, po_s, k):
+        """Cluster the group's (pre, post) 6D coordinates into k
+        representatives; returns the pool_info entry."""
+        C6 = np.hstack([pr_s, po_s])
+        train = np.random.default_rng(11).choice(
+            len(pr_s), min(50_000, len(pr_s)), replace=False)
+        cent, _ = kmeans2(C6[train], k, minit="points", iter=10, seed=13)
+        labels = np.empty(len(pr_s), dtype=np.int64)
+        c22 = (cent ** 2).sum(1)
+        for s0 in range(0, len(pr_s), 50_000):
+            sl = slice(s0, min(s0 + 50_000, len(pr_s)))
+            d2 = ((C6[sl] ** 2).sum(1)[:, None] + c22[None, :]
+                  - 2.0 * C6[sl] @ cent.T)
+            labels[sl] = d2.argmin(1)
+        counts = np.bincount(labels, minlength=len(cent))
+        keepc = np.nonzero(counts)[0]
+        remap = np.full(len(cent), -1, dtype=np.int64)
+        remap[keepc] = np.arange(len(keepc))
+        labels = remap[labels]
+        sum_pr = np.zeros((len(keepc), 3))
+        sum_po = np.zeros((len(keepc), 3))
+        np.add.at(sum_pr, labels, pr_s)
+        np.add.at(sum_po, labels, po_s)
+        order = np.argsort(labels, kind="stable")
+        starts = np.concatenate([[0], np.cumsum(counts[keepc])[:-1]])
+        return {"rep_pr": sum_pr / counts[keepc, None],
+                "rep_po": sum_po / counts[keepc, None],
+                "order": order, "starts": starts,
+                "k": len(keepc), "mult": 1.0}
+
+    def rebuild_group_kernel(gname):
+        """Rebuild all 45 electrode coefficient rows for one pooled
+        group (after an accuracy-driven k increase)."""
+        pi = pool_info[gname]
+        rows = []
+        for d in scalp_dirs:
+            elec_k = center + 0.985 * R_SCALP * d
+            rows.append(FourSpherePairField(
+                pi["rep_pr"], pi["rep_po"], elec_k[None, :],
+                center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
+                r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
+                sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0]
+                * reweight.get(gname, 1.0))
+        coef_scalp[gname] = np.vstack(rows)
+
+    # ---- runtime kernel pooling ----
+    # The 4-sphere field is smooth in dipole position: cluster each
+    # group's (pre, post) 6D coordinates into ~sqrt(n) representatives,
+    # build the kernel ONLY for the representatives, and apply it to the
+    # pooled per-cluster currents.  Validated in-run against an exact
+    # single-electrode coefficient (see pool report at the end).
+    pool_info = {}
+    # NOTE: kernel pooling is experimental -- in-run validation found a
+    # group with ~24% projection error and the refine path needs work.
+    # Enable explicitly with --pool; default exports stay exact.
+    if args.pool:
+        from scipy.cluster.vq import kmeans2
+        for gname, (pr_s, po_s) in scaled_pairs.items():
+            n = len(pr_s)
+            k = int(np.clip(round(np.sqrt(n) * 7.0), 400, 4000))
+            if n < 2 * k:
+                continue                        # small group: exact
+            pool_info[gname] = pool_cluster(gname, pr_s, po_s, k)
+        n_rep = sum(i["k"] for i in pool_info.values())
+        print(f"kernel pooling: {len(pool_info)}/{len(scaled_pairs)} "
+              f"groups -> {n_rep} representative dipoles "
+              f"(vs {sum(len(p[0]) for p in scaled_pairs.values())} edges)",
+              flush=True)
+
     import time as _time
     _t0 = _time.time()
     for k, d in enumerate(scalp_dirs):
         elec_k = center + 0.985 * R_SCALP * d
         for name, (pr_s, po_s) in scaled_pairs.items():   # shift included
+            pi = pool_info.get(name)
+            pr_use, po_use = ((pi["rep_pr"], pi["rep_po"]) if pi
+                              else (pr_s, po_s))
             coef_scalp[name].append(FourSpherePairField(
-                pr_s, po_s, elec_k[None, :],
+                pr_use, po_use, elec_k[None, :],
                 center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
                 r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
                 sigma3=SIGMAS[2], sigma4=SIGMAS[3]).coef[0]
@@ -269,6 +375,20 @@ def main():
     coef_scalp = {k: np.vstack(v) for k, v in coef_scalp.items()}
     print(f"scalp kernels built (S=400, 4-sphere, {len(scalp_dirs)} electrodes, "
           f"{_time.time() - _t0:.0f} s)")
+
+    # exact single-electrode coefficient: pooling accuracy reference
+    pool_exact0 = None
+    if pool_info:
+        elec0 = center + 0.985 * R_SCALP * scalp_dirs[0]
+        pool_exact0 = {
+            name: FourSpherePairField(
+                pr_s, po_s, elec0[None, :], center=center, r1=R_BRAIN,
+                r2=R_CSF, r3=R_SKULL, r4=R_SCALP, sigma1=SIGMAS[0],
+                sigma2=SIGMAS[1], sigma3=SIGMAS[2],
+                sigma4=SIGMAS[3]).coef[0] * reweight.get(name, 1.0)
+            for name, (pr_s, po_s) in scaled_pairs.items()}
+        print("pooling reference (electrode 0, exact) built",
+              flush=True)
 
     # ---- simulation via the shared pipeline (ffbm.pipeline) ----
     # naturalistic stimulus: 1/f flicker, drifting 1/f texture along the
@@ -420,6 +540,7 @@ def main():
     is_t4 = np.array([str(s).startswith("T4") for s in t45_type])
     is_t5 = np.array([str(s).startswith("T5") for s in t45_type])
     n_field = int(T_END / DT) // 2
+    pool_err = []
     phi = np.zeros((n_field, 3))
     phi_scalp = np.zeros((n_field, len(scalp_dirs)))
     rate = {k: np.zeros(n_field) for k in
@@ -454,12 +575,46 @@ def main():
                     acc += ker[name].coef[i] @ y_of(name)
             phi[j, i] = acc * 1e-12
         acc_s = np.zeros(len(scalp_dirs))
-        for name in list(group_pairs) + ["PHOTO"]:
-            y = y_of(name)
-            keep = kernel_keep.get(name)
-            if keep is not None:
-                y = y[keep]
-            acc_s += coef_scalp[name] @ y
+        for attempt in range(3):
+            pool_err.clear()                   # keep the final attempt only
+            fail = {}
+            pool_err_checkpoint = (j in (0, n_field // 2)
+                                   and pool_exact0 is not None)
+            for name in list(group_pairs) + ["PHOTO"]:
+                y = y_of(name)
+                keep = kernel_keep.get(name)
+                if keep is not None:
+                    y = y[keep]
+                pi = pool_info.get(name)
+                if pi is not None:
+                    yp = np.add.reduceat(y[pi["order"]], pi["starts"])
+                    acc_s += coef_scalp[name] @ yp
+                else:
+                    acc_s += coef_scalp[name] @ y
+                if pool_err_checkpoint:
+                    ex = float(pool_exact0[name] @ y)
+                    pl = float(
+                        coef_scalp[name][0]
+                        @ (np.add.reduceat(y[pi["order"]], pi["starts"])
+                           if pi is not None else y))
+                    rel = abs(ex - pl) / max(abs(ex), 1e-30)
+                    pool_err.append(rel)
+                    if rel > 0.01 and attempt < 2:
+                        fail[name] = rel
+            if not fail:
+                break
+            # accuracy-driven refinement: 3x the representatives of the
+            # failing groups, rebuild their 45-electrode rows, re-sum
+            for name, rel in fail.items():
+                pi = pool_info[name]
+                pi["k"] = min(int(pi["k"] * 3), 20000)
+                pi.update(pool_cluster(name, scaled_pairs[name][0],
+                                       scaled_pairs[name][1], pi["k"]))
+                rebuild_group_kernel(name)
+                print(f"pooling: group {name} refined to k={pi['k']} "
+                      f"(rel err {rel * 100:.1f}% -> retry)",
+                      flush=True)
+            pool_err = [e for e in pool_err][:0] or pool_err[-len(fail):]
         phi_scalp[j] = acc_s * 1e-12
         if mech:   # graded R/L: display their release rates (%) instead
             rate["R"][j] = float(st["r_release"](
@@ -498,6 +653,10 @@ def main():
           f"d'=2 needs ~{snr['k_for_dprime2']} trials "
           f"(band {snr['band_hz'][0]:.0f}-{snr['band_hz'][1]:.0f} Hz: "
           f"~{snr['k_for_dprime2_band']})")
+    if pool_err:
+        print(f"kernel pooling accuracy: max rel err "
+              f"{max(pool_err) * 100:.3f}% over {len(pool_err)} checks "
+              "(exact electrode-0 reference)")
 
     # ---- stimulus view frames (human video | fly-eye sampling) ----
     stim_view_meta = None

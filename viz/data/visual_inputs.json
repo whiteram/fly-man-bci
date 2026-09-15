@@ -1,0 +1,22 @@
+{
+ "_schema": "视觉输入目录：export_data.py --visual-input <id> 选择。kind: line_scan=自然 1/f 协议（默认，参数在 params.py stimulus 节）；video=灰度视频经小网膜映射（source 为 (帧,高,宽) 的 .npy，可用 make_stimulus_from_video.py 从 mp4 生成）。video 附加参数：fps 采样帧率、blur_px 小网膜 PSF 高斯模糊、lo/hi 亮度映射范围（无量纲，1=黑暗基底）、margin 预留边距比例",
+ "inputs": [
+  {
+   "id": "natural_1d",
+   "kind": "line_scan",
+   "label": "自然协议（1/f 闪烁+漂移）"
+  },
+  {
+   "id": "demo_bounce",
+   "kind": "video",
+   "label": "演示：弹跳球（人类视频→果蝇眼）",
+   "source": "data/stimuli/demo_bounce.npy",
+   "fps": 30.0,
+   "blur_px": 1.2,
+   "lo": 0.05,
+   "hi": 3.0,
+   "margin": 0.05,
+   "loop": true
+  }
+ ]
+}
