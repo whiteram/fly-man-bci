@@ -427,21 +427,24 @@ function initScene() {
   // keep the face toward screen bottom/top -- camera.up stays set to
   // the per-view roll so the per-frame controls.update() keeps it.
   window.snapHeadView = dir => {
-    const R = R_SCALP_UM;
+    // full-head framing: at 45 deg FOV a sphere of radius r needs
+    // r/sin(22.5 deg) = 2.61 r distance; the disks/handles reach
+    // ~1.05 r, so 3.0 * globe keeps the whole head comfortably in view
+    const R = 3.0 * globeRadius();
     const up0 = VIEW_DIRS ? VIEW_DIRS.top.clone()
                           : new THREE.Vector3(0, 1, 0);
     let p, up = up0;
     if (dir === "iso") {
       const f = new THREE.Vector3(...(DATA.meta.scalp.elec_dir || [1, 0, 0]))
           .normalize();
-      p = f.multiplyScalar(2.1 * R).addScaledVector(up0, 0.8 * R);
+      p = f.multiplyScalar(2.8 * R).addScaledVector(up0, 1.1 * R);
     } else if (VIEW_DIRS && VIEW_DIRS[dir]) {
-      p = VIEW_DIRS[dir].clone().multiplyScalar(2.0 * R);
+      p = VIEW_DIRS[dir].clone().multiplyScalar(R);
       if (dir === "top") up = VIEW_DIRS.front.clone().negate();
       if (dir === "bottom") up = VIEW_DIRS.front.clone();
     } else {
       p = new THREE.Vector3(dir === "front" ? 1 : -1, 0, 0)
-          .multiplyScalar(2.0 * R);
+          .multiplyScalar(R);
     }
     camera.up.copy(up);
     camera.position.copy(p);
@@ -605,8 +608,8 @@ function initScene() {
     netGroup.position.set(sv[0], sv[1], sv[2]);
   }
   const rCam = R_SCALP_UM;
-  camera.position.copy(eyeDirVec.clone().multiplyScalar(-rCam * 2.6))
-    .add(new THREE.Vector3(0, rCam * 0.9, 0));
+  camera.position.copy(eyeDirVec.clone().multiplyScalar(-rCam * 2.9))
+    .add(new THREE.Vector3(0, rCam * 1.25, 0));
   camera.lookAt(0, 0, 0);
   camera.far = 1e6;
   camera.updateProjectionMatrix();
