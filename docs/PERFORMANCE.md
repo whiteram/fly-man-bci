@@ -93,6 +93,16 @@ smoke 规模实测（17 电极 × 35.2 万偶极，400 ms 协议，16 逻辑核�
 | 生物学循环 + 前向应用 | ~60–75 min | **47 min** | 冗余 edge_currents 调用删除（ker 组 4 次/记录 → 1 次）+ f32 GEMM；剩余成本是每记录 1 次的 123 万边电流计算与突触衰减——**路线 B3/B4 的目标** |
 | 精度对拍 | — | **头皮 max 0.001 μV（0.092% 峰值），corr 1.000000；phi 逐位一致** | vs 旧代码全量基线；f32 系数量级，红线（<0.1 μV 或 <1%）内 100× 裕度 |
 
+**2026-09-16 增补（P3 GPU 实测）**：`viz/export_data.py --gpu`
+（src/ffbm/gpu.py，CuPy/NVRTC）把生物学循环+前向记录整段搬上
+GPU——全 CNS 裸步进 **4.62 ms/步**，全量导出循环段
+**47 min → 156 s（~18×）**，端到端 ~52 → **~7.5 min**（装配
+201 s 与核构建 91 s 仍为 CPU）。轨迹与 CPU **逐位一致**（RNG
+噪声仍在 CPU numpy 按原序生成、分批上传）；phi 因 cublas/
+OpenBLAS 求和次序不同为 rel 3.4e-7 / corr 1.000000000（统计性
+判据，红线内 ~3000× 裕度）。`--pool` 与 `--gpu` 互斥。细节见
+ACCELERATION_PLAN.md P3 节。
+
 **重要教训（2026-09 事故）**：`regions_default` 只开
 `visual_bilateral`（vpn_central 等默认关）。重导出时漏传
 `--regions visual_bilateral,vpn_central,ol_rest,central_brain,vnc`

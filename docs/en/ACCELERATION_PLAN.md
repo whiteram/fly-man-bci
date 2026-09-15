@@ -2,16 +2,18 @@
 
 *(English translation — authoritative version: [../../docs/ACCELERATION_PLAN.md](../../docs/ACCELERATION_PLAN.md))*
 
-Status (updated 2026-09-15): **P0 + P2 (phases 1 and 2) implemented and
-verified** — numba 0.67 + CuPy 14.2 installed in the conda `ffbm` env
-(GPU compute verified); seven JIT kernels (graded-synapse step /
-conductance drive / edge currents / exponential-synapse decay+delivery
-(delayed and non-delayed) / OU noise / LIF explicit and semi-implicit)
-landed with **bitwise-identical trajectories** (unit parity + smoke
-end-to-end A/B, tests/test_numba_parity.py), and the biology loop
-measured at **2.38×** (600 ms full-region in-process A/B: 75.7 s →
-31.8 s; full export est. 22.1 → 9.3 min). P3 (CuPy) remains. The
-prerequisite work (Route A) is in PERFORMANCE.md §7.
+Status (updated 2026-09-16): **P0 + P2 + P3 all landed** —
+P2's seven numba kernels are bitwise-identical (biology loop 2.38×);
+**the P3 CuPy full-GPU route is complete**: the resident engine in
+`src/ffbm/gpu.py` plus the `viz/export_data.py --gpu` record path have
+trajectories **bit-identical to CPU** (three-level parity: synthetic
+tiny circuit, real visual_bilateral, full CNS), and the full export's
+biology loop + forward recording drops **47 min → 156 s (~18×)**,
+end-to-end ~52 → **~7.5 min** (the 201 s assembly and 91 s kernel
+build stay on CPU); phi differs only at rel 3.4e-7 / corr 1.000000000
+(cublas summation order — the statistical criterion, ~3000× inside the
+red line). Remaining optional item: P4 multi-trial parallelism (SNR
+throughput). The prerequisite work (Route A) is in PERFORMANCE.md §7.
 
 ---
 
@@ -106,7 +108,73 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
   calibration validation);
 - expected **full export <2 min** (stepping is memory-bound, on the order of
   ~5-10 s);
-- **validation criteria become statistical** (see the §3 RNG decision).
+- **validation criteria become statistical** (see the §3 RNG decision);
+- **P3-1 PoC passed (2026-09-16, scripts/poc_cupy_parity.py, 16/16
+  bitwise)**: RawKernels for the three LIF variants / OU / graded /
+  delivery scatter match the numba reference bit-for-bit. Key findings:
+  (1) NVRTC **must** compile with `-fmad=false` (default fma contraction
+  breaks OU by ~1e5, reproduced); (2) the drive must be restructured as a
+  **post-major CSR** — numba accumulates in global edge order, GPU atomics
+  would reorder; a stable argsort(post) CSR with one serial thread per
+  post reproduces the order bitwise (one-time build, like Route A);
+  (3) graded's numba typing: the clip literals 0.0/1.0 unify `r` to
+  **f64**, so `(r - s)` is an exact f64 subtraction; (4) delivery
+  targets are unique (pre rows are disjoint edge ranges) →
+  gather-add-scatter is race-free, atomics-free, deterministic;
+  (5) NVRTC has no system headers (no stdint.h — use `long long`);
+  CuPy 14 calls RawKernels as `kernel(grid, block, args_tuple)`;
+  (6) latent note: graded's numba and pure-numpy paths differ at ~1e-7
+  on synthetic data (numba's k is f64, numpy weak-scalar keeps f32) —
+  not triggered in production (r_pre∈[0,1]); the GPU reference is
+  numba (the production path).
+- **P3-2 measurements (2026-09-16, scripts/poc_cupy_graph.py)**:
+  (1) **CUDA Graphs give no benefit** (eager vs graph <2% — launch
+  overhead is negligible at real kernel runtimes) → dropped, simpler
+  engineering; (2) at a synthetic random layout the per-post gather
+  kernel costs 61.6 ms/step (random gather is a latency floor: 64M
+  random reads ~29 ms; unrolling/int32 don't help); (3) **the
+  production layout has no such problem** — y is stored post-sorted
+  (`lexsort((pre, post))`), so the drive is a streaming segment sum
+  (6.8 ms at 64M edges, bitwise-identical order to the numba global
+  edge scan), no permute/gather; (4) edge_currents' real scale is the
+  1.23M projection edges (the PoC mistakenly used 64M); (5) estimated
+  production-layout step ~16 ms → 21k steps ≈ 5.6 min; fusion
+  (decay+ring+clear) could halve traffic. Conclusion: build P3-3 with
+  the production layout and measure before optimizing further.
+- **P3-3 engine landed (2026-09-16, src/ffbm/gpu.py)**: `GPUTrial`
+  keeps the whole mech-branch loop state on the GPU — RNG option a is
+  implemented (noise pre-drawn on CPU in the exact per-step order
+  R→L→MID→T45→extras, uploaded in 512-step batches; the numpy stream is
+  unchanged); drives are streaming segment sums on the production
+  post-sorted layout; delivery is one thread per presynaptic row
+  (disjoint ranges, no atomics), the ring pointer advances BEFORE
+  delivery (numba order, bin b lands in row (ptr+b-1)%len). **Verified**:
+  (a) synthetic tiny circuit (with an extra region and a dual-source
+  group) — 60/60 sampled steps bitwise on all states (v/refrac/s/y/
+  buffer/ptr/OU-x, scripts/gpu_loop_parity.py); (b) real
+  visual_bilateral circuit — 200 steps bitwise, **2.36 ms/step**
+  (scripts/gpu_real_parity.py). One critical bug found and fixed: the
+  LIF kernels must consume the post-update OU state x, not the raw
+  noise w.
+- **P3-4 landed and fully verified (2026-09-16)**:
+  `viz/export_data.py --gpu` — the record path is fully on-device
+  (k_ecur_f32 computes per-edge currents with the CPU expression's
+  dtype path and writes f32 ybuf rows directly, including a
+  kernel_keep subsampled variant; flushes use cublas GEMM; rate
+  statistics accumulate on device and transfer once, removing 5 host
+  syncs per record). **Measured**: full CNS (150,601 neurons / 5
+  regions) bare stepping **4.62 ms/step × 21,000 steps**; the full
+  export's biology loop + forward recording is **156 s vs the CPU's
+  47 min ≈ 18×**, end-to-end ~7.5 min; output vs the CPU baseline:
+  scalp rel 3.4e-7, corr 1.000000000, fly-head rel 3.4e-10 (f32/f64
+  GEMM summation order — the statistical criterion). At smoke scale
+  GPU≈CPU (17 vs 16 s — launch/Python overhead dominates a tiny
+  circuit; the GPU advantage appears at real scale). `--pool` and
+  `--gpu` are mutually exclusive (explicit error at flush). Fixed
+  along the way: a KeyError for the PHOTO group in keep_g; a 7.46 GiB
+  `_indices` allocation failure when pytest ran concurrently with the
+  full export (memory contention, passes on re-run — not a
+  regression).
 
 ### P4 multi-trial parallelism (zero risk, can be added at any time)
 - the SNR scenario at d′=2 needs ~1,630 trials → **throughput matters more

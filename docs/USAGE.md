@@ -99,6 +99,10 @@ python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
 - `--elec-layout`：任意通道布局文件（name → [x,y,z]；可从
   elec_configs.json 提取，见 ELEC_CONFIGS.md §导出）；
 - `--regions`：区域开关（`--help` 查看可用区域）；
+- `--gpu`：生物学循环+前向记录整段上 GPU（CuPy，需 conda ffbm
+  环境 + NVIDIA 卡）：全量导出循环段 47 min → **~2.6 min**，轨迹
+  与 CPU 逐位一致（phi 因 BLAS 求和次序 rel ~3e-7）；与 `--pool`
+  互斥。详见 docs/ACCELERATION_PLAN.md P3 节；
 - 耗时参考：核构建 361 s @45 导、≈513 s @64、≈1030 s @128、
   ≈1930 s @EGI241（线性；完整导出再加仿真与背景 EEG）；
 - 建议后台运行，结束后 `viz/data/viz_data.json` 即页面新数据。

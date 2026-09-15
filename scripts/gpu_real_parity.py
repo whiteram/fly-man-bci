@@ -16,8 +16,12 @@ from ffbm.pipeline import CAL, build_stack, simulate
 from ffbm.gpu import GPUTrial
 
 N_STEPS = 200                    # 100 ms of biology
-COMPARE_AT = list(range(0, N_STEPS, 20))
+COMPARE_AT = list(range(0, N_STEPS, 50))
 SEED = 20260916
+
+REGIONS = (sys.argv[1] if len(sys.argv) > 1 else "visual_bilateral")
+N_STEPS = int(sys.argv[2]) if len(sys.argv) > 2 else N_STEPS
+COMPARE_AT = list(range(0, N_STEPS, max(N_STEPS // 4, 1)))
 
 
 def lum(t):
@@ -37,7 +41,10 @@ def snapshot(st):
 
 
 def main():
-    circuit, active = freg.build_circuit({"visual_bilateral": True})
+    regions = ({r.strip(): True for r in REGIONS.split(",")}
+               if REGIONS != "all"
+               else {r: True for r in freg.known_regions()})
+    circuit, active = freg.build_circuit(regions)
     print(f"regions: {active}; n_r={len(circuit['r_ids'])} "
           f"n_l={len(circuit['l_ids'])} n_mid={len(circuit['mid_ids'])} "
           f"n_t45={len(circuit['t45_ids'])}")

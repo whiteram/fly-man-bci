@@ -109,6 +109,12 @@ python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
 - `--elec-layout`: any channel layout file (name → [x,y,z]; can be extracted from
   elec_configs.json, see ELEC_CONFIGS.md §Export);
 - `--regions`: region toggles (`--help` lists the available regions);
+- `--gpu`: runs the biology loop + forward recording entirely on the GPU
+  (CuPy; needs the conda ffbm environment + an NVIDIA card): the full
+  export's loop segment drops 47 min → **~2.6 min**, with trajectories
+  bit-identical to CPU (phi differs at rel ~3e-7 due to BLAS summation
+  order); mutually exclusive with `--pool`. Details in
+  docs/ACCELERATION_PLAN.md §P3;
 - Runtime reference: kernel construction 361 s @45 channels, ≈513 s @64, ≈1030 s @128,
   ≈1930 s @EGI241 (linear; a full export adds simulation and background EEG on top);
 - Running in the background is recommended; when it finishes, `viz/data/viz_data.json`

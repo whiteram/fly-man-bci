@@ -1,13 +1,15 @@
 # 计算加速路线图（下一阶段，暂缓执行）
 
-状态（2026-09-15 更新）：**P0 + P2（第一、二阶段）已实施并验证**——
-numba 0.67 + CuPy 14.2 已装入 conda `ffbm` 环境（GPU 实测可算）；
-七个 JIT 内核（分级突触 step / 电导 drive / edge_currents / 指数突触
-衰减+投递（延迟与非延迟）/ OU 噪声 / LIF 显式与半隐式）以**逐位一致**
-落地（单元对拍 + smoke 端到端 A/B，tests/test_numba_parity.py），
-生物学循环实测 **2.38×**（600 ms 全区域单进程双轮基准：75.7 s →
-31.8 s，全量估 22.1 → 9.3 min）。P3（CuPy）待续。前置工作（路线 A）
-见 PERFORMANCE.md §7。
+状态（2026-09-16 更新）：**P0 + P2 + P3 全部落地**——
+P2 numba 七内核逐位一致（生物学循环 2.38×）；
+**P3 CuPy 全 GPU 路线完成**：`src/ffbm/gpu.py` 常驻引擎 + 
+`viz/export_data.py --gpu` 记录路径，轨迹与 CPU **逐位一致**
+（合成小电路 + 真实 visual_bilateral + 全 CNS 三级对拍），
+全量导出生物学循环+前向记录 **47 min → 156 s（~18×）**，
+端到端 ~52 → **~7.5 min**（装配 201 s + 核构建 91 s 不变）；
+phi 头皮 rel 3.4e-7 / corr 1.000000000（cublas 求和次序差，
+统计性判据，红线内 3000× 裕度）。剩余可选项：P4 多 trial 并行
+（SNR 场景吞吐）。前置工作（路线 A）见 PERFORMANCE.md §7。
 
 ---
 
@@ -126,6 +128,21 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
   （scripts/gpu_real_parity.py），GPU **2.36 ms/步**（视觉规模，
   含记录钩子；全区域待 P3-4 实测）。曾修 1 个关键 bug：LIF 的
   i_ext 必须用 OU 更新后的状态 x，不是原始噪声 w。
+- **P3-4 已落地并完成全量验证（2026-09-16）**：
+  `viz/export_data.py --gpu`——记录路径全程 GPU（k_ecur_f32 按
+  CPU 表达式的 dtype 路径算边电流并直接写 f32 ybuf 行，含
+  kernel_keep 子采样变体；flush 用 cublas GEMM；速率统计改为
+  设备端累积、每场一次传回，消除每记录 5 次主机同步）。
+  **实测**：全 CNS（150,601 神经元/5 区域）裸步进 **4.62 ms/步
+  × 21,000 步**；全量导出（45 导/10.5 s/demo_bounce）生物学循环
+  +前向记录 **156 s vs CPU 47 min ≈ 18×**，端到端 ~7.5 min；
+  输出对拍 CPU 基线：头皮 rel 3.4e-7、corr 1.000000000，蝇头
+  rel 3.4e-10（f32/f64 GEMM 求和次序差，统计性判据）。smoke
+  规模 GPU≈CPU（17 vs 16 s，小电路由发射/Python 开销主导——
+  GPU 收益在真实规模才显现）。`--pool` 与 `--gpu` 互斥
+  （flush 时显式报错）。曾修：keep_g 对 PHOTO 组的 KeyError；
+  pytest 与全量导出并发时的 _indices 7.46 GiB 分配竞争
+  （复跑即过，非回归）。
 
 ### P4 多 trial 并行（零风险，随时可加）
 - SNR 场景 d′=2 需 ~1,630 trials → **吞吐比延迟重要**；

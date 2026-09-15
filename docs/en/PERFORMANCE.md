@@ -108,6 +108,18 @@ regions / **1.23M projected dipoles**):
 | Biology loop + forward application | ~60–75 min | **47 min** | redundant edge_currents calls removed (ker groups 4 calls/record → 1) + f32 GEMM; the remaining cost is the once-per-record 1.23M-edge current computation plus the synapse decay — **the target of routes B3/B4** |
 | Precision A/B comparison | — | **scalp max 0.001 μV (0.092% of peak), corr 1.000000; phi bit-identical** | vs the old-code full-scale baseline; f32-coefficient magnitude, a 100× margin within the red line (<0.1 μV or <1%) |
 
+**2026-09-16 addendum (P3 GPU, measured)**: `viz/export_data.py --gpu`
+(src/ffbm/gpu.py, CuPy/NVRTC) moves the biology loop + forward
+recording entirely onto the GPU — full-CNS bare stepping at **4.62
+ms/step**, the full export's loop segment **47 min → 156 s (~18×)**,
+end-to-end ~52 → **~7.5 min** (the 201 s assembly and 91 s kernel
+build remain on CPU). Trajectories are **bit-identical to CPU** (the
+RNG noise is still generated on CPU numpy in the original order and
+uploaded in batches); phi differs only at rel 3.4e-7 / corr 1.000000000
+due to cublas vs OpenBLAS summation order (the statistical criterion, a
+~3000× margin inside the red line). `--pool` and `--gpu` are mutually
+exclusive. Details in ACCELERATION_PLAN.md §P3.
+
 **Important lesson (2026-09 incident)**: `regions_default` enables only
 `visual_bilateral` (vpn_central etc. are off by default). Omitting
 `--regions visual_bilateral,vpn_central,ol_rest,central_brain,vnc`
