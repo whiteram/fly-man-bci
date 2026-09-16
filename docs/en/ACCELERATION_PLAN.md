@@ -182,6 +182,31 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
 - multiprocessing with 16 seeds in parallel, zero code changes,
   multiplicative with P2/P3 (16 cores).
 
+### P5 staged build caches (landed 2026-09-16, src/ffbm/cache.py)
+With the GPU loop at 156 s, the fixed costs (assembly ~3 min + kernel
+build 91 s) dominate. Two **independently-keyed** caches; `--no-cache`
+bypasses both:
+- **circuit cache**: key = region set + data/ file stats + builder code
+  hashes; a hit (~0.3 s) replaces the ~3 min assembly. npz stores plain
+  arrays (NOT pickle — a 4 GB object pickle measured >35 min to write
+  on this machine); position dicts are pruned to the bodies the circuit
+  actually references (the raw post_pos covers 87.5M witness bodies →
+  ~200k, shrinking the cache from 2.9 GB to MBs; semantics preserved —
+  a needed-but-missing key raises KeyError rather than silently
+  misaligning);
+- **forward-kernel cache**: key = circuit key + **electrode layout**
+  (--elec-layout file hash or the default-layout identity) + pair cap
+  (smoke/full differ) + forward code; a hit (~1 s) replaces the 48-91 s
+  build. **Switching electrode configurations rebuilds only this
+  stage**;
+- the stack stage (build_stack) is not cached: it draws the
+  seed-dependent delay jitter and is comparatively cheap;
+- **verified**: at smoke and full scale, cache-hit vs from-scratch
+  _debug_phi* outputs are **bit-identical**;
+- known quirk: the first run after touching files occasionally fails
+  with an `llvmlite.dll` load error (a transient Windows
+  handle/antivirus scan) — rerun; unrelated to the cache.
+
 ## 3. ⚠️ Must be decided before B3: RNG stream consistency (a lurking pitfall found by external review)
 
 The red-line text requires "point-by-point A/B comparison of GPU vs CPU

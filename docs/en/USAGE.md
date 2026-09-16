@@ -115,6 +115,24 @@ python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
   bit-identical to CPU (phi differs at rel ~3e-7 due to BLAS summation
   order); mutually exclusive with `--pool`. Details in
   docs/ACCELERATION_PLAN.md §P3;
+- `--no-cache`: bypass the staged build caches (ffbm.cache) and rebuild
+  from scratch.  Caching is on by default, two independent stages with
+  automatic invalidation:
+  (1) **circuit cache** (key = region set + data/ files + builder code)
+  — the first full assembly (~3 min) is written to `data/cache/`
+  (position dicts pruned to the bodies the circuit actually references,
+  ~MBs); a hit loads in ~0.3 s;
+  (2) **forward-kernel cache** (key = circuit key + **electrode
+  layout** + pair cap + forward code) — a hit (~1 s) replaces the 91 s
+  kernel build.
+  **Switching electrode configurations (10-10 → 64/128/EGI241) rebuilds
+  only the kernel cache**; switching stimulus videos hits both; editing
+  params.py or code invalidates automatically (hashed keys).
+  Cache-hit output has been verified **bit-identical** to a from-scratch
+  build;
+  ⚠️ known environment quirk: the first run after touching files may
+  fail with an `llvmlite.dll` load error (a transient Windows
+  handle/antivirus scan) — just run it again; unrelated to the cache;
 - Runtime reference: kernel construction 361 s @45 channels, ≈513 s @64, ≈1030 s @128,
   ≈1930 s @EGI241 (linear; a full export adds simulation and background EEG on top);
 - Running in the background is recommended; when it finishes, `viz/data/viz_data.json`

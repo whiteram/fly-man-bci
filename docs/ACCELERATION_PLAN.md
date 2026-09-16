@@ -148,6 +148,24 @@ C:\Software\Devel\Anaconda3\envs\ffbm\python.exe -m pip install "numba>=0.65" cu
 - SNR 场景 d′=2 需 ~1,630 trials → **吞吐比延迟重要**；
 - multiprocessing 16 seed 并行，代码零改动，与 P2/P3 叠乘（16 核）。
 
+### P5 分阶段构建缓存（2026-09-16 已落地，src/ffbm/cache.py）
+GPU 循环（156 s）不再是瓶颈后，固定成本（装配 ~3 min + 核构建
+91 s）成为主要开销。两级**独立键**缓存，`--no-cache` 可绕过：
+- **电路缓存**：键 = 区域集合 + data/ 文件 stat + 构建器代码哈希；
+  命中 ~0.3 s 代替 ~3 min 装配。npz 按数组存（非 pickle——4 GB
+  对象 pickle 在本机实测 >35 min 写不完）；位置字典裁剪到电路
+  实际引用的 body（post_pos 原始 8757 万条 witness 体 → ~20 万，
+  缓存从 2.9 GB 降到 MB 级；语义保持——缺 key 会 KeyError 而非
+  静默错位）；
+- **前向核缓存**：键 = 电路键 + **电极布局**（--elec-layout 文件
+  哈希或默认布局标识）+ 采样上限（smoke/full 不同）+ 前向代码；
+  命中 ~1 s 代替 48–91 s。**换电极配置只重建这一级**；
+- 建栈（build_stack）不缓存：消耗 SEED 的延迟抖动、且相对便宜；
+- **验证**：smoke 与全量两级，缓存命中 vs 从零构建的
+  _debug_phi* 输出**逐位一致**；
+- 已知怪癖：改动文件后首次运行偶发 `llvmlite.dll` 加载失败
+  （Windows 句柄瞬态/杀软扫描），重跑即过，与缓存无关。
+
 ## 3. ⚠️ B3 前必须决策：RNG 流一致性（外部审查发现的暗礁）
 
 红线原文要求"GPU 与 CPU 轨迹逐点对拍"，但 CPU 仿真的 OU 噪声/投递

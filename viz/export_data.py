@@ -91,6 +91,9 @@ def main():
                     help="fast end-to-end smoke test: 400 ms protocol, "
                          "20k kernel-pair cap, output to viz/data_smoke/ "
                          "(does not touch the real viz_data.json)")
+    ap.add_argument("--no-cache", action="store_true",
+                    help="bypass the staged build caches (ffbm.cache) and"
+                    "rebuild the circuit and forward kernels from scratch")
     args = ap.parse_args()
     global OUT
     if args.smoke:
@@ -126,7 +129,19 @@ def main():
     # The registry default keeps non-visual regions OFF (cheap dev
     # default): say so loudly, a silent visual-only "full" export
     # shrinks the page's cell display to the optic lobes
-    circuit, active = freg.build_circuit(regions)
+    USE_CACHE = not args.no_cache
+    from ffbm import cache as fcache
+    ckey = fcache.circuit_key(regions) if USE_CACHE else None
+    if USE_CACHE and fcache.have("circuit", ckey):
+        circuit = fcache.load_circuit(ckey)
+        cfg = dict(freg.DEFAULT_REGIONS)
+        if regions:
+            cfg.update({k: bool(v) for k, v in regions.items()})
+        active = [n for n, on in cfg.items() if on]
+    else:
+        circuit, active = freg.build_circuit(regions)
+        if USE_CACHE:
+            fcache.save_circuit(circuit, ckey)
     _off = [r for r in freg.known_regions() if r not in active]
     print(f"regions: ON  = {', '.join(active) or '(none)'}")
     print(f"regions: OFF = {', '.join(_off) or '(none)'}"
@@ -184,221 +199,298 @@ def main():
                                       electrodes]) - center, axis=1).max()
     r1 = 1.05 * r_max + 10.0
 
-    def pairs(e_sub):
-        pre = e_sub["body_pre"].to_numpy(np.int64)
-        post = e_sub["body_post"].to_numpy(np.int64)
-        order = np.lexsort((pre, post))
-        return (np.array([pp[b] for b in pre[order]]),
-                np.array([qq[b] for b in post[order]]))
-
-    group_pairs = {"RL": pairs(e_rl), "LM": pairs(e_lm)}
-    for mt in exp005.MID_TYPES:
-        group_pairs[f"MT_{mt}"] = pairs(e_mt[mt])
-    # kernel-pair cap for the big extra-region groups: the aggregate is
-    # linear in the per-edge currents, so a stratified subsample only
-    # adds sampling noise (~1/sqrt(n) at n=300k); without the cap the
-    # 17-electrode kernel build alone costs ~4.5 h
+    # ---- staged kernel cache (ffbm.cache) --------------------------
+    # keyed by (circuit key, electrode layout, pair cap, forward code):
+    # switching --elec-layout rebuilds ONLY this stage.  --pool bypasses.
     KERNEL_PAIR_CAP = 20_000 if args.smoke else 300_000
-    rng_k = np.random.default_rng(7)
-    reweight = {name: 1.0 for name in group_pairs}
-    kernel_keep = {name: None for name in group_pairs}
-    for gname, espec in (circuit.get("extra_edges") or {}).items():
-        if not espec.get("forward", True):
-            continue         # VNC etc.: simulated, no scalp kernels
-        pr, po = pairs(espec["table"])
-        if len(pr) > KERNEL_PAIR_CAP:
-            keep = np.sort(rng_k.choice(len(pr), KERNEL_PAIR_CAP,
-                                        replace=False))
-            reweight[gname] = len(pr) / KERNEL_PAIR_CAP   # unbiased
-            kernel_keep[gname] = keep
-            pr, po = pr[keep], po[keep]
-        group_pairs[gname] = (pr, po)
-    # rhabdome dipole per R toward its OWN eye (mirror the left eye axis
-    # across the midline for the right lobe)
-    xhat = np.array([1.0, 0.0, 0.0])
-    u_right = u_eye - 2.0 * float(np.dot(u_eye, xhat)) * xhat
-    u_right = u_right / np.linalg.norm(u_right)
-    rh_dir = np.where(side_r[:, None], u_eye[None, :], u_right[None, :])
-    photo_pair = (r_pos, r_pos + 23.5 * rh_dir)
-
-    ker = {}
-    core_groups = {"RL", "LM"} | {f"MT_{m}" for m in exp005.MID_TYPES}
-    for name, (pr, po) in group_pairs.items():
-        if name not in core_groups:
-            continue   # legacy fly-head reference: visual cascade only
-        ker[name] = SealedHeadPairField(
-            pr, po, electrodes, center=center, r1=r1, r2=1.3 * r1,
-            sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
-    ker["PHOTO"] = SealedHeadPairField(
-        photo_pair[0], photo_pair[1], electrodes, center=center, r1=r1,
-        r2=1.3 * r1, sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
-
-    # thought-experiment channels (exp010/011): the network magnified
-    # inside a human 4-layer head (brain/CSF/skull/scalp), electrode
-    # ARRAY on the scalp (channel 0 on the eye-side anchor + a
-    # quasi-uniform Fibonacci cover, sorted by angle from it). The
-    # network is placed occipitally: the T4/T5 (output/"cortex") end of
-    # the cascade is pinned near the inner skull wall, like the real
-    # visual cortex at the occipital pole.
-    # exp015: BOTH lobes in native geometry span 692 um -> 277 mm at
-    # x400, which does NOT fit; fit_scale_shift picks the largest scale
-    # that fits after placement (pole-pinned for the elongated single
-    # lobe, centered with the inter-eye axis on a diameter for the
-    # bilateral V: x400 vs ~x200).
-    R_BRAIN, R_CSF, R_SKULL, R_SCALP = 7.8e4, 8.0e4, 8.5e4, 9.2e4
-    SIGMAS = (0.33, 1.79, 0.013, 0.33)
-    N_SCALP_ELEC = 17
-
-    u_occ = t45_pos.mean(axis=0) - center     # toward the T4/T5 junction
-    u_occ = u_occ / np.linalg.norm(u_occ)
-    u_anchor = -u_occ                          # 0 deg = eye side
-    # NOTE: iterate .values() -- the pre-exp015 code unpacked .items()
-    # correctly as (name, (pr, po)); a bare `for pr, po in ...items()`
-    # silently binds the dict KEY to pr (a str) and the pair-tuple to po
-    all_pairs = {**group_pairs, "PHOTO": photo_pair}
-    native_pts = np.vstack([p for pair in all_pairs.values()
-                            for p in pair])
-    SCALE, shift_vec, r_after = vp.fit_scale_shift(native_pts, center,
-                                                   u_occ, R_BRAIN)
-    margin = 0.98 * R_BRAIN - r_after
-    print(f"thought-experiment scale x{SCALE:.0f} (nominal x400), "
-          f"junction pinned at the occipital pole "
-          f"(shift {np.linalg.norm(shift_vec) / 1000:.1f} mm, "
-          f"brain-margin {margin:.0f} um)")
-
-    scaled_pairs = {name: (center + (pr - center) * SCALE + shift_vec,
-                           center + (po - center) * SCALE + shift_vec)
-                    for name, (pr, po) in {**group_pairs,
-                                           "PHOTO": photo_pair}.items()}
-
-    # neck axis (VNC direction) for the page's head form and the
-    # electrode neck-exclusion cone
-    extra_pops = circuit.get("extra_pops") or {}
-    if "VNC" in extra_pops:
-        vnc_pos = np.array([pp[b] for b in extra_pops["VNC"]["ids"]])
-        neck_dir = vnc_pos.mean(axis=0) - center
-        neck_dir = neck_dir / np.linalg.norm(neck_dir)
-    else:
-        neck_dir = None
-
-    # electrode array on the CAP region only: face and neck cones
-    # excluded (params head_model.elec_*_excl_deg); rows sorted by
-    # angle from the face axis
-    scalp_dirs = vp.scalp_electrode_dirs_capped(
-        N_SCALP_ELEC, u_anchor, neck_dir)
-    scalp_ang = np.degrees(np.arccos(np.clip(scalp_dirs @ u_anchor, -1, 1)))
-    elec_names = None
-    if args.elec_layout:
-        layout = json.loads(Path(args.elec_layout).read_text(
-            encoding="utf-8"))
-        layout.pop("Nasion", None)
-        layout.pop("Inion", None)
-        elec_names = list(layout.keys())
-        scalp_dirs = np.array([layout[k] for k in elec_names])
+    _kkey = None
+    _kernel_hit = (USE_CACHE and not args.pool and ckey is not None
+                   and fcache.have("kernels",
+                                   fcache.kernel_key(ckey, args.elec_layout,
+                                                     None, KERNEL_PAIR_CAP)))
+    import time as _time                     # the build block below owns
+    if _kernel_hit:                          # its own copy; hits need one too
+        _kkey = fcache.kernel_key(ckey, args.elec_layout, None,
+                                  KERNEL_PAIR_CAP)
+        KARR, KSC = fcache.load_kernels(_kkey)
+        group_pairs = {g: (KARR[f"gp.{g}.0"], KARR[f"gp.{g}.1"])
+                       for g in KSC["gnames"]}
+        reweight = {g: float(KSC["rw." + g]) for g in KSC["gnames"]}
+        kernel_keep = {g: (KARR["keep." + g] if KARR["keep." + g].size
+                           else None) for g in KSC["gnames"]}
+        from types import SimpleNamespace
+        ker = {g: SimpleNamespace(coef=KARR["fly." + g])
+               for g in KSC["flynames"]}
+        SCALE, margin = KSC["SCALE"], KSC["margin"]
+        shift_vec = KARR["shift_vec"]
+        coef_scalp = {g: KARR["coef." + g] for g in KSC["cgnames"]}
+        pool_info, pool_exact0 = {}, None
+        # mirror of the layout block below (always needed for meta/page)
+        R_BRAIN, R_CSF, R_SKULL, R_SCALP = 7.8e4, 8.0e4, 8.5e4, 9.2e4
+        SIGMAS = (0.33, 1.79, 0.013, 0.33)
+        N_SCALP_ELEC = 17
+        u_occ = t45_pos.mean(axis=0) - center
+        u_occ = u_occ / np.linalg.norm(u_occ)
+        u_anchor = -u_occ
+        _ep = circuit.get("extra_pops") or {}
+        if "VNC" in _ep:
+            neck_dir = np.array([pp[b] for b in _ep["VNC"]["ids"]]
+                                ).mean(axis=0) - center
+            neck_dir = neck_dir / np.linalg.norm(neck_dir)
+        else:
+            neck_dir = None
+        scalp_dirs = vp.scalp_electrode_dirs_capped(
+            N_SCALP_ELEC, u_anchor, neck_dir)
         scalp_ang = np.degrees(np.arccos(
             np.clip(scalp_dirs @ u_anchor, -1, 1)))
-        print(f"electrode layout: {len(elec_names)} named channels "
-              f"from {args.elec_layout}")
+        elec_names = None
+        if args.elec_layout:
+            layout = json.loads(Path(args.elec_layout).read_text(
+                encoding="utf-8"))
+            layout.pop("Nasion", None)
+            layout.pop("Inion", None)
+            elec_names = list(layout.keys())
+            scalp_dirs = np.array([layout[k] for k in elec_names])
+            scalp_ang = np.degrees(np.arccos(
+                np.clip(scalp_dirs @ u_anchor, -1, 1)))
+    else:
 
-    def pool_cluster(gname, pr_s, po_s, k):
-        """Cluster the group's (pre, post) 6D coordinates into k
-        representatives; returns the pool_info entry."""
-        C6 = np.hstack([pr_s, po_s])
-        train = np.random.default_rng(11).choice(
-            len(pr_s), min(50_000, len(pr_s)), replace=False)
-        cent, _ = kmeans2(C6[train], k, minit="points", iter=10, seed=13)
-        labels = np.empty(len(pr_s), dtype=np.int64)
-        c22 = (cent ** 2).sum(1)
-        for s0 in range(0, len(pr_s), 50_000):
-            sl = slice(s0, min(s0 + 50_000, len(pr_s)))
-            d2 = ((C6[sl] ** 2).sum(1)[:, None] + c22[None, :]
-                  - 2.0 * C6[sl] @ cent.T)
-            labels[sl] = d2.argmin(1)
-        counts = np.bincount(labels, minlength=len(cent))
-        keepc = np.nonzero(counts)[0]
-        remap = np.full(len(cent), -1, dtype=np.int64)
-        remap[keepc] = np.arange(len(keepc))
-        labels = remap[labels]
-        sum_pr = np.zeros((len(keepc), 3))
-        sum_po = np.zeros((len(keepc), 3))
-        np.add.at(sum_pr, labels, pr_s)
-        np.add.at(sum_po, labels, po_s)
-        order = np.argsort(labels, kind="stable")
-        starts = np.concatenate([[0], np.cumsum(counts[keepc])[:-1]])
-        return {"rep_pr": sum_pr / counts[keepc, None],
-                "rep_po": sum_po / counts[keepc, None],
-                "order": order, "starts": starts,
-                "k": len(keepc), "mult": 1.0}
+        def pairs(e_sub):
+            pre = e_sub["body_pre"].to_numpy(np.int64)
+            post = e_sub["body_post"].to_numpy(np.int64)
+            order = np.lexsort((pre, post))
+            return (np.array([pp[b] for b in pre[order]]),
+                    np.array([qq[b] for b in post[order]]))
 
-    def rebuild_group_kernel(gname):
-        """Rebuild all 45 electrode coefficient rows for one pooled
-        group (after an accuracy-driven k increase)."""
-        pi = pool_info[gname]
-        coef_scalp[gname] = four_sphere_rows(
-            pi["rep_pr"], pi["rep_po"], scalp_elec,
-            center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
-            r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
-            sigma3=SIGMAS[2], sigma4=SIGMAS[3]) * reweight.get(gname, 1.0)
+        group_pairs = {"RL": pairs(e_rl), "LM": pairs(e_lm)}
+        for mt in exp005.MID_TYPES:
+            group_pairs[f"MT_{mt}"] = pairs(e_mt[mt])
+        # kernel-pair cap for the big extra-region groups: the aggregate is
+        # linear in the per-edge currents, so a stratified subsample only
+        # adds sampling noise (~1/sqrt(n) at n=300k); without the cap the
+        # 17-electrode kernel build alone costs ~4.5 h
+        KERNEL_PAIR_CAP = 20_000 if args.smoke else 300_000
+        rng_k = np.random.default_rng(7)
+        reweight = {name: 1.0 for name in group_pairs}
+        kernel_keep = {name: None for name in group_pairs}
+        for gname, espec in (circuit.get("extra_edges") or {}).items():
+            if not espec.get("forward", True):
+                continue         # VNC etc.: simulated, no scalp kernels
+            pr, po = pairs(espec["table"])
+            if len(pr) > KERNEL_PAIR_CAP:
+                keep = np.sort(rng_k.choice(len(pr), KERNEL_PAIR_CAP,
+                                            replace=False))
+                reweight[gname] = len(pr) / KERNEL_PAIR_CAP   # unbiased
+                kernel_keep[gname] = keep
+                pr, po = pr[keep], po[keep]
+            group_pairs[gname] = (pr, po)
+        # rhabdome dipole per R toward its OWN eye (mirror the left eye axis
+        # across the midline for the right lobe)
+        xhat = np.array([1.0, 0.0, 0.0])
+        u_right = u_eye - 2.0 * float(np.dot(u_eye, xhat)) * xhat
+        u_right = u_right / np.linalg.norm(u_right)
+        rh_dir = np.where(side_r[:, None], u_eye[None, :], u_right[None, :])
+        photo_pair = (r_pos, r_pos + 23.5 * rh_dir)
 
-    # ---- runtime kernel pooling ----
-    # The 4-sphere field is smooth in dipole position: cluster each
-    # group's (pre, post) 6D coordinates into ~sqrt(n) representatives,
-    # build the kernel ONLY for the representatives, and apply it to the
-    # pooled per-cluster currents.  Validated in-run against an exact
-    # single-electrode coefficient (see pool report at the end).
-    pool_info = {}
-    # NOTE: kernel pooling is experimental -- in-run validation found a
-    # group with ~24% projection error and the refine path needs work.
-    # Enable explicitly with --pool; default exports stay exact.
-    if args.pool:
-        from scipy.cluster.vq import kmeans2
-        for gname, (pr_s, po_s) in scaled_pairs.items():
-            n = len(pr_s)
-            k = int(np.clip(round(np.sqrt(n) * 7.0), 400, 4000))
-            if n < 2 * k:
-                continue                        # small group: exact
-            pool_info[gname] = pool_cluster(gname, pr_s, po_s, k)
-        n_rep = sum(i["k"] for i in pool_info.values())
-        print(f"kernel pooling: {len(pool_info)}/{len(scaled_pairs)} "
-              f"groups -> {n_rep} representative dipoles "
-              f"(vs {sum(len(p[0]) for p in scaled_pairs.values())} edges)",
-              flush=True)
+        ker = {}
+        core_groups = {"RL", "LM"} | {f"MT_{m}" for m in exp005.MID_TYPES}
+        for name, (pr, po) in group_pairs.items():
+            if name not in core_groups:
+                continue   # legacy fly-head reference: visual cascade only
+            ker[name] = SealedHeadPairField(
+                pr, po, electrodes, center=center, r1=r1, r2=1.3 * r1,
+                sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
+        ker["PHOTO"] = SealedHeadPairField(
+            photo_pair[0], photo_pair[1], electrodes, center=center, r1=r1,
+            r2=1.3 * r1, sigma1=exp005.SIGMA, sigma2=0.01 * exp005.SIGMA)
 
-    import time as _time
-    _t0 = _time.time()
-    # all electrodes in one batched call per group: shared fg table +
-    # thread-parallel per-electrode series (four_sphere_rows)
-    scalp_elec = center + 0.985 * R_SCALP * scalp_dirs       # (S, 3)
-    coef_scalp = {}
-    for name, (pr_s, po_s) in scaled_pairs.items():   # shift included
-        pi = pool_info.get(name)
-        pr_use, po_use = ((pi["rep_pr"], pi["rep_po"]) if pi
-                          else (pr_s, po_s))
-        coef_scalp[name] = four_sphere_rows(
-            pr_use, po_use, scalp_elec,
-            center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
-            r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
-            sigma3=SIGMAS[2], sigma4=SIGMAS[3]) * reweight.get(name, 1.0)
-        print(f"scalp kernel {name}: {coef_scalp[name].shape[1]} dipoles "
-              f"({_time.time() - _t0:.0f} s)", flush=True)
-    print(f"scalp kernels built (S=400, 4-sphere, {len(scalp_dirs)} electrodes, "
-          f"{_time.time() - _t0:.0f} s)")
-    print("kernel rows per group: "
-          + ", ".join(f"{k}={v.shape[1]}" for k, v in coef_scalp.items()))
+        # thought-experiment channels (exp010/011): the network magnified
+        # inside a human 4-layer head (brain/CSF/skull/scalp), electrode
+        # ARRAY on the scalp (channel 0 on the eye-side anchor + a
+        # quasi-uniform Fibonacci cover, sorted by angle from it). The
+        # network is placed occipitally: the T4/T5 (output/"cortex") end of
+        # the cascade is pinned near the inner skull wall, like the real
+        # visual cortex at the occipital pole.
+        # exp015: BOTH lobes in native geometry span 692 um -> 277 mm at
+        # x400, which does NOT fit; fit_scale_shift picks the largest scale
+        # that fits after placement (pole-pinned for the elongated single
+        # lobe, centered with the inter-eye axis on a diameter for the
+        # bilateral V: x400 vs ~x200).
+        R_BRAIN, R_CSF, R_SKULL, R_SCALP = 7.8e4, 8.0e4, 8.5e4, 9.2e4
+        SIGMAS = (0.33, 1.79, 0.013, 0.33)
+        N_SCALP_ELEC = 17
 
-    # exact single-electrode coefficient: pooling accuracy reference
-    pool_exact0 = None
-    if pool_info:
-        elec0 = center + 0.985 * R_SCALP * scalp_dirs[0]
-        pool_exact0 = {
-            name: FourSpherePairField(
-                pr_s, po_s, elec0[None, :], center=center, r1=R_BRAIN,
-                r2=R_CSF, r3=R_SKULL, r4=R_SCALP, sigma1=SIGMAS[0],
-                sigma2=SIGMAS[1], sigma3=SIGMAS[2],
-                sigma4=SIGMAS[3]).coef[0] * reweight.get(name, 1.0)
-            for name, (pr_s, po_s) in scaled_pairs.items()}
-        print("pooling reference (electrode 0, exact) built",
-              flush=True)
+        u_occ = t45_pos.mean(axis=0) - center     # toward the T4/T5 junction
+        u_occ = u_occ / np.linalg.norm(u_occ)
+        u_anchor = -u_occ                          # 0 deg = eye side
+        # NOTE: iterate .values() -- the pre-exp015 code unpacked .items()
+        # correctly as (name, (pr, po)); a bare `for pr, po in ...items()`
+        # silently binds the dict KEY to pr (a str) and the pair-tuple to po
+        all_pairs = {**group_pairs, "PHOTO": photo_pair}
+        native_pts = np.vstack([p for pair in all_pairs.values()
+                                for p in pair])
+        SCALE, shift_vec, r_after = vp.fit_scale_shift(native_pts, center,
+                                                       u_occ, R_BRAIN)
+        margin = 0.98 * R_BRAIN - r_after
+        print(f"thought-experiment scale x{SCALE:.0f} (nominal x400), "
+              f"junction pinned at the occipital pole "
+              f"(shift {np.linalg.norm(shift_vec) / 1000:.1f} mm, "
+              f"brain-margin {margin:.0f} um)")
+
+        scaled_pairs = {name: (center + (pr - center) * SCALE + shift_vec,
+                               center + (po - center) * SCALE + shift_vec)
+                        for name, (pr, po) in {**group_pairs,
+                                               "PHOTO": photo_pair}.items()}
+
+        # neck axis (VNC direction) for the page's head form and the
+        # electrode neck-exclusion cone
+        extra_pops = circuit.get("extra_pops") or {}
+        if "VNC" in extra_pops:
+            vnc_pos = np.array([pp[b] for b in extra_pops["VNC"]["ids"]])
+            neck_dir = vnc_pos.mean(axis=0) - center
+            neck_dir = neck_dir / np.linalg.norm(neck_dir)
+        else:
+            neck_dir = None
+
+        # electrode array on the CAP region only: face and neck cones
+        # excluded (params head_model.elec_*_excl_deg); rows sorted by
+        # angle from the face axis
+        scalp_dirs = vp.scalp_electrode_dirs_capped(
+            N_SCALP_ELEC, u_anchor, neck_dir)
+        scalp_ang = np.degrees(np.arccos(np.clip(scalp_dirs @ u_anchor, -1, 1)))
+        elec_names = None
+        if args.elec_layout:
+            layout = json.loads(Path(args.elec_layout).read_text(
+                encoding="utf-8"))
+            layout.pop("Nasion", None)
+            layout.pop("Inion", None)
+            elec_names = list(layout.keys())
+            scalp_dirs = np.array([layout[k] for k in elec_names])
+            scalp_ang = np.degrees(np.arccos(
+                np.clip(scalp_dirs @ u_anchor, -1, 1)))
+            print(f"electrode layout: {len(elec_names)} named channels "
+                  f"from {args.elec_layout}")
+
+        def pool_cluster(gname, pr_s, po_s, k):
+            """Cluster the group's (pre, post) 6D coordinates into k
+            representatives; returns the pool_info entry."""
+            C6 = np.hstack([pr_s, po_s])
+            train = np.random.default_rng(11).choice(
+                len(pr_s), min(50_000, len(pr_s)), replace=False)
+            cent, _ = kmeans2(C6[train], k, minit="points", iter=10, seed=13)
+            labels = np.empty(len(pr_s), dtype=np.int64)
+            c22 = (cent ** 2).sum(1)
+            for s0 in range(0, len(pr_s), 50_000):
+                sl = slice(s0, min(s0 + 50_000, len(pr_s)))
+                d2 = ((C6[sl] ** 2).sum(1)[:, None] + c22[None, :]
+                      - 2.0 * C6[sl] @ cent.T)
+                labels[sl] = d2.argmin(1)
+            counts = np.bincount(labels, minlength=len(cent))
+            keepc = np.nonzero(counts)[0]
+            remap = np.full(len(cent), -1, dtype=np.int64)
+            remap[keepc] = np.arange(len(keepc))
+            labels = remap[labels]
+            sum_pr = np.zeros((len(keepc), 3))
+            sum_po = np.zeros((len(keepc), 3))
+            np.add.at(sum_pr, labels, pr_s)
+            np.add.at(sum_po, labels, po_s)
+            order = np.argsort(labels, kind="stable")
+            starts = np.concatenate([[0], np.cumsum(counts[keepc])[:-1]])
+            return {"rep_pr": sum_pr / counts[keepc, None],
+                    "rep_po": sum_po / counts[keepc, None],
+                    "order": order, "starts": starts,
+                    "k": len(keepc), "mult": 1.0}
+
+        def rebuild_group_kernel(gname):
+            """Rebuild all 45 electrode coefficient rows for one pooled
+            group (after an accuracy-driven k increase)."""
+            pi = pool_info[gname]
+            coef_scalp[gname] = four_sphere_rows(
+                pi["rep_pr"], pi["rep_po"], scalp_elec,
+                center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
+                r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
+                sigma3=SIGMAS[2], sigma4=SIGMAS[3]) * reweight.get(gname, 1.0)
+
+        # ---- runtime kernel pooling ----
+        # The 4-sphere field is smooth in dipole position: cluster each
+        # group's (pre, post) 6D coordinates into ~sqrt(n) representatives,
+        # build the kernel ONLY for the representatives, and apply it to the
+        # pooled per-cluster currents.  Validated in-run against an exact
+        # single-electrode coefficient (see pool report at the end).
+        pool_info = {}
+        # NOTE: kernel pooling is experimental -- in-run validation found a
+        # group with ~24% projection error and the refine path needs work.
+        # Enable explicitly with --pool; default exports stay exact.
+        if args.pool:
+            from scipy.cluster.vq import kmeans2
+            for gname, (pr_s, po_s) in scaled_pairs.items():
+                n = len(pr_s)
+                k = int(np.clip(round(np.sqrt(n) * 7.0), 400, 4000))
+                if n < 2 * k:
+                    continue                        # small group: exact
+                pool_info[gname] = pool_cluster(gname, pr_s, po_s, k)
+            n_rep = sum(i["k"] for i in pool_info.values())
+            print(f"kernel pooling: {len(pool_info)}/{len(scaled_pairs)} "
+                  f"groups -> {n_rep} representative dipoles "
+                  f"(vs {sum(len(p[0]) for p in scaled_pairs.values())} edges)",
+                  flush=True)
+
+        import time as _time
+        _t0 = _time.time()
+        # all electrodes in one batched call per group: shared fg table +
+        # thread-parallel per-electrode series (four_sphere_rows)
+        scalp_elec = center + 0.985 * R_SCALP * scalp_dirs       # (S, 3)
+        coef_scalp = {}
+        for name, (pr_s, po_s) in scaled_pairs.items():   # shift included
+            pi = pool_info.get(name)
+            pr_use, po_use = ((pi["rep_pr"], pi["rep_po"]) if pi
+                              else (pr_s, po_s))
+            coef_scalp[name] = four_sphere_rows(
+                pr_use, po_use, scalp_elec,
+                center=center, r1=R_BRAIN, r2=R_CSF, r3=R_SKULL,
+                r4=R_SCALP, sigma1=SIGMAS[0], sigma2=SIGMAS[1],
+                sigma3=SIGMAS[2], sigma4=SIGMAS[3]) * reweight.get(name, 1.0)
+            print(f"scalp kernel {name}: {coef_scalp[name].shape[1]} dipoles "
+                  f"({_time.time() - _t0:.0f} s)", flush=True)
+        print(f"scalp kernels built (S=400, 4-sphere, {len(scalp_dirs)} electrodes, "
+              f"{_time.time() - _t0:.0f} s)")
+        print("kernel rows per group: "
+              + ", ".join(f"{k}={v.shape[1]}" for k, v in coef_scalp.items()))
+
+        # exact single-electrode coefficient: pooling accuracy reference
+        pool_exact0 = None
+        if pool_info:
+            elec0 = center + 0.985 * R_SCALP * scalp_dirs[0]
+            pool_exact0 = {
+                name: FourSpherePairField(
+                    pr_s, po_s, elec0[None, :], center=center, r1=R_BRAIN,
+                    r2=R_CSF, r3=R_SKULL, r4=R_SCALP, sigma1=SIGMAS[0],
+                    sigma2=SIGMAS[1], sigma3=SIGMAS[2],
+                    sigma4=SIGMAS[3]).coef[0] * reweight.get(name, 1.0)
+                for name, (pr_s, po_s) in scaled_pairs.items()}
+            print("pooling reference (electrode 0, exact) built",
+                  flush=True)
+        if USE_CACHE and not args.pool:
+            _kkey = fcache.kernel_key(ckey, args.elec_layout, None,
+                                      KERNEL_PAIR_CAP)
+            payload = {"shift_vec": shift_vec, "SCALE": float(SCALE),
+                       "margin": float(margin),
+                       "gnames": list(group_pairs),
+                       "cgnames": list(coef_scalp),
+                       "flynames": list(ker)}
+            for g, (pr, po) in group_pairs.items():
+                payload[f"gp.{g}.0"] = pr
+                payload[f"gp.{g}.1"] = po
+                _kp = kernel_keep.get(g)          # extra groups may be
+                payload[f"keep.{g}"] = (_kp if _kp is not None   # absent
+                                        else np.zeros(0, np.int64))
+                payload[f"rw.{g}"] = float(reweight.get(g, 1.0))
+            for g, c in coef_scalp.items():   # includes PHOTO
+                payload[f"coef.{g}"] = c.astype(np.float32)
+            for g in ker:
+                payload[f"fly.{g}"] = ker[g].coef
+            fcache.save_kernels(payload, _kkey)
+
 
     # ---- simulation via the shared pipeline (ffbm.pipeline) ----
     # naturalistic stimulus: 1/f flicker, drifting 1/f texture along the
