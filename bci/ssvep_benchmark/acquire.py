@@ -24,6 +24,11 @@ def main():
     ap.add_argument("--freqs", type=float, nargs="+")
     ap.add_argument("--all40", action="store_true",
                     help="run the full 40-frequency benchmark set")
+    ap.add_argument("--repeats", type=int, default=1,
+                    help="acquisitions per frequency, each with its own "
+                    "RNG seed (42 + i*repeats + r) so the OU background "
+                    "noise / delay jitter draw a fresh realization -- "
+                    "the trial-to-trial variability real recordings have")
     ap.add_argument("--gpu", action="store_true", default=True)
     ap.add_argument("--regions", type=str, default="visual_bilateral")
     a = ap.parse_args()
@@ -41,25 +46,31 @@ def main():
     meta = {"freqs": a.freqs, "fs": 1000.0, "dur_s": 10.5,
             "elec": "elec_layout_1010 (45 leads)",
             "scale": "thought-experiment x202 (nominal x400)",
-            "mode": "single-target (attended-slot analog)"}
-    for f in a.freqs:
+            "mode": "single-target (attended-slot analog)",
+            "repeats": a.repeats,
+            "seed_map": "seed = 42 + i*repeats + r (i=class idx, r=rep)"}
+    for i, f in enumerate(a.freqs):
         ms.make(f, single=True)
-        trial_out = out / f"_trial_f{f:.1f}"
-        cmd = [PY, str(ROOT / "viz" / "export_data.py"),
-               "--visual-input", f"ssvep1_f{f:.1f}",
-               "--regions", a.regions,
-               "--elec-layout", str(ROOT / "viz" / "data"
-                                    / "elec_layout_1010.json"),
-               "--out", str(trial_out)]
-        if a.gpu:
-            cmd.append("--gpu")
-        print(f"[acquire] f={f}: {' '.join(cmd)}", flush=True)
-        r = subprocess.run(cmd, cwd=str(ROOT))
-        if r.returncode != 0:
-            raise SystemExit(f"export failed for f={f}")
-        shutil.copy(trial_out / "_debug_phi_scalp.npy",
-                    out / f"eeg_f{f:.1f}.npy")
-        shutil.rmtree(trial_out)
+        for r in range(a.repeats):
+            seed = 42 + i * a.repeats + r
+            trial_out = out / f"_trial_f{f:.1f}_r{r}"
+            cmd = [PY, str(ROOT / "viz" / "export_data.py"),
+                   "--visual-input", f"ssvep1_f{f:.1f}",
+                   "--regions", a.regions,
+                   "--elec-layout", str(ROOT / "viz" / "data"
+                                        / "elec_layout_1010.json"),
+                   "--out", str(trial_out), "--seed", str(seed)]
+            if a.gpu:
+                cmd.append("--gpu")
+            print(f"[acquire] f={f} rep={r} seed={seed}: started",
+                  flush=True)
+            r_ = subprocess.run(cmd, cwd=str(ROOT))
+            if r_.returncode != 0:
+                raise SystemExit(f"export failed for f={f} rep={r}")
+            stem = f"eeg_f{f:.1f}" + ("" if a.repeats == 1
+                                      else f"_r{r}") + ".npy"
+            shutil.copy(trial_out / "_debug_phi_scalp.npy", out / stem)
+            shutil.rmtree(trial_out)
     (out / "meta.json").write_text(json.dumps(meta, indent=1))
     print(f"[acquire] done -> {out}")
 

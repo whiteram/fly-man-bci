@@ -97,6 +97,10 @@ def main():
     ap.add_argument("--out", type=str, default=None,
                     help="override the output directory (default "
                     "viz/data, smoke: viz/data_smoke)")
+    ap.add_argument("--seed", type=int, default=None,
+                    help="override the trial RNG seed (params: "
+                    "stimulus.seed): varies delay jitter + OU background "
+                    "noise; circuit/kernel caches are seed-independent")
     args = ap.parse_args()
     global OUT
     if args.smoke:
@@ -121,6 +125,8 @@ def main():
     DRIFT_SPEED = _stim_sec["drift_speed"][0]
     LAM_UM = _stim_sec["lam_um"][0]
     SEED = _stim_sec["seed"][0]
+    if args.seed is not None:
+        SEED = args.seed          # trial-level variability override
     # smoke defaults to visual-only regions: the CNS-extension assembly
     # (62k+33k+15k cells) dominates the runtime and is irrelevant when
     # smoke-testing the stimulus/pooling/page pathway
