@@ -157,11 +157,18 @@ inputs"; at export time one is selected with `--visual-input <id>`:
    │    normalization                [1,99]; clips with drastic shot
    │                                 changes will saturate — use wider
    │                                 quantiles or per-shot processing)
-   │ 3) eye-plane affine mapping   — each photoreceptor's eye-surface
-   │                                 coordinate (xᵢ,yᵢ) (the projection
-   │                                 of r_pos onto the a1/b1 basis),
-   │                                 bilinearly interpolated into image
-   │                                 pixels (order=1)
+   │ 3) per-eye full-frame       — right-lobe cells are first mirrored
+   │    eye-plane mapping          about the midsagittal plane (x=mid),
+   │                                then BOTH eyes project in the SAME
+   │                                left-eye basis (a1/b1) (the two
+   │                                retinas are mirror-symmetric; the
+   │                                raw right-eye projection is edge-on
+   │                                and smears into a sliver); each
+   │                                eye's own 1-99 percentile footprint
+   │                                is normalized to the full frame,
+   │                                bilinearly interpolated into image
+   │                                pixels (order=1) — each eye samples
+   │                                one complete, equally oriented copy
    ▼
 λᵢ(frame index) = lo + (hi−lo)·frame[yᵢ, xᵢ]   (lo=0.05, hi=3.0)
    ▼
@@ -172,7 +179,13 @@ Keys available for video entries: `fps`, `blur_px`, `lo`/`hi`, `margin` (edge ma
 fraction for the eye-plane mapping), `norm_pct` (normalization quantiles, default
 [1,99]), `linearize_srgb` (default true: uint8 frames are sRGB-decoded into the linear
 domain), `loop` (default false; when true, playback loops after the simulation outlasts
-the video instead of freezing on the last frame).
+the video instead of freezing on the last frame), `eye_map` (default `"per_eye"`: each
+eye normalizes the full frame onto its own retinal footprint, so both eyes sample one
+complete, equally oriented copy of the image; `"union"` is the legacy behaviour — one
+shared extent over the pooled projection, which leaves the frame's middle band
+unsampled and gives each eye a different horizontal band). Geometry validated in
+`scripts/poc_eye_map_geometry.py` (mirror test: the mirrored right-lobe footprint
+overlaps the left eye's 100%).
 
 Adding a new "visual input" = append an entry to the catalog JSON + place a
 (frames, height, width) `.npy`. Real-video conversion script:
@@ -193,7 +206,7 @@ Built-in demo: `viz/make_demo_stimulus.py` generates a human-watchable video of 
 |---|---|---|---|
 | Color | RGB | **no color vision** (R1–R6 carry brightness only) | grayscale conversion (luma weighting) |
 | Space | vast numbers of pixels | ~2,265+1,112 photoreceptors = equivalent pixels | 5° receptive-field blur + ommatidial sampling |
-| Field of view | full rectangular frame | the eye-surface region covered by the population is retained | eye-plane affine mapping (bounding rectangle covering the R population) |
+| Field of view | full rectangular frame | each eye retains its own complete retinal coverage | per-eye full-frame eye-plane mapping (right-lobe mirror + per-eye normalization; both eyes get one complete copy) |
 | Brightness | arbitrary/HDR | λ ∈ [0.05, hi] | quantile normalization + lo/hi mapping |
 | Time | 24–60 fps | 20 ms latency + adaptation | frame rate configurable; fast motion is low-passed biologically |
 
@@ -201,7 +214,9 @@ Built-in demo: `viz/make_demo_stimulus.py` generates a human-watchable video of 
 
 Exporting a video input also produces `viz/data/stim_frames.bin`: two previews per
 frame — the **human video** (downsampled source frames) and the **fly-eye sampling**
-(a rasterized brightness map on the eye plane of all photoreceptor sample values). The
+(a rasterized brightness map on the eye plane of all photoreceptor sample values; with
+the per-eye mapping the two retinal footprints overlay and cover the whole frame — note
+this is an organ-space projection raster, not a head-centered panoramic view). The
 page's "stimulus view" panel (located above the stimulus brightness bar) plays the two
 canvases frame-synchronously with the simulation time cursor and shares the same time
 axis with the channel heatmap, firing-rate curves, and scalp-potential coloring — an

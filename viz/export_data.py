@@ -621,23 +621,47 @@ def main():
             frames = np.clip((frames - lo_p)
                              / max(float(hi_p - lo_p), 1e-9), 0.0, 1.0)
             H, W = frames.shape[1:3]
-            x_i = r_pos @ a1                   # eye-plane coordinates
-            y_i = r_pos @ b1
+            # per-eye mapping (default): mirror the right lobe about the
+            # midsagittal plane so BOTH eyes project face-on in the SAME
+            # left-eye basis (the two retinas are mirror-symmetric; the
+            # raw right-eye projection is edge-on and would smear), then
+            # normalize each eye's own 1-99 percentile footprint to the
+            # full frame -- each eye samples one complete, equally
+            # oriented copy of the image.  eye_map "union" keeps the
+            # legacy behaviour: one shared extent over the raw pooled
+            # projection, which leaves the frame's middle band
+            # unsampled and gives each eye a different horizontal band.
+            # (geometry validated in scripts/poc_eye_map_geometry.py)
+            if str(cfg.get("eye_map", "per_eye")) == "per_eye":
+                r_pos_map = r_pos.copy()
+                mid = 0.5 * (r_pos[side_r, 0].mean()
+                             + r_pos[~side_r, 0].mean())
+                r_pos_map[~side_r, 0] = 2.0 * mid - r_pos_map[~side_r, 0]
+                groups = (np.flatnonzero(side_r),
+                          np.flatnonzero(~side_r))
+            else:
+                r_pos_map = r_pos
+                groups = (np.arange(n_r),)
+            x_i = r_pos_map @ a1                  # eye-plane coordinates
+            y_i = r_pos_map @ b1
             # percentile extent (not min/max): a few far outliers must
             # not stretch the mapping and leave the grid mostly empty
             mg = float(cfg.get("margin", 0.05))
-            x_lo, x_hi = np.percentile(x_i, [1, 99])
-            y_lo, y_hi = np.percentile(y_i, [1, 99])
-            x_pad = (x_hi - x_lo) * mg
-            y_pad = (y_hi - y_lo) * mg
+            pxf = np.empty(n_r)
+            pyf = np.empty(n_r)
+            for m in groups:
+                x_lo, x_hi = np.percentile(x_i[m], [1, 99])
+                y_lo, y_hi = np.percentile(y_i[m], [1, 99])
+                x_pad = (x_hi - x_lo) * mg
+                y_pad = (y_hi - y_lo) * mg
+                pxf[m] = (x_i[m] - (x_lo - x_pad)) / max(
+                    (x_hi + x_pad) - (x_lo - x_pad), 1e-9) * (W - 1)
+                pyf[m] = (y_i[m] - (y_lo - y_pad)) / max(
+                    (y_hi + y_pad) - (y_lo - y_pad), 1e-9) * (H - 1)
             # float coords -> bilinear sampling: nearest-neighbour
             # aliases at low video resolutions (sub-ommatidial pixels)
-            pxf = np.clip((x_i - (x_lo - x_pad))
-                          / max((x_hi + x_pad) - (x_lo - x_pad), 1e-9)
-                          * (W - 1), 0, W - 1)
-            pyf = np.clip((y_i - (y_lo - y_pad))
-                          / max((y_hi + y_pad) - (y_lo - y_pad), 1e-9)
-                          * (H - 1), 0, H - 1)
+            pxf = np.clip(pxf, 0, W - 1)
+            pyf = np.clip(pyf, 0, H - 1)
             pxi = np.round(pxf).astype(int)     # ints only for the
             pyi = np.round(pyf).astype(int)     # sparse preview binning
             from scipy.ndimage import map_coordinates
