@@ -1,0 +1,5 @@
+[ssvep] 40 trials x 45 ch x 8000 samples (8 s window)
+[ssvep] fly AC rms 0.0046 uV -> scaled hypothetical equipment noise 0.0018 uV (same sensor/signal ratio as clinical human 1.5/3.79)
+    clean: top-1 accuracy 28/40 = 70% | median in-band SNR 26.9 dB (min 5.5, max 40.9)
+    scaled sensor noise (0.0018 uV): top-1 accuracy 33/40 = 82% | median in-band SNR 26.1 dB (min 4.7, max 39.9)
+[ssvep] figure -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\ssvep_detection.png

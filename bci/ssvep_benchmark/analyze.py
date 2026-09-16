@@ -74,8 +74,21 @@ def main():
     print(f"[ssvep] {len(freqs)} trials x {n_ch} ch x {T} samples "
           f"({t[-1] - t[0]:.0f} s window)")
 
-    for tag, add_noise in (("clean", 0.0), ("sensor-noise (k=0 premise)",
-                                             1.5)):
+    # hypothetical equipment noise, SCALED TO THE FLY SIGNAL: keep the
+    # relative quality of a clinical human amplifier (1.5 uV against
+    # ~3.8 uV human background EEG) applied to the fly AC scale.
+    # eeg files are in VOLTS (raw debug dump); display in uV
+    fly_ac = float(np.median([
+        np.sqrt(float(((e - e.mean(axis=1, keepdims=True)) ** 2).mean()))
+        for e in data.values()]))
+    noise_uv = 1.5 * fly_ac / 3.79          # same units as fly_ac
+    print(f"[ssvep] fly AC rms {fly_ac * 1e6:.4f} uV -> scaled "
+          f"hypothetical equipment noise {noise_uv * 1e6:.4f} uV "
+          f"(same sensor/signal ratio as clinical human 1.5/3.79)")
+
+    for tag, add_noise in (
+            ("clean", 0.0),
+            (f"scaled sensor noise ({noise_uv * 1e6:.4f} uV)", noise_uv)):
         hit, rho_all = 0, np.zeros((len(freqs), len(freqs)))
         snrs = []
         for i, ftrue in enumerate(freqs):
@@ -94,10 +107,11 @@ def main():
         if add_noise == 0.0:
             fig, ax = plt.subplots(1, 2, figsize=(11, 4))
             im = ax[0].imshow(rho_all, cmap="viridis")
-            ax[0].set_xticks(range(len(freqs)))
-            ax[0].set_xticklabels(freqs, rotation=45, fontsize=7)
-            ax[0].set_yticks(range(len(freqs)))
-            ax[0].set_yticklabels(freqs, fontsize=7)
+            step = 4 if len(freqs) > 10 else 1
+            ax[0].set_xticks(range(0, len(freqs), step))
+            ax[0].set_xticklabels(freqs[::step], rotation=45, fontsize=6)
+            ax[0].set_yticks(range(0, len(freqs), step))
+            ax[0].set_yticklabels(freqs[::step], fontsize=6)
             ax[0].set_xlabel("candidate f (Hz)")
             ax[0].set_ylabel("true f (Hz)")
             ax[0].set_title("CCA rho: true vs candidate")
