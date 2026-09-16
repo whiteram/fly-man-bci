@@ -36,6 +36,7 @@ extension path for other modalities is in docs/STIMULUS.md §6.
 | **Compute acceleration: numba + GPU + staged caches** | ✅ | numba kernels 2.38×; `--gpu` loop 47 min→156 s (bit-identical trajectories); circuit/kernel caches (switching electrode configs rebuilds only the kernels) | docs/ACCELERATION_PLAN.md P2/P3/P5 |
 | Interactive calibration system | ✅ | 10-20 handle calibration (ni/th/yaw/roll), view-direction calibration, head-form calibration | viz/index.html |
 | Visualization page | ✅ | electrode-name labels, heatmap, epoch color bar, configuration switching, preview waveforms | viz/index.html |
+| **Scalp-EEG EDA (distributions / channel differences / stimulus decodability)** | ✅ | clean signal band-passed 0.5-6 Hz decoding CV R2=0.90, cascade lags 23/17 ms, spatial participation rank ~2; not single-trial extractable with realistic background (p>0.2) | exp018 |
 | **Stimuli: real image input** | ✅ | general visual-input module: `visual_inputs.json` catalog + grayscale video → ommatidia sampling (blur/normalization/per-eye full-frame eye-plane mapping) + synchronized dual view on the page | docs/STIMULUS.md §5 |
 | **Stimuli: other modalities (olfaction etc.)** | ⏸ not started | region-toggle mechanism is ready | docs/STIMULUS.md §6 |
 | 64/128/241-channel exact waveform re-export | ⏸ pending finalization | ~3-8 min per configuration with GPU+caches (first kernel build dominates; EGI241 slowest), command in USAGE §6 | — |

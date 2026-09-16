@@ -1,0 +1,44 @@
+[load] 45 channels x 10500 samples, fs=1000 Hz (10.5 s), visual input demo_bounce
+[load] background EEG params: {'alpha_hz': 10.0, 'alpha_amp_uv': 30.0, 'aperiodic_uv': 3.0, 'sensor_uv': 1.5, 'envelope_period_ms': 700.0, 'seed': 2026, 'snr': {'best_elec': 39, 'sig_uv': 0.072, 'bg_uv': 2.985, 'amp_ratio': 0.0242, 'k_for_dprime2': 6821, 'band_hz': [2.0, 20.0], 'amp_ratio_band': 0.0233, 'k_for_dprime2_band': 7367, 'best_elec_deg': 60.3, 'best_elec_name': 'CP5'}}
+
+[1] amplitude (uV): fly signal RMS per channel min 0.0228 / median 0.3428 / max 1.0359; background RMS median 3.35 -> fly/bg ratio ~0.102
+    top-5 channels: CP5(1.0359), CP6(0.8010), CP3(0.7977), P7(0.6815), C3(0.6606)
+    bottom-5: Oz(0.1602), A1(0.1409), O2(0.0865), F7(0.0377), FCz(0.0228)
+
+[2] PCA: PC1 65.9%, PC2 20.1%, PC3 9.9%; participation rank 2.1 of 45
+
+[3] channel correlations: median -0.024, |r|>0.5 pairs 50%, |r|>0.9 pairs 8%
+    band 0.5-4 Hz: fly 0.000631 vs bg 3.76 uV^2
+    band 4-8 Hz: fly 2.36e-05 vs bg 1.38 uV^2
+    band 8-13 Hz: fly 7.38e-06 vs bg 7.23 uV^2
+    band 13-30 Hz: fly 1.02e-05 vs bg 1.94 uV^2
+    band 30-80 Hz: fly 1.25e-05 vs bg 2.53 uV^2
+[5] lag-xcorr stim->R: peak |r| 0.891 at 23 ms
+[5] lag-xcorr R->L: peak |r| 0.977 at 17 ms
+[5] lag-xcorr L->MID: peak |r| 0.178 at 18 ms
+[5] lag-xcorr MID->T4: peak |r| 0.086 at 1 ms
+[5] lag-xcorr T4->T5: peak |r| 0.038 at 30 ms
+    stim->EEG per channel: |r| median 0.518 max 0.887 (A2); best-lag median 29 ms
+
+[6] 19 bounce events; grand-mean ERP peak-to-peak (0-300 ms) max 0.0474 uV at CP5 (median 0.0114)
+    circular-shift null (500 draws): observed max-channel |ERP| z=0.3, p=0.330
+    with background added: single-event ERP amplitude 0.0474 uV vs single-event noise SD 3.54 uV -> single-trial SNR 0.013; n-avg gain -> 0.05 sigma at n=19
+[7] decode clean -> stim: CV R2 = 0.868 +/- 0.016 (splits [0.868 0.892 0.861 0.872 0.877 0.841])
+[7] decode clean+bg -> stim: CV R2 = -1.855 +/- 1.553 (splits [-0.476 -0.241 -3.313 -1.492 -4.521 -1.087])
+[7] decode null (shifted stim): CV R2 = -1.812 +/- 2.008 (splits [-5.547 -3.425 -0.983 -0.603 -0.242 -0.071])
+[7] decode clean -> R-rate: CV R2 = 0.722 +/- 0.383 (splits [-0.134  0.865  0.903  0.926  0.907  0.865])
+[7] decode clean 0.5-6 Hz -> stim (band-passed): CV R2 = 0.901 +/- 0.090 (splits [0.705 0.906 0.958 0.935 0.962 0.939])
+[7] decode clean+bg 0.5-6 Hz -> stim (band-passed): CV R2 = -1.955 +/- 2.029 (splits [-3.777 -5.599 -1.226 -0.504 -0.137 -0.486])
+
+[8] band x spatial-filter sweep (single 10.5 s trial, permutation p over 200 circular shifts):
+    0.1-6.0 Hz      PC1-4: clean |r| 0.283 @ 21 ms | mixed 0.240 (bg-control 0.229) p=0.790
+    0.1-6.0 Hz     1ch A2: clean |r| 0.271 @ 23 ms | mixed 0.138 (bg-control 0.135) p=0.665
+    0.5-6.0 Hz      PC1-4: clean |r| 0.280 @  0 ms | mixed 0.165 (bg-control 0.163) p=0.695
+    0.5-6.0 Hz     1ch A2: clean |r| 0.213 @ 10 ms | mixed 0.050 (bg-control 0.051) p=0.970
+    1.0-6.0 Hz      PC1-4: clean |r| 0.337 @  0 ms | mixed 0.194 (bg-control 0.191) p=0.220
+    1.0-6.0 Hz     1ch A2: clean |r| 0.252 @272 ms | mixed 0.046 (bg-control 0.052) p=0.980
+    0.5-4.0 Hz      PC1-4: clean |r| 0.271 @  0 ms | mixed 0.160 (bg-control 0.155) p=0.705
+    0.5-4.0 Hz     1ch A2: clean |r| 0.206 @  9 ms | mixed 0.056 (bg-control 0.057) p=0.910
+    best mixed-vs-bg margin: 0.1-6.0 Hz PC1-4 (clean 0.283, mixed 0.240)
+
+[done] figures + stats in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\experiments\exp018_eeg_eda\outputs

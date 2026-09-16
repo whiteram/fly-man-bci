@@ -54,6 +54,7 @@
   加速层另需 numba（JIT 内核）与 cupy-cuda12x（GPU 引擎，需
   NVIDIA 卡 + CUDA 12.x 驱动；缺 GPU 时去掉 --gpu 自动走 CPU 路径）
   ——`pip install "numba>=0.65" cupy-cuda12x`
+  分析类实验另需 `pip install scikit-learn`（exp018 EDA 解码用）
 - 内存建议 **≥16 GB**（neuron_sites 聚合时内存映射 12.7GB 文件，本机 32GB）
 - 磁盘：约 20 GB（数据 15.7GB + 余量）
 
