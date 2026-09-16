@@ -63,8 +63,10 @@
     k=0     0.1-1 Hz: decode R2 -5.948 | best |r| 0.217 (p=0.40) | in-band fly/noise 0.29 | PC-filtered 10.79 -> ~1 clip-averages for SNR~2
 [7] decode k=0 0.5-6.0Hz -> stim: CV R2 = -0.948 +/- 1.054 (splits [-2.333 -2.517 -0.451 -0.014 -0.153 -0.219])
     k=0     0.5-6 Hz: decode R2 -0.948 | best |r| 0.189 (p=0.45) | in-band fly/noise 0.23 | PC-filtered 2.24 -> ~1 clip-averages for SNR~2
-Traceback (most recent call last):
-  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\experiments\exp018_eeg_eda\run.py", line 462, in <module>
-    ok = [(k, b) for k, b, r2, r, pv, _ in rows9 if r2 > 0.5 and pv < 0.05]
-                     ^^^^^^^^^^^^^^^^^^
-ValueError: too many values to unpack (expected 6)
+    single-trial extraction fails in every k x band cell
+[10] f10_eeg_clean_broadband.png: sep 3.1 uV/trace, median ch rms 0.343 uV
+[10] f11_eeg_clean_band.png: sep 0.95 uV/trace, median ch rms 0.0866 uV
+[10] f12_eeg_replace.png: sep 2.5 uV/trace, median ch rms 0.291 uV
+[10] f13_eeg_coexist.png: sep 8.9 uV/trace, median ch rms 1.49 uV
+
+[done] figures + stats in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\experiments\exp018_eeg_eda\outputs

@@ -459,7 +459,7 @@ for k in (1.0, 0.3, 0.1, 0.03, 0.0):
               f"decode R2 {r2:+.3f} | best |r| {rbest:.3f} (p={pv:.2f}) "
               f"| in-band fly/noise {ratio:.2f} | PC-filtered {rp:.2f} "
               f"-> ~{ntri} clip-averages for SNR~2")
-ok = [(k, b) for k, b, r2, r, pv, _ in rows9 if r2 > 0.5 and pv < 0.05]
+ok = [(k, b) for k, b, r2, r, pv, _, _ in rows9 if r2 > 0.5 and pv < 0.05]
 if ok:
     print("    single-trial extraction (R2>0.5 & p<0.05) at: "
           + "; ".join(f"k={k:g} @ {b[0]:.1f}-{b[1]:.0f} Hz" for k, b in ok))
@@ -485,5 +485,63 @@ ax.set_title("single-trial extraction vs background premise and band")
 ax.legend(fontsize=8)
 fig.tight_layout(); fig.savefig(OUT / "f09_bg_sweep.png", dpi=150)
 plt.close(fig)
+
+# ---------------------------------------------------------------- 10
+# clinical-style stacked EEG traces, four conditions for visual
+# comparison (what a reviewer wants to eyeball: is there anything
+# EEG-like in there, and what does each premise/band look like)
+def eeg_page(sig2d, title, fname, band=None, ref=None):
+    if band is not None:
+        sos10 = sps.butter(2, list(band), btype="band", fs=fs,
+                           output="sos")
+        sig2d = sps.sosfiltfilt(sos10, sig2d, axis=1)
+    n = sig2d.shape[0]
+    ch_rms = np.sqrt((sig2d ** 2).mean(axis=1))
+    # spacing: the noisiest channel swings ~ +-3 rms -> keep inside 0.8
+    # of its slot; gain is per-panel, the printed separation is in uV
+    worst = np.percentile(ch_rms, 98)
+    gain = 0.8 / (3.0 * max(worst, 1e-6))
+    fig, ax = plt.subplots(figsize=(14, 0.21 * n + 1.6))
+    for i in range(n):
+        ax.plot(t / 1000, gain * sig2d[i] + (n - 1 - i), lw=0.55,
+                color="k")
+    if ref is not None:                      # stimulus brightness trace
+        z = (ref - ref.mean()) / max(ref.std(), 1e-9)
+        ax.plot(t / 1000, 0.4 * z + n, lw=0.8, color="C3")
+        ax.axhline(n, color="gray", lw=0.4)
+        ax.text(-0.4, n, "stim", ha="right", va="center", fontsize=7,
+                color="C3")
+    for i in range(n):
+        ax.text(-0.4, n - 1 - i, names[i], ha="right", va="center",
+                fontsize=6.5)
+    for s in range(0, int(t[-1] / 1000) + 1):
+        ax.axvline(s, color="0.85", lw=0.4, zorder=0)
+    ax.set_ylim(-0.7, n + 0.7)
+    ax.set_xlim(0, t[-1] / 1000)
+    ax.set_yticks([])
+    ax.set_xlabel("s")
+    ax.set_title(title, fontsize=10)
+    sep_uv = 1.0 / gain                      # uV between adjacent traces
+    ax.text(0.99, 0.01,
+            f"trace separation = {sep_uv:.2g} uV (scale bar = 1 slot)",
+            transform=ax.transAxes, ha="right", fontsize=7, color="0.35")
+    fig.subplots_adjust(left=0.07, right=0.99, top=0.96, bottom=0.05)
+    fig.savefig(OUT / fname, dpi=150)
+    plt.close(fig)
+    print(f"[10] {fname}: sep {sep_uv:.2g} uV/trace, "
+          f"median ch rms {np.median(ch_rms):.3g} uV")
+
+
+sensor10 = rng.normal(0, 1.5, X.shape)       # replacement-premise floor
+eeg_page(X, "clean fly signal, broadband (all 45 leads)", 
+         "f10_eeg_clean_broadband.png", ref=stim)
+eeg_page(X, "clean fly signal, 0.1-1 Hz (the useful band)",
+         "f11_eeg_clean_band.png", band=(0.1, 1.0), ref=stim)
+eeg_page(X + sensor10,
+         "replacement premise: fly + 1.5 uV sensor noise, 0.1-1 Hz",
+         "f12_eeg_replace.png", band=(0.1, 1.0), ref=stim)
+eeg_page(X + BG,
+         "counterfactual coexistence: fly + full human background, 0.1-1 Hz",
+         "f13_eeg_coexist.png", band=(0.1, 1.0), ref=stim)
 
 print("\n[done] figures + stats in", OUT)
