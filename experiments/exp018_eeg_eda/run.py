@@ -304,14 +304,21 @@ y_shift = np.roll(stim, 3500)
 r_null = decode(X, y_shift, "null (shifted stim)")
 r_rate = decode(X, rates["R"], "clean -> R-rate")
 # robustness: band-pass BOTH features and target (0.5-6 Hz) -- if the
-# broadband R2 is only a sub-0.1 Hz clip-long co-trend, this collapses
+# broadband R2 is only a sub-0.1 Hz clip-long co-trend, this collapses.
+# filtfilt rings at the record edges for ~1/f0 seconds (0.5 Hz highpass
+# pole): trim 2.5 s per side before fitting so CV scores no edge
+# transient
 sos_d = sps.butter(2, [0.5, 6.0], btype="band", fs=fs, output="sos")
-Xf = sps.sosfiltfilt(sos_d, X, axis=1)
-r_band = decode(Xf, sps.sosfiltfilt(sos_d, stim),
-                "clean 0.5-6 Hz -> stim (band-passed)")
-r_band_bg = decode(sps.sosfiltfilt(sos_d, X + BG, axis=1),
-                   sps.sosfiltfilt(sos_d, stim),
-                   "clean+bg 0.5-6 Hz -> stim (band-passed)")
+TR = 2500
+Xf = sps.sosfiltfilt(sos_d, X - X.mean(axis=1, keepdims=True),
+                     axis=1)[:, TR:-TR]
+r_band = decode(Xf, sps.sosfiltfilt(sos_d, stim)[TR:-TR],
+                "clean 0.5-6 Hz -> stim (band-passed, edges trimmed)")
+r_band_bg = decode(
+    sps.sosfiltfilt(sos_d, X + BG - (X + BG).mean(
+        axis=1, keepdims=True), axis=1)[:, TR:-TR],
+    sps.sosfiltfilt(sos_d, stim)[TR:-TR],
+    "clean+bg 0.5-6 Hz -> stim (band-passed, edges trimmed)")
 
 fig, ax = plt.subplots(figsize=(7.5, 4))
 vals = [r_clean, r_bg, r_null, r_rate, r_band, r_band_bg]
@@ -431,33 +438,47 @@ def perm_p(mix2d, band):
 print("\n[9] background-scale x band sweep (single 10.5 s trial):")
 print("    k=1: intact-human-head premise | k=0: fly replaces brain "
       "(sensor noise only)")
+# SNR columns are computed on PERIODOGRAM band powers (Parseval-exact,
+# no filtfilt edge ringing): project DC-removed signals on the clean
+# PCs, then take in-band rms.  The white sensor noise competes only
+# with its IN-BAND share (1.5 uV spread over ~500 Hz).
+Xc9 = Xc                                      # DC-removed clean signal
+
+def band_rms_max(series2d, band):
+    """Max over series of the in-band rms; accepts (n, T) or (T, k)."""
+    s = np.atleast_2d(series2d)
+    if s.shape[0] > s.shape[1]:        # time on axis 0 -> transpose
+        s = s.T
+    W = np.fft.rfft(s - s.mean(axis=1, keepdims=True), axis=1)
+    P = 2 * np.abs(W) ** 2 / s.shape[1] ** 2
+    fb = np.fft.rfftfreq(s.shape[1], d=0.001)
+    P, fb = P[:, 1:], fb[1:]           # drop DC bin
+    m = (fb >= band[0]) & (fb < band[1])
+    return float(np.sqrt(P[:, m].sum(axis=1).max()))
+
+
 rows9 = []
 for k in (1.0, 0.3, 0.1, 0.03, 0.0):
     mix = X + k * BG + (sensor if k == 0.0 else 0.0)
     for band in ((0.1, 1.0), (0.5, 6.0)):
         sos9 = sps.butter(2, list(band), btype="band", fs=fs, output="sos")
         mix_f = sps.sosfiltfilt(sos9, mix, axis=1)
-        X_fb = sps.sosfiltfilt(sos9, X, axis=1)
         stim_fb = sps.sosfiltfilt(sos9, stim)
         # fixed clean-signal spatial filters for every k (fair across
         # premises; README flags the model-informed caveat)
         r2 = decode(mix_f, stim_fb, f"k={k:g} {band[0]}-{band[1]}Hz -> stim",
                     proj=U[:, :8])
         rbest, pv = perm_p(mix, band)
-        ratio = float(np.sqrt((X_fb ** 2).mean())
-                      / np.sqrt(((mix_f - X_fb) ** 2).mean()))
-        # best projected-component SNR with the model-informed spatial
-        # filter, and the implied number of same-stimulus 10.5 s clips
-        # to average for projected SNR ~ 2 (d' ~ 2)
-        sig_p = X_fb.T @ U[:, :8]
-        noi_p = (mix_f - X_fb).T @ U[:, :8]
-        rp = float(np.max(np.sqrt((sig_p ** 2).mean(0))
-                          / np.sqrt((noi_p ** 2).mean(0))))
+        noi2d = k * BG + (sensor if k == 0.0 else 0.0)
+        r_ch = band_rms_max(Xc9, band) / max(band_rms_max(noi2d, band),
+                                             1e-12)
+        rp = band_rms_max(Xc9.T @ U[:, :8], band) / max(
+            band_rms_max(noi2d.T @ U[:, :8], band), 1e-12)
         ntri = int(np.ceil((2.0 / rp) ** 2)) if rp > 0 else 0
-        rows9.append((k, band, r2, rbest, pv, ratio, rp))
+        rows9.append((k, band, r2, rbest, pv, r_ch, rp))
         print(f"    k={k:<5g} {band[0]:.1f}-{band[1]:.0f} Hz: "
               f"decode R2 {r2:+.3f} | best |r| {rbest:.3f} (p={pv:.2f}) "
-              f"| in-band fly/noise {ratio:.2f} | PC-filtered {rp:.2f} "
+              f"| in-band fly/noise ch {r_ch:.3f} | PC-projected {rp:.2f} "
               f"-> ~{ntri} clip-averages for SNR~2")
 ok = [(k, b) for k, b, r2, r, pv, _, _ in rows9 if r2 > 0.5 and pv < 0.05]
 if ok:
@@ -491,10 +512,17 @@ plt.close(fig)
 # comparison (what a reviewer wants to eyeball: is there anything
 # EEG-like in there, and what does each premise/band look like)
 def eeg_page(sig2d, title, fname, band=None, ref=None):
+    t10 = t / 1000.0
     if band is not None:
+        # band-pass the DC-REMOVED signal, then trim the filtfilt edge
+        # transient (~1/f0 seconds per side for the low-pass pole)
+        sig2d = sig2d - sig2d.mean(axis=1, keepdims=True)
         sos10 = sps.butter(2, list(band), btype="band", fs=fs,
                            output="sos")
         sig2d = sps.sosfiltfilt(sos10, sig2d, axis=1)
+        lo_ms = min(1000, sig2d.shape[1] // 4)   # edge-ring trim
+        sig2d = sig2d[:, lo_ms:-lo_ms]
+        t10 = t[lo_ms:lo_ms + sig2d.shape[1]] / 1000.0
     n = sig2d.shape[0]
     ch_rms = np.sqrt((sig2d ** 2).mean(axis=1))
     # spacing: the noisiest channel swings ~ +-3 rms -> keep inside 0.8
@@ -503,21 +531,25 @@ def eeg_page(sig2d, title, fname, band=None, ref=None):
     gain = 0.8 / (3.0 * max(worst, 1e-6))
     fig, ax = plt.subplots(figsize=(14, 0.21 * n + 1.6))
     for i in range(n):
-        ax.plot(t / 1000, gain * sig2d[i] + (n - 1 - i), lw=0.55,
+        ax.plot(t10, gain * sig2d[i] + (n - 1 - i), lw=0.55,
                 color="k")
     if ref is not None:                      # stimulus brightness trace
         z = (ref - ref.mean()) / max(ref.std(), 1e-9)
-        ax.plot(t / 1000, 0.4 * z + n, lw=0.8, color="C3")
+        if band is None:
+            ax.plot(t10, 0.4 * z + n, lw=0.8, color="C3")
+        else:
+            ax.plot(t10, 0.4 * z[lo_ms:lo_ms + sig2d.shape[1]] + n,
+                    lw=0.8, color="C3")
         ax.axhline(n, color="gray", lw=0.4)
         ax.text(-0.4, n, "stim", ha="right", va="center", fontsize=7,
                 color="C3")
     for i in range(n):
         ax.text(-0.4, n - 1 - i, names[i], ha="right", va="center",
                 fontsize=6.5)
-    for s in range(0, int(t[-1] / 1000) + 1):
+    for s in range(0, int(t10[-1]) + 1):
         ax.axvline(s, color="0.85", lw=0.4, zorder=0)
     ax.set_ylim(-0.7, n + 0.7)
-    ax.set_xlim(0, t[-1] / 1000)
+    ax.set_xlim(t10[0], t10[-1])
     ax.set_yticks([])
     ax.set_xlabel("s")
     ax.set_title(title, fontsize=10)
@@ -543,5 +575,88 @@ eeg_page(X + sensor10,
 eeg_page(X + BG,
          "counterfactual coexistence: fly + full human background, 0.1-1 Hz",
          "f13_eeg_coexist.png", band=(0.1, 1.0), ref=stim)
+
+# ---------------------------------------------------------------- 11
+# band-energy distribution vs human EEG. Full-length periodogram
+# (resolution 1000/10500 = 0.095 Hz) so the sub-0.5 Hz content that
+# dominates the fly signal is resolved; fractions of total power
+# (0.095-500 Hz, mean over channels) per canonical band for the fly
+# signal and for the literature-parameterized human background; plus
+# log-log spectral slopes (aperiodic exponent).
+def band_powers(sig2d):
+    """Parseval-exact band powers: P = 2|X|^2/N^2, so summing all bins
+    reproduces the AC variance exactly.  Also return the tonic (DC)
+    per-channel offset, which real EEG separates before analysis."""
+    dc = sig2d.mean(axis=1)
+    Xw = np.fft.rfft(sig2d - dc[:, None], axis=1)
+    n11 = sig2d.shape[1]
+    f11 = np.fft.rfftfreq(n11, d=0.001)
+    P = (2 * np.abs(Xw) ** 2 / n11 ** 2)[:, 1:]      # drop DC bin
+    f11 = f11[1:]
+    P = P[:, f11 <= 500]
+    f11 = f11[f11 <= 500]
+    edges = [(0, 0.1), (0.1, 0.5), (0.5, 4), (4, 8), (8, 13),
+             (13, 30), (30, 80), (80, 500)]
+    tot = P.sum(axis=1)
+    return f11, P, tot.mean(), float(np.sqrt(np.median(dc ** 2))), [
+        float(P[:, (f11 >= lo) & (f11 < hi)].sum(axis=1).mean() / tot.mean())
+        for lo, hi in edges], edges
+
+
+f11, Pfly, tot_f, dc_f, frac_f, edges = band_powers(X)
+_, Pbg, tot_b, dc_b, frac_b, _ = band_powers(BG)
+lab = ["<0.1", "0.1-0.5", "0.5-4 (delta)", "4-8 (theta)",
+       "8-13 (alpha)", "13-30 (beta)", "30-80 (gamma)", "80-500"]
+print("\n[11] band-energy distribution (fraction of total AC power "
+      "0.095-500 Hz):")
+print(f"    tonic DC offset (median): fly {dc_f:.3f} uV vs bg "
+      f"{dc_b:.3f} uV -- AC rms: fly {np.sqrt(tot_f):.4f} uV vs bg "
+      f"{np.sqrt(tot_b):.2f} uV")
+print(f"    {'band':>14} {'fly':>8} {'human bg':>9}")
+for L, a, b in zip(lab, frac_f, frac_b):
+    print(f"    {L:>14} {a:8.1%} {b:9.1%}")
+
+
+def slope(fv, Pv, lo, hi, drop_alpha=False):
+    m = (fv >= lo) & (fv <= hi)
+    if drop_alpha:
+        m &= ~((fv >= 7) & (fv <= 14))
+    lf, lp = np.log(fv[m]), np.log(np.median(Pv[:, m], axis=0) + 1e-30)
+    return float(np.polyfit(lf, lp, 1)[0])
+
+
+s_fly = slope(f11, Pfly, 0.2, 40)
+s_bg = slope(f11, Pbg, 2, 40, drop_alpha=True)
+print(f"    aperiodic slope (log-log): fly 0.2-40 Hz {s_fly:+.2f} | "
+      f"human bg 2-40 Hz (alpha excluded) {s_bg:+.2f}")
+pk_f = f11[np.argmax(np.median(Pfly, axis=0)[1:]) + 1]
+al = np.median(Pbg, axis=0)[(f11 >= 8) & (f11 <= 13)]
+wide = np.median(Pbg, axis=0)[(f11 >= 20) & (f11 <= 40)]
+print(f"    fly dominant spectral peak: {pk_f:.2f} Hz (strongest "
+      f"below 1 Hz); human bg alpha peak prominence "
+      f"{al.max() / max(np.median(wide), 1e-30):.0f}x the 20-40 Hz floor")
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 4.5))
+mf = np.median(Pfly, axis=0)
+mb = np.median(Pbg, axis=0)
+ax[0].loglog(f11, mf, label="fly signal")
+ax[0].loglog(f11, mb, label="human bg (literature params)")
+ax[0].loglog(f11, Pfly[order[0]], alpha=0.4,
+             label=f"fly best ch {names[order[0]]}")
+for lo, hi, c in ((0.5, 4, "C0"), (4, 8, "C1"), (8, 13, "C2"),
+                  (13, 30, "C3"), (30, 80, "C4")):
+    ax[0].axvspan(lo, hi, color=c, alpha=0.06)
+ax[0].set_xlabel("Hz"); ax[0].set_ylabel("uV^2/Hz (median over ch)")
+ax[0].legend(fontsize=8); ax[0].set_title("PSD: fly vs human")
+x11 = np.arange(len(lab))
+ax[1].bar(x11 - 0.2, [a * 100 for a in frac_f], 0.4, label="fly signal")
+ax[1].bar(x11 + 0.2, [b * 100 for b in frac_b], 0.4, label="human bg")
+ax[1].set_xticks(x11); ax[1].set_xticklabels(lab, fontsize=7,
+                                              rotation=30)
+ax[1].set_ylabel("% of total power"); ax[1].legend(fontsize=8)
+ax[1].set_yscale("log")
+ax[1].set_title("band-energy distribution")
+fig.tight_layout(); fig.savefig(OUT / "f14_band_fraction.png", dpi=150)
+plt.close(fig)
 
 print("\n[done] figures + stats in", OUT)

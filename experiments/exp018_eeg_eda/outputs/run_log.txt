@@ -27,8 +27,8 @@
 [7] decode clean+bg -> stim: CV R2 = -1.855 +/- 1.553 (splits [-0.476 -0.241 -3.313 -1.492 -4.521 -1.087])
 [7] decode null (shifted stim): CV R2 = -1.812 +/- 2.008 (splits [-5.547 -3.425 -0.983 -0.603 -0.242 -0.071])
 [7] decode clean -> R-rate: CV R2 = 0.722 +/- 0.383 (splits [-0.134  0.865  0.903  0.926  0.907  0.865])
-[7] decode clean 0.5-6 Hz -> stim (band-passed): CV R2 = 0.901 +/- 0.090 (splits [0.705 0.906 0.958 0.935 0.962 0.939])
-[7] decode clean+bg 0.5-6 Hz -> stim (band-passed): CV R2 = -1.955 +/- 2.029 (splits [-3.777 -5.599 -1.226 -0.504 -0.137 -0.486])
+[7] decode clean 0.5-6 Hz -> stim (band-passed, edges trimmed): CV R2 = 0.839 +/- 0.148 (splits [0.916 0.896 0.517 0.87  0.971 0.867])
+[7] decode clean+bg 0.5-6 Hz -> stim (band-passed, edges trimmed): CV R2 = -2.995 +/- 3.126 (splits [-0.703 -8.086 -1.267 -6.633 -0.909 -0.373])
 
 [8] band x spatial-filter sweep (single 10.5 s trial, permutation p over 200 circular shifts):
     0.1-6.0 Hz      PC1-4: clean |r| 0.283 @ 21 ms | mixed 0.240 (bg-control 0.229) p=0.790
@@ -44,29 +44,43 @@
 [9] background-scale x band sweep (single 10.5 s trial):
     k=1: intact-human-head premise | k=0: fly replaces brain (sensor noise only)
 [7] decode k=1 0.1-1.0Hz -> stim: CV R2 = -17.053 +/- 20.549 (splits [ -1.61   -4.58  -27.148  -2.82   -7.378 -58.785])
-    k=1     0.1-1 Hz: decode R2 -17.053 | best |r| 0.323 (p=0.56) | in-band fly/noise 0.08 | PC-filtered 0.48 -> ~18 clip-averages for SNR~2
+    k=1     0.1-1 Hz: decode R2 -17.053 | best |r| 0.323 (p=0.56) | in-band fly/noise ch 0.034 | PC-projected 0.06 -> ~1258 clip-averages for SNR~2
 [7] decode k=1 0.5-6.0Hz -> stim: CV R2 = -1.152 +/- 1.096 (splits [-3.329 -0.841 -1.535 -0.996 -0.172 -0.036])
-    k=1     0.5-6 Hz: decode R2 -1.152 | best |r| 0.164 (p=0.54) | in-band fly/noise 0.04 | PC-filtered 0.25 -> ~65 clip-averages for SNR~2
+    k=1     0.5-6 Hz: decode R2 -1.152 | best |r| 0.164 (p=0.54) | in-band fly/noise ch 0.036 | PC-projected 0.07 -> ~938 clip-averages for SNR~2
 [7] decode k=0.3 0.1-1.0Hz -> stim: CV R2 = -19.677 +/- 26.672 (splits [ -1.577  -3.397 -76.43   -8.702  -2.372 -25.585])
-    k=0.3   0.1-1 Hz: decode R2 -19.677 | best |r| 0.347 (p=0.29) | in-band fly/noise 0.25 | PC-filtered 1.60 -> ~2 clip-averages for SNR~2
+    k=0.3   0.1-1 Hz: decode R2 -19.677 | best |r| 0.347 (p=0.29) | in-band fly/noise ch 0.114 | PC-projected 0.19 -> ~114 clip-averages for SNR~2
 [7] decode k=0.3 0.5-6.0Hz -> stim: CV R2 = -1.068 +/- 1.264 (splits [-3.645 -0.796 -1.51  -0.473 -0.019  0.035])
-    k=0.3   0.5-6 Hz: decode R2 -1.068 | best |r| 0.171 (p=0.63) | in-band fly/noise 0.13 | PC-filtered 0.83 -> ~6 clip-averages for SNR~2
+    k=0.3   0.5-6 Hz: decode R2 -1.068 | best |r| 0.171 (p=0.63) | in-band fly/noise ch 0.120 | PC-projected 0.22 -> ~85 clip-averages for SNR~2
 [7] decode k=0.1 0.1-1.0Hz -> stim: CV R2 = -13.398 +/- 12.851 (splits [ -1.628 -32.911  -3.263 -28.411  -1.438 -12.739])
-    k=0.1   0.1-1 Hz: decode R2 -13.398 | best |r| 0.293 (p=0.36) | in-band fly/noise 0.76 | PC-filtered 4.80 -> ~1 clip-averages for SNR~2
+    k=0.1   0.1-1 Hz: decode R2 -13.398 | best |r| 0.293 (p=0.36) | in-band fly/noise ch 0.341 | PC-projected 0.56 -> ~13 clip-averages for SNR~2
 [7] decode k=0.1 0.5-6.0Hz -> stim: CV R2 = -0.830 +/- 1.151 (splits [-3.147e+00 -3.680e-01 -1.403e+00 -2.230e-01 -2.000e-03  1.610e-01])
-    k=0.1   0.5-6 Hz: decode R2 -0.830 | best |r| 0.199 (p=0.40) | in-band fly/noise 0.38 | PC-filtered 2.50 -> ~1 clip-averages for SNR~2
+    k=0.1   0.5-6 Hz: decode R2 -0.830 | best |r| 0.199 (p=0.40) | in-band fly/noise ch 0.361 | PC-projected 0.65 -> ~10 clip-averages for SNR~2
 [7] decode k=0.03 0.1-1.0Hz -> stim: CV R2 = -8.405 +/- 6.122 (splits [ -2.102  -8.933  -6.032 -20.532  -9.901  -2.933])
-    k=0.03  0.1-1 Hz: decode R2 -8.405 | best |r| 0.227 (p=0.39) | in-band fly/noise 2.53 | PC-filtered 15.98 -> ~1 clip-averages for SNR~2
+    k=0.03  0.1-1 Hz: decode R2 -8.405 | best |r| 0.227 (p=0.39) | in-band fly/noise ch 1.137 | PC-projected 1.88 -> ~2 clip-averages for SNR~2
 [7] decode k=0.03 0.5-6.0Hz -> stim: CV R2 = -0.276 +/- 0.518 (splits [-1.155 -0.353 -0.671  0.137  0.022  0.367])
-    k=0.03  0.5-6 Hz: decode R2 -0.276 | best |r| 0.209 (p=0.27) | in-band fly/noise 1.27 | PC-filtered 8.32 -> ~1 clip-averages for SNR~2
+    k=0.03  0.5-6 Hz: decode R2 -0.276 | best |r| 0.209 (p=0.27) | in-band fly/noise ch 1.205 | PC-projected 2.18 -> ~1 clip-averages for SNR~2
 [7] decode k=0 0.1-1.0Hz -> stim: CV R2 = -5.948 +/- 3.267 (splits [-11.045  -5.043  -9.181  -4.644  -4.676  -1.102])
-    k=0     0.1-1 Hz: decode R2 -5.948 | best |r| 0.217 (p=0.40) | in-band fly/noise 0.29 | PC-filtered 10.79 -> ~1 clip-averages for SNR~2
+    k=0     0.1-1 Hz: decode R2 -5.948 | best |r| 0.217 (p=0.40) | in-band fly/noise ch 0.721 | PC-projected 1.17 -> ~3 clip-averages for SNR~2
 [7] decode k=0 0.5-6.0Hz -> stim: CV R2 = -0.948 +/- 1.054 (splits [-2.333 -2.517 -0.451 -0.014 -0.153 -0.219])
-    k=0     0.5-6 Hz: decode R2 -0.948 | best |r| 0.189 (p=0.45) | in-band fly/noise 0.23 | PC-filtered 2.24 -> ~1 clip-averages for SNR~2
+    k=0     0.5-6 Hz: decode R2 -0.948 | best |r| 0.189 (p=0.45) | in-band fly/noise ch 0.391 | PC-projected 0.66 -> ~10 clip-averages for SNR~2
     single-trial extraction fails in every k x band cell
 [10] f10_eeg_clean_broadband.png: sep 3.1 uV/trace, median ch rms 0.343 uV
-[10] f11_eeg_clean_band.png: sep 0.95 uV/trace, median ch rms 0.0866 uV
-[10] f12_eeg_replace.png: sep 2.5 uV/trace, median ch rms 0.291 uV
-[10] f13_eeg_coexist.png: sep 8.9 uV/trace, median ch rms 1.49 uV
+[10] f11_eeg_clean_band.png: sep 0.55 uV/trace, median ch rms 0.0547 uV
+[10] f12_eeg_replace.png: sep 1.6 uV/trace, median ch rms 0.183 uV
+[10] f13_eeg_coexist.png: sep 7.6 uV/trace, median ch rms 1.48 uV
+
+[11] band-energy distribution (fraction of total AC power 0.095-500 Hz):
+    tonic DC offset (median): fly 0.343 uV vs bg 0.009 uV -- AC rms: fly 0.0291 uV vs bg 3.79 uV
+              band      fly  human bg
+              <0.1     1.7%      5.8%
+           0.1-0.5    20.7%      8.4%
+     0.5-4 (delta)    50.8%     14.0%
+       4-8 (theta)     6.1%      5.0%
+      8-13 (alpha)     4.5%     25.1%
+      13-30 (beta)     7.4%      6.6%
+     30-80 (gamma)     4.8%      8.6%
+            80-500     4.0%     26.4%
+    aperiodic slope (log-log): fly 0.2-40 Hz -1.02 | human bg 2-40 Hz (alpha excluded) -0.92
+    fly dominant spectral peak: 0.67 Hz (strongest below 1 Hz); human bg alpha peak prominence 5x the 20-40 Hz floor
 
 [done] figures + stats in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\experiments\exp018_eeg_eda\outputs
