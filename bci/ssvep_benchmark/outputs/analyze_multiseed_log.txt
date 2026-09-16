@@ -1,0 +1,7 @@
+[ssvep] 6 classes x 5 repeats x 45 ch x 8000 samples (8 s window)
+[ssvep] fly AC rms 0.0045 uV -> scaled hypothetical equipment noise 0.0018 uV (same sensor/signal ratio as clinical human 1.5/3.79)
+    clean: top-1 accuracy 27/30 = 90% | median in-band SNR 24.8 dB (min 5.4, max 35.7)
+    clean accuracy vs averaged trials: k=2: 93% | k=3: 90% | k=4: 93% | k=5: 100%
+    scaled sensor noise (0.0018 uV): top-1 accuracy 28/30 = 93% | median in-band SNR 24.1 dB (min 4.9, max 35.0)
+    scaled sensor noise (0.0018 uV) accuracy vs averaged trials: k=2: 93% | k=3: 95% | k=4: 97% | k=5: 100%
+[ssvep] figures -> confusion_matrix_clean.png, confusion_matrix_noise.png (+ rho/rate .npy)

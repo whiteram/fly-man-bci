@@ -45,5 +45,7 @@
  "dur_s": 10.5,
  "elec": "elec_layout_1010 (45 leads)",
  "scale": "thought-experiment x202 (nominal x400)",
- "mode": "single-target (attended-slot analog)"
+ "mode": "single-target (attended-slot analog)",
+ "repeats": 5,
+ "seed_map": "seed = 42 + i*repeats + r (i=class idx, r=rep)"
 }

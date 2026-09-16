@@ -1,0 +1,407 @@
+[acquire] f=8.0 rep=0 seed=42: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.3 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+thought-experiment scale x202 (nominal x400), junction pinned at the occipital pole (shift 0.0 mm, brain-margin -0 um)
+electrode layout: 45 named channels from D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\data\elec_layout_1010.json
+scalp kernel RL: 9636 dipoles (0 s)
+scalp kernel LM: 49425 dipoles (1 s)
+scalp kernel MT_Mi1: 46038 dipoles (2 s)
+scalp kernel MT_Tm3: 39254 dipoles (3 s)
+scalp kernel MT_Mi4: 23036 dipoles (3 s)
+scalp kernel MT_Mi9: 31092 dipoles (4 s)
+scalp kernel MT_Tm1: 35518 dipoles (5 s)
+scalp kernel MT_Tm2: 35446 dipoles (5 s)
+scalp kernel MT_Tm4: 32161 dipoles (6 s)
+scalp kernel MT_Tm9: 47365 dipoles (7 s)
+scalp kernel PHOTO: 3377 dipoles (7 s)
+scalp kernels built (S=400, 4-sphere, 45 electrodes, 7 s)
+kernel rows per group: RL=9636, LM=49425, MT_Mi1=46038, MT_Tm3=39254, MT_Mi4=23036, MT_Mi9=31092, MT_Tm1=35518, MT_Tm2=35446, MT_Tm4=32161, MT_Tm9=47365, PHOTO=3377
+kernel cache: saved kernels-c5ac248e4b5c8121e32f.npz (0.1 s)
+visual input: ssvep1_f8.0 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 49 s (10500 records)
+phi_scalp checksum: L2=1.414405e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r0\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~536840 trials (band 2-20 Hz: ~864773)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r0\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r0\viz_data.json (13.4 MB)
+[acquire] f=8.0 rep=1 seed=43: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.3 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f8.0 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 47 s (10500 records)
+phi_scalp checksum: L2=1.414164e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r1\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~546484 trials (band 2-20 Hz: ~863002)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r1\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r1\viz_data.json (13.4 MB)
+[acquire] f=8.0 rep=2 seed=44: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f8.0 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 44 s (10500 records)
+phi_scalp checksum: L2=1.414017e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r2\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~598236 trials (band 2-20 Hz: ~1033884)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r2\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r2\viz_data.json (13.4 MB)
+[acquire] f=8.0 rep=3 seed=45: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f8.0 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 41 s (10500 records)
+phi_scalp checksum: L2=1.413628e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r3\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~503618 trials (band 2-20 Hz: ~690680)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r3\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r3\viz_data.json (13.4 MB)
+[acquire] f=8.0 rep=4 seed=46: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f8.0 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 42 s (10500 records)
+phi_scalp checksum: L2=1.413813e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r4\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~608623 trials (band 2-20 Hz: ~1214303)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r4\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f8.0_r4\viz_data.json (13.4 MB)
+[acquire] f=9.8 rep=0 seed=47: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f9.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 44 s (10500 records)
+phi_scalp checksum: L2=1.412091e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r0\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~285206 trials (band 2-20 Hz: ~175710)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r0\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r0\viz_data.json (13.4 MB)
+[acquire] f=9.8 rep=1 seed=48: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.3 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.9 s)
+visual input: ssvep1_f9.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.412279e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r1\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~344071 trials (band 2-20 Hz: ~208844)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r1\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r1\viz_data.json (13.4 MB)
+[acquire] f=9.8 rep=2 seed=49: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f9.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.412556e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r2\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~320406 trials (band 2-20 Hz: ~201635)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r2\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r2\viz_data.json (13.4 MB)
+[acquire] f=9.8 rep=3 seed=50: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f9.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 41 s (10500 records)
+phi_scalp checksum: L2=1.411811e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r3\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~339804 trials (band 2-20 Hz: ~198294)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r3\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r3\viz_data.json (13.4 MB)
+[acquire] f=9.8 rep=4 seed=51: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f9.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.412181e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r4\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~332094 trials (band 2-20 Hz: ~196589)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r4\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f9.8_r4\viz_data.json (13.4 MB)
+[acquire] f=11.6 rep=0 seed=52: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f11.6 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 43 s (10500 records)
+phi_scalp checksum: L2=1.420502e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r0\_debug_phi_scalp.npy)
+background EEG: fly signal 0.02 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~107104 trials (band 2-20 Hz: ~35179)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r0\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r0\viz_data.json (13.4 MB)
+[acquire] f=11.6 rep=1 seed=53: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f11.6 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.419864e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r1\_debug_phi_scalp.npy)
+background EEG: fly signal 0.02 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~109126 trials (band 2-20 Hz: ~35331)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r1\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r1\viz_data.json (13.4 MB)
+[acquire] f=11.6 rep=2 seed=54: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f11.6 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 44 s (10500 records)
+phi_scalp checksum: L2=1.419751e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r2\_debug_phi_scalp.npy)
+background EEG: fly signal 0.02 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~108244 trials (band 2-20 Hz: ~35085)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r2\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r2\viz_data.json (13.4 MB)
+[acquire] f=11.6 rep=3 seed=55: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.4 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f11.6 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 43 s (10500 records)
+phi_scalp checksum: L2=1.420143e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r3\_debug_phi_scalp.npy)
+background EEG: fly signal 0.02 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~105639 trials (band 2-20 Hz: ~34657)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r3\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r3\viz_data.json (13.4 MB)
+[acquire] f=11.6 rep=4 seed=56: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f11.6 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.420019e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r4\_debug_phi_scalp.npy)
+background EEG: fly signal 0.02 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~102101 trials (band 2-20 Hz: ~34026)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r4\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f11.6_r4\viz_data.json (13.4 MB)
+[acquire] f=13.4 rep=0 seed=57: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f13.4 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 42 s (10500 records)
+phi_scalp checksum: L2=1.423897e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r0\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~506623 trials (band 2-20 Hz: ~620894)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r0\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r0\viz_data.json (13.4 MB)
+[acquire] f=13.4 rep=1 seed=58: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f13.4 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.423860e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r1\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~482369 trials (band 2-20 Hz: ~604503)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r1\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r1\viz_data.json (13.4 MB)
+[acquire] f=13.4 rep=2 seed=59: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f13.4 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 42 s (10500 records)
+phi_scalp checksum: L2=1.423501e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r2\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~447141 trials (band 2-20 Hz: ~444520)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r2\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r2\viz_data.json (13.4 MB)
+[acquire] f=13.4 rep=3 seed=60: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f13.4 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.424491e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r3\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~414208 trials (band 2-20 Hz: ~600680)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r3\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r3\viz_data.json (13.4 MB)
+[acquire] f=13.4 rep=4 seed=61: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.1 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.1 s)
+visual input: ssvep1_f13.4 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 41 s (10500 records)
+phi_scalp checksum: L2=1.424273e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r4\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~525932 trials (band 2-20 Hz: ~757092)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r4\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f13.4_r4\viz_data.json (13.4 MB)
+[acquire] f=15.2 rep=0 seed=62: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f15.2 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 41 s (10500 records)
+phi_scalp checksum: L2=1.413553e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r0\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 3.27 uV at FC5 -> d'=2 needs ~434548 trials (band 2-20 Hz: ~204155)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r0\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r0\viz_data.json (13.4 MB)
+[acquire] f=15.2 rep=1 seed=63: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.3 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f15.2 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 44 s (10500 records)
+phi_scalp checksum: L2=1.413466e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r1\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 3.27 uV at FC5 -> d'=2 needs ~455664 trials (band 2-20 Hz: ~213300)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r1\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r1\viz_data.json (13.4 MB)
+[acquire] f=15.2 rep=2 seed=64: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f15.2 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.413160e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r2\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 3.27 uV at FC5 -> d'=2 needs ~465661 trials (band 2-20 Hz: ~222710)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r2\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r2\viz_data.json (13.4 MB)
+[acquire] f=15.2 rep=3 seed=65: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f15.2 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 43 s (10500 records)
+phi_scalp checksum: L2=1.413485e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r3\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 3.27 uV at FC5 -> d'=2 needs ~452304 trials (band 2-20 Hz: ~197150)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r3\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r3\viz_data.json (13.4 MB)
+[acquire] f=15.2 rep=4 seed=66: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.3 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.9 s)
+visual input: ssvep1_f15.2 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 41 s (10500 records)
+phi_scalp checksum: L2=1.413690e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r4\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 3.27 uV at FC5 -> d'=2 needs ~466239 trials (band 2-20 Hz: ~201978)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r4\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.2_r4\viz_data.json (13.4 MB)
+[acquire] f=15.8 rep=0 seed=67: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f15.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 40 s (10500 records)
+phi_scalp checksum: L2=1.414229e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r0\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~530403 trials (band 2-20 Hz: ~841185)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r0\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r0\viz_data.json (13.4 MB)
+[acquire] f=15.8 rep=1 seed=68: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f15.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 44 s (10500 records)
+phi_scalp checksum: L2=1.413630e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r1\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~492017 trials (band 2-20 Hz: ~834740)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r1\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r1\viz_data.json (13.4 MB)
+[acquire] f=15.8 rep=2 seed=69: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f15.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 39 s (10500 records)
+phi_scalp checksum: L2=1.414006e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r2\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~567560 trials (band 2-20 Hz: ~879211)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r2\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r2\viz_data.json (13.4 MB)
+[acquire] f=15.8 rep=3 seed=70: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.7 s)
+visual input: ssvep1_f15.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 41 s (10500 records)
+phi_scalp checksum: L2=1.414227e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r3\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~562502 trials (band 2-20 Hz: ~825943)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r3\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r3\viz_data.json (13.4 MB)
+[acquire] f=15.8 rep=4 seed=71: started
+circuit cache: HIT circuit-a0f7dfea9c513d846d29.npz (0.2 s)
+regions: ON  = visual_bilateral
+regions: OFF = central_brain, ol_rest, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-c5ac248e4b5c8121e32f.npz (0.8 s)
+visual input: ssvep1_f15.8 -> 630 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 10.5 s ...
+GPU forward buffers: 256 records, 424 MB on device
+biology loop: 39 s (10500 records)
+phi_scalp checksum: L2=1.413512e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r4\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 2.98 uV at CP5 -> d'=2 needs ~581528 trials (band 2-20 Hz: ~802117)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r4\stim_frames.bin (8.7 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs\_trial_f15.8_r4\viz_data.json (13.4 MB)
+[acquire] done -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\ssvep_benchmark\outputs
+exit=0
