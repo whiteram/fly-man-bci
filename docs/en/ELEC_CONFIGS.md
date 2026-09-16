@@ -89,18 +89,24 @@ and hand it to `export_data.py`:
 ```bash
 python -c "import json;from pathlib import Path;c=json.loads(Path('viz/data/elec_configs.json').read_text());k=[x for x in c['configs'] if x['id']=='std_1010_64'][0];Path('viz/data/elec_layout_active.json').write_text(json.dumps(k['channels']))"
 conda activate ffbm
-python viz/export_data.py --elec-layout viz/data/elec_layout_active.json
+python viz/export_data.py --elec-layout viz/data/elec_layout_active.json \
+    --regions visual_bilateral,vpn_central,ol_rest,central_brain,vnc --gpu
 ```
 
-Timing reference (dominated by kernel construction; scales linearly with lead
-count; measured 361 s for 45 leads):
+Timing reference (as of 2026-09-16: GPU loop ~2 min; kernel construction
+scales roughly linearly with lead count, measured ~1-1.5 min at 45 leads;
+**each electrode configuration's kernel cache is built once only** — warm
+re-exports with the same configuration take ~2.5 min end-to-end):
 
-| Config | Kernel-build estimate | Full-export estimate |
-|---|---|---|
-| 45 leads | ~6 min | ~10 min |
-| 64 leads | ~8.5 min | ~13 min |
-| 128 leads | ~17 min | ~25 min |
-| EGI 241 positions | ~32 min | ~45 min |
+| Config | First kernel build | First full export (incl. assembly) | Same-config warm run |
+|---|---|---|---|
+| 45 leads | ~1.5 min | ~7.5 min | ~2.5 min |
+| 64 leads | ~2 min | ~8 min | ~2.5 min |
+| 128 leads | ~4 min | ~10 min | ~3.5 min |
+| EGI 241 positions | ~7-8 min | ~14 min | ~8 min |
+
+(Without a GPU the loop segment is ~47 min per run; the earlier "361 s for
+45 leads" kernel-build measurement predates the Route-A ~15× threading.)
 
 ### Custom layouts
 1. Edit `viz/data/elec_configs.json` and append an entry following the format

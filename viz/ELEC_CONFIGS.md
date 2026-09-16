@@ -75,17 +75,23 @@
 ```bash
 python -c "import json;from pathlib import Path;c=json.loads(Path('viz/data/elec_configs.json').read_text());k=[x for x in c['configs'] if x['id']=='std_1010_64'][0];Path('viz/data/elec_layout_active.json').write_text(json.dumps(k['channels']))"
 conda activate ffbm
-python viz/export_data.py --elec-layout viz/data/elec_layout_active.json
+python viz/export_data.py --elec-layout viz/data/elec_layout_active.json \
+    --regions visual_bilateral,vpn_central,ol_rest,central_brain,vnc --gpu
 ```
 
-耗时参考（核构建为主，随导联数线性；45 导实测 361 s）：
+耗时参考（2026-09-16 起：GPU 循环 ~2 min；核构建随导联数近似线性，
+45 导实测 ~1-1.5 min；**每套电极配置的核缓存只建一次**，之后同配置
+热跑 ~2.5 min 端到端）：
 
-| 配置 | 核构建估计 | 完整导出估计 |
-|---|---|---|
-| 45 导 | ~6 min | ~10 min |
-| 64 导 | ~8.5 min | ~13 min |
-| 128 导 | ~17 min | ~25 min |
-| EGI 241 点位 | ~32 min | ~45 min |
+| 配置 | 首次核构建估计 | 首次完整导出估计（含装配） | 同配置热跑 |
+|---|---|---|---|
+| 45 导 | ~1.5 min | ~7.5 min | ~2.5 min |
+| 64 导 | ~2 min | ~8 min | ~2.5 min |
+| 128 导 | ~4 min | ~10 min | ~3.5 min |
+| EGI 241 点位 | ~7-8 min | ~14 min | ~8 min |
+
+（无 GPU 时循环段 ~47 min/次；早期"45 导核构建 361 s"为多线程优化前
+的旧实测，已被路线 A 的 ~15× 取代。）
 
 ### 自定义布局
 1. 编辑 `viz/data/elec_configs.json`，按上面格式追加一个条目

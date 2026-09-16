@@ -1,5 +1,11 @@
 # Performance Analysis and Acceleration Roadmap (simulation and forward pipeline)
 
+> **Current status (2026-09-16)**: §1–6 are the pre-implementation analysis
+> and route planning (kept as the historical roadmap); what actually landed
+> (Route A, P2 numba, P3 GPU, P5 caches) is in **§7 Implementation
+> progress** — the full-CNS (150,601-neuron) export's loop segment is
+> 47 min → 156 s, end-to-end ~7.5 min cold / ~2.5 min warm.
+
 *(English translation — authoritative version: [../../docs/PERFORMANCE.md](../../docs/PERFORMANCE.md))*
 
 Benchmark target: full-CNS export (45 channels, 10.5 s of biology time, 21,000

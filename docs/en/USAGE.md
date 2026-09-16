@@ -102,9 +102,18 @@ warning and are blocked.
 
 ```bash
 conda activate ffbm
-python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
-                          --regions visual_bilateral=True,vpn_central=True,...
+# full export (all 5 CNS regions + 10-10 layout + video stimulus + GPU):
+python viz/export_data.py --visual-input demo_bounce \
+    --elec-layout viz/data/elec_layout_1010.json \
+    --regions visual_bilateral,vpn_central,ol_rest,central_brain,vnc \
+    --gpu
+# short form (comma-separated region names; default layout = 45ch 10-20):
+python viz/export_data.py --regions visual_bilateral,vpn_central=True,...
 ```
+
+The first run builds the circuit and kernel caches automatically
+(`data/cache/`, gitignored; deleting the directory forces a full rebuild);
+warm re-exports with the same configuration take **~2.5 min** end-to-end.
 
 - `--elec-layout`: any channel layout file (name → [x,y,z]; can be extracted from
   elec_configs.json, see ELEC_CONFIGS.md §Export);
@@ -133,8 +142,12 @@ python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
   ⚠️ known environment quirk: the first run after touching files may
   fail with an `llvmlite.dll` load error (a transient Windows
   handle/antivirus scan) — just run it again; unrelated to the cache;
-- Runtime reference: kernel construction 361 s @45 channels, ≈513 s @64, ≈1030 s @128,
-  ≈1930 s @EGI241 (linear; a full export adds simulation and background EEG on top);
+- Runtime reference (--gpu + caches, cold/warm): a full 45-channel export
+  takes ~7.5 min cold (assembly ~3 min + kernel build ~1-1.5 min + GPU loop
+  ~2 min) and ~2.5 min warm (cache hits ~4 s + loop ~2 min + postprocessing);
+  without a GPU the CPU loop segment is ~47 min (post-numba). Switching
+  electrode configurations rebuilds only the kernel cache (first builds
+  ~1.5-7 min for 64/128/EGI241, cached afterwards);
 - Running in the background is recommended; when it finishes, `viz/data/viz_data.json`
   is the page's new data.
 - Stimulus protocol parameters (epochs/contrast/drift speed, etc.) are edited in the

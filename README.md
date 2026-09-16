@@ -111,17 +111,22 @@ human EEG paradigm can be run as a stimulus protocol:
 - **Oddball / P300-style** — rare-deviant responses
 - **Motion & direction** — his visual system's directional machinery
 - **High-density caps** — shipped: 10-20 (45 ch) · 10-10 (64 ch) · 10-5 (128 ch) · EGI 256 (241 sites)
-- **GPU acceleration** — CuPy route for the forward kernel and simulation loop (planned; roadmap in `docs/en/ACCELERATION_PLAN.md`)
+- **GPU acceleration** — done: the biology loop + forward recording run entirely on the GPU (`--gpu`, CuPy/NVRTC), 47 min → 156 s with bit-identical trajectories; staged build caches make warm re-exports (new stimulus / electrode layout) ~2.5 min end-to-end (docs/en/ACCELERATION_PLAN.md)
 - **Closed loop** — decoded output feeds back into the stimulus
 
 ## Engine notes
 
-Threaded Legendre kernel build (**~15× faster, 68 s for 1.23 M dipole pairs**) and a
-buffered float32 forward path verified against the float64 baseline to 0.092 % of peak;
-the full-CNS export runs end-to-end on a 16-core desktop. Requirements: Python 3.12,
-NumPy / SciPy / pandas / pyarrow (MNE-Python and imageio/PyAV for the electrode & video
-tooling); connectome download ~14 GB (public, no registration); 16+ GB RAM for the full
-pipeline.
+Three acceleration layers, each verified against the CPU baseline: numba-JIT hot
+kernels (2.38×), a GPU-resident CuPy engine (`--gpu`) for the biology loop +
+forward recording (**47 min → 156 s, ~18×**, trajectories bit-identical), and
+staged build caches (circuit keyed by regions/data/code; forward kernels keyed
+by electrode layout — switching cap configurations rebuilds only the kernels).
+The full-CNS export (150,601 neurons, 45 channels, 10.5 s) runs end-to-end in
+~7.5 min cold / ~2.5 min warm on a 16-core desktop + RTX 4060 Ti. Requirements:
+Python 3.12, NumPy / SciPy / pandas / pyarrow (MNE-Python and imageio/PyAV for
+the electrode & video tooling; numba + cupy-cuda12x for the acceleration
+layers); connectome download ~14 GB (public, no registration); 16+ GB RAM for
+the full pipeline.
 
 ## Honesty notes
 

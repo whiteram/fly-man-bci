@@ -3,6 +3,16 @@
 > 写于 2026-09-13。用途：把本项目迁移到另一台电脑 / 另一个 AI 会话继续工作。
 > 本文档包含新会话所需的**全部**上下文：科学背景、数据事实、代码 API、
 > 实验记录（含修过的 bug）、下一步计划、领域调研结论。读完本文即可无缝继续。
+>
+> **2026-09-16 更新**：实验历史与数据事实仍然有效，但交接日期之后新增了
+> 三块本文未记录的能力，以 docs/ 为权威：
+> ① 全 CNS 装配为 **150,601 神经元**（覆盖口径 = 注释表中全部 Traced 且有
+> soma 位置的三大超类细胞，见 docs/STATUS.md §2 与 README）；
+> ② **三层计算加速**：numba JIT 内核（2.38×）、`--gpu` 全 GPU 循环
+> （47 min→156 s，轨迹与 CPU 逐位一致）、分阶段构建缓存（电路/前向核
+> 独立键，换电极配置只重建核），全部记录在 docs/ACCELERATION_PLAN.md
+> （P2/P3/P5 节，含 dtype 语义陷阱清单）；
+> ③ 导出命令与耗时以 docs/USAGE.md §6 为准（含 --gpu/--no-cache）。
 
 ---
 
@@ -40,7 +50,10 @@
   ```
   环境 Python 3.12.14，已 `pip install -e . pytest`；系统全局 Python
   （C:\Python312）保持干净，勿再往里装项目依赖
-- 依赖：numpy / pandas / pyarrow / scipy / matplotlib / pytest
+- 依赖：numpy / pandas / pyarrow / scipy / matplotlib / pytest；
+  加速层另需 numba（JIT 内核）与 cupy-cuda12x（GPU 引擎，需
+  NVIDIA 卡 + CUDA 12.x 驱动；缺 GPU 时去掉 --gpu 自动走 CPU 路径）
+  ——`pip install "numba>=0.65" cupy-cuda12x`
 - 内存建议 **≥16 GB**（neuron_sites 聚合时内存映射 12.7GB 文件，本机 32GB）
 - 磁盘：约 20 GB（数据 15.7GB + 余量）
 
@@ -206,6 +219,11 @@ ExponentialSynapses(pre, post, weight, post_index, dt, gain=1.0,
 #   - n_post 必须传全群体大小，否则"无入边神经元"缺行（曾出 bug）
 # API: step(spiked_pre_ids) -> y(每边电流); to_neuron_current() -> 每神经元电流
 ```
+
+> 2026-09-16 注：本节是最小 API 示例；当前实现已扩展（conductance/
+> delay/sign 模式、numba JIT 内核——`FFBM_NUMBA=0` 可退回纯 numpy、
+> GPU 常驻引擎 src/ffbm/gpu.py），完整语义与 dtype 陷阱见
+> docs/ACCELERATION_PLAN.md 与源码 docstring。
 
 ### 5.4 ffbm.forward
 

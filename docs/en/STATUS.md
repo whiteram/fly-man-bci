@@ -31,13 +31,14 @@ extension path for other modalities is in docs/STIMULUS.md §6.
 | Human-scale thought experiment (×400 fit into the four shells) | ✅ | FourSpherePairField + adaptive scale | exp010 |
 | Stimulus detection theory (signal vs background EEG) | ✅ | T7 d′≈2 (about 46 trials) | exp011 |
 | Return-current constraint/conservation checks | ✅ | — | exp012 |
-| Bilateral optic lobes + VPN→central brain + full CNS assembly | ✅ | optional region assembly (regions toggles); whole-brain 111k-neuron simulation | exp014–017, regions.py |
+| Bilateral optic lobes + VPN→central brain + full CNS assembly | ✅ | optional region assembly (regions toggles); full-CNS 150,601-neuron simulation (all Traced∩has-soma cells of the three superclass families; coverage criteria in HANDOFF §4.3) | exp014–017, regions.py |
 | Scalp electrode-array expansion | ✅ | four configurations: 45/64/128/EGI241 (elec_configs.json) | make_elec_configs.py |
+| **Compute acceleration: numba + GPU + staged caches** | ✅ | numba kernels 2.38×; `--gpu` loop 47 min→156 s (bit-identical trajectories); circuit/kernel caches (switching electrode configs rebuilds only the kernels) | docs/ACCELERATION_PLAN.md P2/P3/P5 |
 | Interactive calibration system | ✅ | 10-20 handle calibration (ni/th/yaw/roll), view-direction calibration, head-form calibration | viz/index.html |
 | Visualization page | ✅ | electrode-name labels, heatmap, epoch color bar, configuration switching, preview waveforms | viz/index.html |
 | **Stimuli: real image input** | ✅ | general visual-input module: `visual_inputs.json` catalog + grayscale video → ommatidia sampling (blur/normalization/eye-plane affine) + synchronized dual view on the page | docs/STIMULUS.md §5 |
 | **Stimuli: other modalities (olfaction etc.)** | ⏸ not started | region-toggle mechanism is ready | docs/STIMULUS.md §6 |
-| 64/128/241-channel exact waveform re-export | ⏸ pending finalization | takes 13/25/45 min, command in USAGE §6 | — |
+| 64/128/241-channel exact waveform re-export | ⏸ pending finalization | ~3-8 min per configuration with GPU+caches (first kernel build dominates; EGI241 slowest), command in USAGE §6 | — |
 
 ## 3. Hyperparameters: where they live and how to change them
 

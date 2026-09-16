@@ -92,9 +92,17 @@
 
 ```bash
 conda activate ffbm
-python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
-                          --regions visual_bilateral=True,vpn_central=True,...
+# 完整导出（全 CNS 5 区域 + 10-10 布局 + 视频刺激 + GPU 加速）：
+python viz/export_data.py --visual-input demo_bounce \
+    --elec-layout viz/data/elec_layout_1010.json \
+    --regions visual_bilateral,vpn_central,ol_rest,central_brain,vnc \
+    --gpu
+# 精简形式（区域名逗号分隔即可，默认布局=45 导 10-20）：
+python viz/export_data.py --regions visual_bilateral,vpn_central=True,...
 ```
+
+首次运行自动构建电路与核缓存（`data/cache/`，已被 .gitignore 忽略；
+删除该目录即强制全量重建）；之后同配置热跑约 **2.5 min** 端到端。
 
 - `--elec-layout`：任意通道布局文件（name → [x,y,z]；可从
   elec_configs.json 提取，见 ELEC_CONFIGS.md §导出）；
@@ -116,8 +124,11 @@ python viz/export_data.py --elec-layout viz/data/elec_layout_1010.json \
   ⚠️ 已知环境怪癖：改动文件后的首次运行可能报
   `llvmlite.dll` 加载失败（Windows 句柄/杀软扫描瞬态），重跑
   即可，与缓存无关；
-- 耗时参考：核构建 361 s @45 导、≈513 s @64、≈1030 s @128、
-  ≈1930 s @EGI241（线性；完整导出再加仿真与背景 EEG）；
+- 耗时参考（--gpu + 缓存冷/热）：全量 45 导导出冷跑 ~7.5 min
+  （装配 ~3 min + 核构建 ~1-1.5 min + GPU 循环 ~2 min）、热跑
+  ~2.5 min（缓存命中 ~4 s + 循环 ~2 min + 后处理）；无 GPU 的
+  CPU 路径循环段 ~47 min（numba 后）。换电极配置只重建核缓存
+  （64/128/EGI241 首次核构建约 1.5-7 min，之后同样命中）；
 - 建议后台运行，结束后 `viz/data/viz_data.json` 即页面新数据。
 - 刺激协议参数（时段/对比度/漂移速度等）在 `src/ffbm/params.py` 的
   `stimulus` 节修改，详见 docs/STIMULUS.md。

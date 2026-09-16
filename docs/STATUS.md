@@ -26,13 +26,14 @@
 | 人比例思想实验（×400 装入四球壳） | ✅ | FourSpherePairField + 自适应 scale | exp010 |
 | 刺激检测论（信号 vs 背景脑电） | ✅ | T7 d′≈2（约 46 次试验） | exp011 |
 | 返回约束/保守性检验 | ✅ | — | exp012 |
-| 双侧视叶 + VPN→中央脑 + 全 CNS 装配 | ✅ | 区域可选装配（regions 开关）；全脑 111k 神经元仿真 | exp014–017, regions.py |
+| 双侧视叶 + VPN→中央脑 + 全 CNS 装配 | ✅ | 区域可选装配（regions 开关）；全 CNS 150,601 神经元仿真（全部 Traced∩有 soma 的三大超类，覆盖口径见 HANDOFF §4.3） | exp014–017, regions.py |
 | 头皮电极阵列扩展 | ✅ | 45/64/128/EGI241 四套配置（elec_configs.json） | make_elec_configs.py |
+| **计算加速：numba + GPU + 分级缓存** | ✅ | numba 内核 2.38×；`--gpu` 循环 47 min→156 s（轨迹逐位一致）；电路/前向核双缓存（换电极配置只重建核） | docs/ACCELERATION_PLAN.md P2/P3/P5 |
 | 交互标定体系 | ✅ | 10-20 手柄标定（ni/th/yaw/roll）、视角标定、人头形态校准 | viz/index.html |
 | 可视化页面 | ✅ | 电极名称标签、热图、时段色条、配置切换、预览波形 | viz/index.html |
 | **刺激：真实图像输入** | ✅ | 通用视觉输入模块：`visual_inputs.json` 目录 + 灰度视频→小网膜采样（模糊/归一化/眼平面仿射）+ 页面同步双视图 | docs/STIMULUS.md §5 |
 | **刺激：其他模态（嗅觉等）** | ⏸ 未开工 | 区域开关机制已就绪 | docs/STIMULUS.md §6 |
-| 64/128/241 导精确波形重导出 | ⏸ 待定稿 | 耗时 13/25/45 min，命令见 USAGE §6 | — |
+| 64/128/241 导精确波形重导出 | ⏸ 待定稿 | GPU+缓存后每配置约 3-8 min（首次核构建为主；EGI241 最慢），命令见 USAGE §6 | — |
 
 ## 3. 超参数：写在哪里、怎么改
 
