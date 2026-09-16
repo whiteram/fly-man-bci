@@ -1,0 +1,15 @@
+{
+ "freqs": [
+  8.0,
+  9.8,
+  11.6,
+  13.4,
+  15.2,
+  15.8
+ ],
+ "fs": 1000.0,
+ "dur_s": 10.5,
+ "elec": "elec_layout_1010 (45 leads)",
+ "scale": "thought-experiment x202 (nominal x400)",
+ "mode": "single-target (attended-slot analog)"
+}

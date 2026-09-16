@@ -20,3 +20,6 @@ Thumbs.db
 .DS_Store
 *.bundle
 viz/data_smoke/
+viz/data/stimuli/ssvep/
+bci/ssvep_benchmark/outputs/eeg_f*.npy
+bci/ssvep_benchmark/outputs/_trial_*/

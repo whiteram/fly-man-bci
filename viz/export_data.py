@@ -94,6 +94,9 @@ def main():
     ap.add_argument("--no-cache", action="store_true",
                     help="bypass the staged build caches (ffbm.cache) and"
                     "rebuild the circuit and forward kernels from scratch")
+    ap.add_argument("--out", type=str, default=None,
+                    help="override the output directory (default "
+                    "viz/data, smoke: viz/data_smoke)")
     args = ap.parse_args()
     global OUT
     if args.smoke:
@@ -101,7 +104,11 @@ def main():
             [("dark", 0.0, 200.0), ("flicker", 200.0, 400.0)],
             "ms", "chosen", "smoke mode")
         OUT = ROOT / "viz" / "data_smoke"
+    if args.out:
+        OUT = Path(args.out)
+    if args.smoke or args.out:
         OUT.mkdir(parents=True, exist_ok=True)
+    if args.smoke:
         print("SMOKE mode: 400 ms protocol, 20k pair cap, "
               f"output -> {OUT}")
     # (re-)derive protocol constants here -- smoke may have shortened
