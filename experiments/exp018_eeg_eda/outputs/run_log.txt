@@ -41,4 +41,30 @@
     0.5-4.0 Hz     1ch A2: clean |r| 0.206 @  9 ms | mixed 0.056 (bg-control 0.057) p=0.910
     best mixed-vs-bg margin: 0.1-6.0 Hz PC1-4 (clean 0.283, mixed 0.240)
 
-[done] figures + stats in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\experiments\exp018_eeg_eda\outputs
+[9] background-scale x band sweep (single 10.5 s trial):
+    k=1: intact-human-head premise | k=0: fly replaces brain (sensor noise only)
+[7] decode k=1 0.1-1.0Hz -> stim: CV R2 = -17.053 +/- 20.549 (splits [ -1.61   -4.58  -27.148  -2.82   -7.378 -58.785])
+    k=1     0.1-1 Hz: decode R2 -17.053 | best |r| 0.323 (p=0.56) | in-band fly/noise 0.08 | PC-filtered 0.48 -> ~18 clip-averages for SNR~2
+[7] decode k=1 0.5-6.0Hz -> stim: CV R2 = -1.152 +/- 1.096 (splits [-3.329 -0.841 -1.535 -0.996 -0.172 -0.036])
+    k=1     0.5-6 Hz: decode R2 -1.152 | best |r| 0.164 (p=0.54) | in-band fly/noise 0.04 | PC-filtered 0.25 -> ~65 clip-averages for SNR~2
+[7] decode k=0.3 0.1-1.0Hz -> stim: CV R2 = -19.677 +/- 26.672 (splits [ -1.577  -3.397 -76.43   -8.702  -2.372 -25.585])
+    k=0.3   0.1-1 Hz: decode R2 -19.677 | best |r| 0.347 (p=0.29) | in-band fly/noise 0.25 | PC-filtered 1.60 -> ~2 clip-averages for SNR~2
+[7] decode k=0.3 0.5-6.0Hz -> stim: CV R2 = -1.068 +/- 1.264 (splits [-3.645 -0.796 -1.51  -0.473 -0.019  0.035])
+    k=0.3   0.5-6 Hz: decode R2 -1.068 | best |r| 0.171 (p=0.63) | in-band fly/noise 0.13 | PC-filtered 0.83 -> ~6 clip-averages for SNR~2
+[7] decode k=0.1 0.1-1.0Hz -> stim: CV R2 = -13.398 +/- 12.851 (splits [ -1.628 -32.911  -3.263 -28.411  -1.438 -12.739])
+    k=0.1   0.1-1 Hz: decode R2 -13.398 | best |r| 0.293 (p=0.36) | in-band fly/noise 0.76 | PC-filtered 4.80 -> ~1 clip-averages for SNR~2
+[7] decode k=0.1 0.5-6.0Hz -> stim: CV R2 = -0.830 +/- 1.151 (splits [-3.147e+00 -3.680e-01 -1.403e+00 -2.230e-01 -2.000e-03  1.610e-01])
+    k=0.1   0.5-6 Hz: decode R2 -0.830 | best |r| 0.199 (p=0.40) | in-band fly/noise 0.38 | PC-filtered 2.50 -> ~1 clip-averages for SNR~2
+[7] decode k=0.03 0.1-1.0Hz -> stim: CV R2 = -8.405 +/- 6.122 (splits [ -2.102  -8.933  -6.032 -20.532  -9.901  -2.933])
+    k=0.03  0.1-1 Hz: decode R2 -8.405 | best |r| 0.227 (p=0.39) | in-band fly/noise 2.53 | PC-filtered 15.98 -> ~1 clip-averages for SNR~2
+[7] decode k=0.03 0.5-6.0Hz -> stim: CV R2 = -0.276 +/- 0.518 (splits [-1.155 -0.353 -0.671  0.137  0.022  0.367])
+    k=0.03  0.5-6 Hz: decode R2 -0.276 | best |r| 0.209 (p=0.27) | in-band fly/noise 1.27 | PC-filtered 8.32 -> ~1 clip-averages for SNR~2
+[7] decode k=0 0.1-1.0Hz -> stim: CV R2 = -5.948 +/- 3.267 (splits [-11.045  -5.043  -9.181  -4.644  -4.676  -1.102])
+    k=0     0.1-1 Hz: decode R2 -5.948 | best |r| 0.217 (p=0.40) | in-band fly/noise 0.29 | PC-filtered 10.79 -> ~1 clip-averages for SNR~2
+[7] decode k=0 0.5-6.0Hz -> stim: CV R2 = -0.948 +/- 1.054 (splits [-2.333 -2.517 -0.451 -0.014 -0.153 -0.219])
+    k=0     0.5-6 Hz: decode R2 -0.948 | best |r| 0.189 (p=0.45) | in-band fly/noise 0.23 | PC-filtered 2.24 -> ~1 clip-averages for SNR~2
+Traceback (most recent call last):
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\experiments\exp018_eeg_eda\run.py", line 462, in <module>
+    ok = [(k, b) for k, b, r2, r, pv, _ in rows9 if r2 > 0.5 and pv < 0.05]
+                     ^^^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 6)

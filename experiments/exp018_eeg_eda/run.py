@@ -265,17 +265,23 @@ print(f"    with background added: single-event ERP amplitude "
 
 # ---------------------------------------------------------------- 7
 # decoding: ridge from lagged EEG PCs -> target, time-series CV
-def build_feats(sig2d, n_comp=8, tap_ms=150, step_ms=5):
+def build_feats(sig2d, n_comp=8, tap_ms=150, step_ms=5, proj=None):
     Xc2 = sig2d - sig2d.mean(axis=1, keepdims=True)
-    Uu, _, _ = np.linalg.svd(Xc2.T, full_matrices=False)
-    comps = Uu[:, :n_comp]                              # (T, n_comp)
+    if proj is None:
+        Uu, _, _ = np.linalg.svd(Xc2.T, full_matrices=False)
+        comps = Uu[:, :n_comp]                          # (T, n_comp)
+    else:
+        # fixed model-informed spatial filters (e.g. clean-signal PCs):
+        # at low SNR the internal PCA would lock onto noise modes and
+        # forfeit the ~sqrt(n_ch) coherent gain against white noise
+        comps = Xc2.T @ proj                            # (T, k)
     L = tap_ms // step_ms + 1
     W = np.lib.stride_tricks.sliding_window_view(comps, L, axis=0)
     W = W.reshape(W.shape[0], -1)
     return W, comps
 
-def decode(sig2d, target, tag):
-    F, comps = build_feats(sig2d)
+def decode(sig2d, target, tag, proj=None):
+    F, comps = build_feats(sig2d, proj=proj)
     y = (target - target.mean()) / target.std()
     y = y[-F.shape[0]:]
     # features at time t contain comps[t-L+1..t]; predict target at t
@@ -396,6 +402,88 @@ ax[1].plot(t / 1000, (pm1 - pm1.mean()) / pm1.std(), alpha=0.5, lw=0.7,
 ax[1].set_xlabel("s"); ax[1].legend(fontsize=8)
 ax[1].set_title(f"time courses ({band})")
 fig.tight_layout(); fig.savefig(OUT / "f08_realistic.png", dpi=150)
+plt.close(fig)
+
+# ---------------------------------------------------------------- 9
+# background-level sweep x band: the premise question. The stored
+# background is human-literature EEG -- its alpha and 1/f components
+# are NEURAL, produced by a human cortex that is still there ("fly
+# implanted in an intact human head", k=1).  If the fly network
+# REPLACES the brain, those vanish and only equipment noise remains
+# (k=0 + white 1.5 uV sensor floor).  The fly power concentrates
+# below 0.5 Hz, so the optimal band depends on the premise: white
+# sensor noise is flat (favor a LOW band), human 1/f rises toward DC
+# (kills the low band).  Sweep k x band.
+sensor = rng.normal(0, 1.5, X.shape)          # equipment floor (white)
+Vsp9 = U[:, :4]
+lags9 = np.arange(0, 201, 10)                 # sparse grid for permutations
+
+
+def perm_p(mix2d, band):
+    sos9 = sps.butter(2, list(band), btype="band", fs=fs, output="sos")
+    p_mix = sps.sosfiltfilt(sos9, mix2d.T @ Vsp9, axis=0)
+    r_m = best_r(stim, p_mix, lags9)
+    null = np.array([best_r(np.roll(stim, rng.integers(500, len(stim) - 500)),
+                            p_mix, lags9).max() for _ in range(100)])
+    return float(r_m.max()), float(np.mean(null >= r_m.max()))
+
+
+print("\n[9] background-scale x band sweep (single 10.5 s trial):")
+print("    k=1: intact-human-head premise | k=0: fly replaces brain "
+      "(sensor noise only)")
+rows9 = []
+for k in (1.0, 0.3, 0.1, 0.03, 0.0):
+    mix = X + k * BG + (sensor if k == 0.0 else 0.0)
+    for band in ((0.1, 1.0), (0.5, 6.0)):
+        sos9 = sps.butter(2, list(band), btype="band", fs=fs, output="sos")
+        mix_f = sps.sosfiltfilt(sos9, mix, axis=1)
+        X_fb = sps.sosfiltfilt(sos9, X, axis=1)
+        stim_fb = sps.sosfiltfilt(sos9, stim)
+        # fixed clean-signal spatial filters for every k (fair across
+        # premises; README flags the model-informed caveat)
+        r2 = decode(mix_f, stim_fb, f"k={k:g} {band[0]}-{band[1]}Hz -> stim",
+                    proj=U[:, :8])
+        rbest, pv = perm_p(mix, band)
+        ratio = float(np.sqrt((X_fb ** 2).mean())
+                      / np.sqrt(((mix_f - X_fb) ** 2).mean()))
+        # best projected-component SNR with the model-informed spatial
+        # filter, and the implied number of same-stimulus 10.5 s clips
+        # to average for projected SNR ~ 2 (d' ~ 2)
+        sig_p = X_fb.T @ U[:, :8]
+        noi_p = (mix_f - X_fb).T @ U[:, :8]
+        rp = float(np.max(np.sqrt((sig_p ** 2).mean(0))
+                          / np.sqrt((noi_p ** 2).mean(0))))
+        ntri = int(np.ceil((2.0 / rp) ** 2)) if rp > 0 else 0
+        rows9.append((k, band, r2, rbest, pv, ratio, rp))
+        print(f"    k={k:<5g} {band[0]:.1f}-{band[1]:.0f} Hz: "
+              f"decode R2 {r2:+.3f} | best |r| {rbest:.3f} (p={pv:.2f}) "
+              f"| in-band fly/noise {ratio:.2f} | PC-filtered {rp:.2f} "
+              f"-> ~{ntri} clip-averages for SNR~2")
+ok = [(k, b) for k, b, r2, r, pv, _ in rows9 if r2 > 0.5 and pv < 0.05]
+if ok:
+    print("    single-trial extraction (R2>0.5 & p<0.05) at: "
+          + "; ".join(f"k={k:g} @ {b[0]:.1f}-{b[1]:.0f} Hz" for k, b in ok))
+else:
+    print("    single-trial extraction fails in every k x band cell")
+
+fig, ax = plt.subplots(figsize=(7.5, 4.5))
+for band, mk in (((0.1, 1.0), "o-"), ((0.5, 6.0), "s--")):
+    sel = [r for r in rows9 if r[1] == band]
+    ax.plot([r[0] for r in sel], [r[2] for r in sel], mk,
+            label=f"{band[0]:.1f}-{band[1]:.0f} Hz")
+    for r in sel:
+        ax.annotate(f"p={r[4]:.2f}", (r[0], r[2]), fontsize=7,
+                    textcoords="offset points", xytext=(4, 6))
+ax.axhline(0.5, color="gray", ls=":", lw=0.8, label="R2=0.5")
+ax.axhline(0, color="k", lw=0.6)
+ax.set_xscale("symlog", linthresh=0.03)
+ax.set_xticks([r[0] for r in rows9[::2]])
+ax.set_xticklabels([str(r[0]) for r in rows9[::2]])
+ax.set_xlabel("background scale k (1 = full human bg, 0 = sensor only)")
+ax.set_ylabel("decode CV R2")
+ax.set_title("single-trial extraction vs background premise and band")
+ax.legend(fontsize=8)
+fig.tight_layout(); fig.savefig(OUT / "f09_bg_sweep.png", dpi=150)
 plt.close(fig)
 
 print("\n[done] figures + stats in", OUT)
