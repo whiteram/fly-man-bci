@@ -17,6 +17,17 @@
    "hi": 3.0,
    "margin": 0.05,
    "loop": true
+  },
+  {
+   "id": "ssvep1_f15.8",
+   "kind": "video",
+   "label": "SSVEP 15.8 Hz single-target",
+   "source": "data/stimuli/ssvep/single_f15.8.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
   }
  ]
 }
