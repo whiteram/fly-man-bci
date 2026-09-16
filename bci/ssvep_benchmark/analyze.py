@@ -91,6 +91,7 @@ def main():
             (f"scaled sensor noise ({noise_uv * 1e6:.4f} uV)", noise_uv)):
         hit, rho_all = 0, np.zeros((len(freqs), len(freqs)))
         snrs = []
+        preds = []
         for i, ftrue in enumerate(freqs):
             eeg = data[ftrue]
             if add_noise:
@@ -98,12 +99,15 @@ def main():
             rhos = np.array([cca_rho(eeg, refs[f]) for f in freqs])
             rho_all[i] = rhos
             pred = freqs[int(np.argmax(rhos))]
+            preds.append(pred)
             hit += (abs(pred - ftrue) < 1e-6)
             snrs.append(band_snr(eeg, ftrue, fs))
         acc = hit / len(freqs)
         print(f"    {tag}: top-1 accuracy {hit}/{len(freqs)} = {acc:.0%} | "
               f"median in-band SNR {np.median(snrs):.1f} dB "
               f"(min {min(snrs):.1f}, max {max(snrs):.1f})")
+        suffix = "clean" if add_noise == 0.0 else "noise"
+        conf_fig(tag, freqs, rho_all, preds, suffix)
         if add_noise == 0.0:
             fig, ax = plt.subplots(1, 2, figsize=(11, 4))
             im = ax[0].imshow(rho_all, cmap="viridis")
@@ -130,7 +134,44 @@ def main():
             fig.tight_layout()
             fig.savefig(OUT / "ssvep_detection.png", dpi=150)
             plt.close(fig)
-    print(f"[ssvep] figure -> {OUT / 'ssvep_detection.png'}")
+    print(f"[ssvep] figures -> {OUT / 'ssvep_detection.png'}, "
+          f"confusion_matrix_clean.png, confusion_matrix_noise.png")
+
+
+def conf_fig(tag, freqs, rho_all, preds, suffix):
+    """40x40 confusion views: discrete prediction counts + continuous
+    rho structure (one trial per class -> counts are 0/1; the rho
+    matrix shows HOW CLOSE each near-miss came)."""
+    n = len(freqs)
+    conf = np.zeros((n, n))
+    for i, ftrue in enumerate(freqs):
+        conf[i, freqs.index(preds[i])] = 1
+    fig, ax = plt.subplots(1, 2, figsize=(15, 6.8))
+    im = ax[0].imshow(conf, cmap="Blues", vmin=0, vmax=1.5)
+    step = 4 if n > 10 else 1
+    for a in (ax[0], ax[1]):
+        a.set_xticks(range(0, n, step))
+        a.set_xticklabels(freqs[::step], rotation=45, fontsize=6)
+        a.set_yticks(range(0, n, step))
+        a.set_yticklabels(freqs[::step], fontsize=6)
+        a.set_xlabel("predicted f (Hz)", fontsize=8)
+        a.set_ylabel("true f (Hz)", fontsize=8)
+    hit = sum(1 for i in range(n) if freqs[i] == preds[i])
+    ax[0].set_title(f"confusion matrix, {tag}: {hit}/{n} correct "
+                    f"(diag=correct)", fontsize=9)
+    for i in range(n):
+        if freqs[i] != preds[i]:
+            ax[0].annotate("x", (freqs.index(preds[i]), i),
+                           ha="center", va="center", fontsize=7,
+                           color="red")
+    im2 = ax[1].imshow(rho_all, cmap="viridis", aspect="auto")
+    ax[1].set_title("CCA rho per (true trial, candidate f) -- "
+                    "bright off-diagonal = near-miss", fontsize=9)
+    plt.colorbar(im2, ax=ax[1], shrink=0.8)
+    fig.tight_layout()
+    fig.savefig(OUT / f"confusion_matrix_{suffix}.png", dpi=150)
+    plt.close(fig)
+    np.save(OUT / f"rho_matrix_{suffix}.npy", rho_all)
 
 
 if __name__ == "__main__":
