@@ -1,0 +1,174 @@
+[
+  {
+    "id": "odor3_block",
+    "modality": "olfactory",
+    "label": "三气味顺序块：cVA→DA1 / 果醋酯→DM2 / 脂肪酸→VA1v",
+    "t_end_ms": 10500.0,
+    "edge_ms": 150.0,
+    "note": "气味→受体→肾小球映射依据 Vosshall 2000 / Fishilevich & Vosshall 2005 / Hallem & Carlson 2006 / Kurtovic 2007（详见 docs/SENSORY_INPUTS.md）；脉冲幅度 = 满量程（与视觉 i_lum=150 pA 同标定），150 ms 平滑沿",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            2500,
+            4500
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            5500,
+            7500
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_VA1v",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            8500,
+            10500
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "taste3_block",
+    "modality": "gustatory",
+    "label": "三器官糖脉冲：唇瓣 LgLG* / 翅 WG* / 跗节 claw_tpGRN",
+    "t_end_ms": 10500.0,
+    "edge_ms": 150.0,
+    "note": "MaleCNS 标注携带味觉器官而非品质（甜/苦未标注），故按器官分通道：唇瓣/翅/跗节味觉毛糖脉冲，幅度=满量程（文档化为假设）；幅度 400 pA=ORN 的 2.7 倍，补偿 GRN_C 突触量只有 ORN_C 的 1/6（exp019 标定）",
+    "channels": [
+      {
+        "pop": "GRN",
+        "group": "LgLG*",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            2500,
+            4500
+          ]
+        ]
+      },
+      {
+        "pop": "GRN",
+        "group": "WG*",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            5500,
+            7500
+          ]
+        ]
+      },
+      {
+        "pop": "GRN",
+        "group": "claw_tpGRN",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            8500,
+            10500
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "odor3_short",
+    "modality": "olfactory",
+    "label": "三气味顺序块：cVA→DA1 / 果醋酯→DM2 / 脂肪酸→VA1v（3 s 快速迭代版）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "小规模迭代协议：各通道 900 ms 脉冲 @ 300/1500/2700 ms（触发 AL 募集的最短脉冲，全量版为 2 s）；同通道同幅度",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            1500,
+            2400
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_VA1v",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            2700,
+            3600
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "taste3_short",
+    "modality": "gustatory",
+    "label": "三器官糖脉冲：唇瓣 LgLG* / 翅 WG* / 跗节 claw_tpGRN（3 s 快速迭代版）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "小规模迭代协议：各通道 900 ms 脉冲 @ 300/1500/2700 ms（触发 AL 募集的最短脉冲，全量版为 2 s）；同通道同幅度；幅度 400 pA=ORN 的 2.7 倍，补偿 GRN_C 突触量只有 ORN_C 的 1/6（exp019 标定）",
+    "channels": [
+      {
+        "pop": "GRN",
+        "group": "LgLG*",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      },
+      {
+        "pop": "GRN",
+        "group": "WG*",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            1500,
+            2400
+          ]
+        ]
+      },
+      {
+        "pop": "GRN",
+        "group": "claw_tpGRN",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            2700,
+            3600
+          ]
+        ]
+      }
+    ]
+  }
+]

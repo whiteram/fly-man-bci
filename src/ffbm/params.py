@@ -141,6 +141,11 @@ SECTIONS: dict = {
                           "exp017 中央脑（含 VPN/下行）基流（同窗口）"),
         "i_vnc_base_pa": (60.0, "pA", "calibrated",
                           "exp017 腹索 VNC 基流（同窗口）"),
+        "i_orn_base_pa": (60.0, "pA", "assumed",
+                          "exp019 嗅觉受体神经元自发电流（新鲜空气 ORN "
+                          "自发放；与 CEN 同工作点窗口）"),
+        "i_grn_base_pa": (60.0, "pA", "assumed",
+                          "exp019 味觉受体神经元基流（静息；同窗口）"),
         "ou_sigma_vpn_cb_pa": (40.0, "pA", "phenomenol.",
                                "扩展区域的 OU 噪声（与 MID 同量级）"),
         "sign_mapping": ("consensus_nt", "-", "assumed",
@@ -327,6 +332,8 @@ def cal() -> dict:
         "I_OLR_BASE": vpn["i_olr_base_pa"][0],
         "I_CEN_BASE": vpn["i_cen_base_pa"][0],
         "I_VNC_BASE": vpn["i_vnc_base_pa"][0],
+        "I_ORN_BASE": vpn["i_orn_base_pa"][0],
+        "I_GRN_BASE": vpn["i_grn_base_pa"][0],
         "OU_VPN_CB": vpn["ou_sigma_vpn_cb_pa"][0],
     }
 

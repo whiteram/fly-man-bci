@@ -183,6 +183,13 @@ void k_acc_add(double* i_x, double* g_x, const float* di, const float* dg,
     }
 }
 
+// chemosensory drive (exp019): add a per-neuron stimulus current
+extern "C" __global__
+void k_chem_add(double* i_x, const double* chem, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) i_x[i] += chem[i];
+}
+
 extern "C" __global__
 void k_lif_g64(double* v, double* refrac, const double* i_ext,
                const double* g, unsigned char* spike, int n,
@@ -278,7 +285,8 @@ def _kernels():
     if not _K:
         for name in ("k_release", "k_graded", "k_drive", "k_ou",
                      "k_lif_none", "k_lif_g32", "k_lif_g32_base",
-                     "k_acc_init", "k_acc_add", "k_lif_g64", "k_exp_ring",
+                     "k_acc_init", "k_acc_add", "k_chem_add",
+                     "k_lif_g64", "k_exp_ring",
                      "k_buf_clear", "k_deliver", "k_spike_row",
                      "k_ecur_f32"):
             _K[name] = cp.RawKernel(_SRC, name, options=_FAMD)
@@ -608,12 +616,16 @@ class GPUTrial:
              pT.R_m))
 
         # ---- extras ----------------------------------------------------
+        chem = getattr(self, "_chem", None) or {}
         for name in st["extra_pops"]:
             p = self.pops[name]
             i_x, g_x = self._extra_acc[name]
             _go(K["k_acc_init"], p.n,
                 (i_x, g_x, self.extra_base[name],
                  self._x(name), np.int32(p.n)))
+            c = chem.get(name)
+            if c is not None:
+                _go(K["k_chem_add"], p.n, (i_x, c, np.int32(p.n)))
             for grp in st["extra_in"][name]:
                 g = self.exp.get(grp)
                 if g is None:
@@ -638,15 +650,20 @@ class GPUTrial:
         if self._batch_pos >= self.NOISE_BATCH:
             self._draw_noise_batch()
 
-    def run(self, lum_inc_fn, n_steps, hook=None, on_record=None):
+    def run(self, lum_inc_fn, n_steps, hook=None, on_record=None,
+            chem_fn=None):
         """hook(k, t) fires after each step (parity checking).
         on_record(k, j, t, inc_f) mirrors simulate()'s on_sample cadence
-        (every 2 steps); inc_f is the CPU photo increment (numpy f64)."""
+        (every 2 steps); inc_f is the CPU photo increment (numpy f64).
+        chem_fn(t) -> {pop: f64 increment array} (exp019 chem drive)."""
         photo = PhotoCascade(self.st["n_r"], self.st["pops"]["R"].dt)
         dt = float(self.st["pops"]["R"].dt)
         for k in range(n_steps):
             t = k * dt
             inc_f = photo.step(lum_inc_fn(t))
+            if chem_fn is not None:
+                self._chem = {n: cp.asarray(v, dtype=cp.float64)
+                              for n, v in chem_fn(t).items()}
             self._step(t, inc_f)
             if hook is not None:
                 hook(k, t)
@@ -670,7 +687,7 @@ class GPUTrial:
 
 
 def gpu_simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, hook=None,
-                 on_record=None):
+                 on_record=None, chem_fn=None):
     """GPU twin of pipeline.simulate (mech branch).
 
     Consumes the seed exactly like simulate (build_stack draws the
@@ -679,5 +696,5 @@ def gpu_simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, hook=None,
     st = build_stack(circuit, cal, rng)
     trial = GPUTrial(st)
     trial.run(lum_inc_fn, int(t_end_ms / st["pops"]["R"].dt), hook=hook,
-              on_record=on_record)
+              on_record=on_record, chem_fn=chem_fn)
     return st, trial

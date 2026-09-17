@@ -23,3 +23,9 @@ viz/data_smoke/
 viz/data/stimuli/ssvep/
 bci/ssvep_benchmark/outputs/eeg_f*.npy
 bci/ssvep_benchmark/outputs/_trial_*/
+
+# exp019 bulk run artifacts (keep README/summary/figures/report)
+experiments/exp019_chemosense/outputs/**/_debug_*
+experiments/exp019_chemosense/outputs/**/viz_data.json
+experiments/exp019_chemosense/outputs/**/stim_frames.bin
+experiments/exp019_chemosense/outputs/*.txt

@@ -76,6 +76,11 @@ def main():
                          "visual_inputs.json (natural_1d = 1/f flicker "
                          "+ drift protocol; video ids map grayscale "
                          "frames through the ommatidia sampling)")
+    ap.add_argument("--chem-input", type=str, default=None,
+                    help="chemosensory input id from viz/data/"
+                         "chem_inputs.json (odor/taste pulse trains "
+                         "injected into the ORN/GRN regions; requires "
+                         "the olfactory/gustatory regions ON)")
     ap.add_argument("--pool", action="store_true",
                     help="EXPERIMENTAL: runtime kernel pooling (3-5x "
                          "faster, <1% target projection error -- "
@@ -91,6 +96,10 @@ def main():
                     help="fast end-to-end smoke test: 400 ms protocol, "
                          "20k kernel-pair cap, output to viz/data_smoke/ "
                          "(does not touch the real viz_data.json)")
+    ap.add_argument("--t-end", type=float, default=None,
+                    help="override the trial length, ms (single dark "
+                         "epoch; small-scale iteration -- chem pulse "
+                         "times must fit inside)")
     ap.add_argument("--no-cache", action="store_true",
                     help="bypass the staged build caches (ffbm.cache) and"
                     "rebuild the circuit and forward kernels from scratch")
@@ -108,6 +117,10 @@ def main():
             [("dark", 0.0, 200.0), ("flicker", 200.0, 400.0)],
             "ms", "chosen", "smoke mode")
         OUT = ROOT / "viz" / "data_smoke"
+    if args.t_end:
+        fparams.SECTIONS["stimulus"]["t_epochs"] = (
+            [("dark", 0.0, float(args.t_end))], "ms", "chosen",
+            f"short trial (--t-end {args.t_end:g})")
     if args.out:
         OUT = Path(args.out)
     if args.smoke or args.out:
@@ -709,7 +722,98 @@ def main():
     rate = {k: np.zeros(n_field) for k in
             ("R", "L", "MID", "T4", "T5")}
     stim = np.zeros(n_field)
+    # per-extra-pop population firing rate (Hz), CPU path only -- the
+    # debug channel that proves chem drive reached ORN/GRN and its
+    # central partners (exp019 validation reads this)
+    extra_rate = {n: np.zeros(n_field)
+                  for n in (circuit.get("extra_pops") or {})}
     cal = dict(fp.CAL)
+
+    # ---- chemosensory drive (exp019): a chem_inputs.json entry turns
+    # into a stateless chem_fn(t) -> {pop: per-neuron pA increment}
+    # through the circuit's chem_groups tables (annotation type ->
+    # compact index, built by the region builders)
+    chem_fn, chem_meta = None, None
+    if args.chem_input:
+        import fnmatch
+        chems = json.loads((ROOT / "viz" / "data" / "chem_inputs.json")
+                           .read_text(encoding="utf-8"))
+        cspec = next((v for v in chems
+                      if v.get("id") == args.chem_input), None)
+        if cspec is None:
+            ap.error(f"chem input '{args.chem_input}' not found in "
+                     "viz/data/chem_inputs.json")
+        pops_x = circuit.get("extra_pops") or {}
+        groups_x = circuit.get("chem_groups") or {}
+        edge_ms = float(cspec.get("edge_ms", 150.0))
+        chans = []                       # (pop, index array, amp, pulses)
+        for ch in cspec["channels"]:
+            pop = ch["pop"]
+            if pop not in pops_x:
+                print(f"chem: pop {pop} not in circuit -- channel "
+                      f"'{ch['group']}' skipped")
+                continue
+            gm = groups_x.get(pop) or {}
+            sel = np.zeros(len(pops_x[pop]["ids"]), dtype=bool)
+            hits = []
+            for tname, idx in gm.items():
+                if ch["group"] == "ALL" or fnmatch.fnmatch(tname,
+                                                           ch["group"]):
+                    sel[idx] = True
+                    hits.append(tname)
+            if not hits:
+                print(f"chem: no {pop} types match '{ch['group']}' "
+                      "-- channel skipped")
+                continue
+            chans.append((pop, np.flatnonzero(sel), float(ch["amp_pa"]),
+                          [(float(a), float(b))
+                           for a, b in ch["pulses"]], ch))
+            print(f"chem: {pop}[{ch['group']}] -> {int(sel.sum())} "
+                  f"neurons ({', '.join(sorted(hits)[:4])}"
+                  f"{'...' if len(hits) > 4 else ''}), "
+                  f"{ch['amp_pa']:.0f} pA x {len(ch['pulses'])} pulses")
+
+        def level(pulses, t):
+            v = 0.0
+            for a, b in pulses:
+                if a <= t < b:
+                    rise = min(1.0, (t - a) / edge_ms)
+                    fall = min(1.0, (b - t) / edge_ms)
+                    v += min(rise, fall)
+            return min(v, 1.0)
+
+        def chem_fn(t):
+            out = {}
+            for pop, idx, amp, pulses, _ch in chans:
+                lv = level(pulses, t)
+                if lv <= 0.0:
+                    continue
+                inc = np.zeros(len(pops_x[pop]["ids"]))
+                inc[idx] = amp * lv
+                out[pop] = inc
+            return out
+
+        chem_meta = {"id": cspec["id"],
+                     "modality": cspec.get("modality", ""),
+                     "label": cspec.get("label", cspec["id"]),
+                     "t_end_ms": float(cspec.get("t_end_ms", T_END)),
+                     "channels": [{"pop": pop, "group": ch["group"],
+                                   "n": int(len(sel)), "amp_pa": amp,
+                                   "pulses": pulses}
+                                  for pop, sel, amp, pulses, ch in chans]}
+        # chem-run working point (exp019 calibration): at the exp017
+        # default gain the central-brain internal recurrence is an
+        # excitation-locked attractor -- ANY suprathreshold chem input
+        # latches the whole CEN at ~82 Hz and it never decays. With the
+        # recurrence-only gain at 0.002 (feedforward groups untouched)
+        # the response is antennal-lobe specific and decays after the
+        # pulse. Visual runs keep exp017's behavior (override only when
+        # --chem-input is active). See exp019 README.
+        _G_CEN_CHEM = 0.002
+        if "CEN_C" in (circuit.get("extra_edges") or {}):
+            circuit["extra_edges"]["CEN_C"]["g_unit"] = _G_CEN_CHEM
+            print(f"chem calibration: CEN_C recurrence gain -> "
+                  f"{_G_CEN_CHEM} (chem-run working point, exp019)")
 
     extra_post = {g: s["post"] for g, s in
                   (circuit.get("extra_edges") or {}).items()}
@@ -756,6 +860,9 @@ def main():
         syn, pops = st["syn"], st["pops"]
         i_photo = cal["I_R_BASE"] + inc_f
         mech = st["mech"]
+        for name in extra_rate:
+            extra_rate[name][j] = (1000.0 * int(sp[name].sum())
+                                   / len(st["extra_ids"][name]))
 
         def y_of(name):
             if name == "PHOTO":
@@ -898,7 +1005,8 @@ def main():
             stim[j] = float(np.mean(luminance(t)))
 
         trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
-                  int(T_END / fp.DT_MS), on_record=record_gpu)
+                  int(T_END / fp.DT_MS), on_record=record_gpu,
+                  chem_fn=chem_fn)
         if jbuf:
             flush_scalp_gpu(n_field - jbuf, jbuf)
         cp.cuda.runtime.deviceSynchronize()
@@ -913,9 +1021,14 @@ def main():
         jbuf = 0
     else:
         fp.simulate(circuit, cal, lambda t: I_LUM * (luminance(t) - 1.0),
-                    SEED, T_END, on_sample=record)
+                    SEED, T_END, on_sample=record, chem_fn=chem_fn)
         if jbuf:
             flush_scalp(n_field - jbuf, jbuf)
+    if extra_rate and not args.gpu:
+        np.savez(OUT / "_debug_extra_rates.npz", **extra_rate)
+        for name, tr in extra_rate.items():
+            print(f"extra rate {name}: mean {tr.mean():.1f} Hz, "
+                  f"peak {tr.max():.0f} Hz")
     print(f"biology loop: {_time.time() - _t1:.0f} s "
           f"({n_field} records)")
     np.save(OUT / "_debug_phi_scalp.npy", phi_scalp * 1.7)
@@ -1073,15 +1186,20 @@ def main():
         "phi_scalp_all_uV": np.round(phi_scalp.T * 1e6, 3).tolist(),
         "phi_scalp_bg_uV": np.round(bg, 2).tolist(),
     }
+    if chem_meta is not None:
+        data["meta"]["chem_input"] = chem_meta
     # extra-region layers for the point cloud. VNC IS shown (its true
     # native geometry makes it stick out of the head sphere at x202 --
     # the honest picture of "the fly CNS does not fit in a human head");
     # it only stays out of the kernels/fit (forward=False)
     layer_names = {"VPN": "VPN 投射神经元", "CB": "中央脑目标(exp016)",
                    "OLR": "其余视叶", "CEN": "中央脑",
-                   "VNC": "腹索 VNC（仅动力学·不投影）"}
+                   "VNC": "腹索 VNC（仅动力学·不投影）",
+                   "ORN": "嗅觉受体神经元 ORN（外周端·不投影）",
+                   "GRN": "味觉受体神经元 GRN（外周端·不投影）"}
     layer_colors = {"VPN": "#f472b6", "CB": "#c084fc", "OLR": "#8b9dc3",
-                    "CEN": "#fbbf24", "VNC": "#5eead4"}
+                    "CEN": "#fbbf24", "VNC": "#5eead4",
+                    "ORN": "#fb7185", "GRN": "#34d399"}
     positions = [pts(r_pos), pts(l_pos), pts(mid_pos),
                  pts(t45_pos[is_t4]), pts(t45_pos[is_t5])]
     for pname, spec in (circuit.get("extra_pops") or {}).items():

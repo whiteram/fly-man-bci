@@ -233,23 +233,61 @@ def build_stack(circuit, cal, rng):
             "r_release": _release, "l_release": _release, "cal": cal}
 
 
-def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
+def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None,
+             chem_fn=None):
     """Run one trial of the cascade.
 
     lum_inc_fn(t_ms) -> phototransduction input increment, pA, scalar or
-    (n_r,). on_sample(j, k, t, stack, inc_f, spikes) fires every 2 steps
+    (n_r,). chem_fn(t_ms) -> {extra pop name: per-neuron RAW stimulus
+    current, pA} (chemosensory drive, exp019) -- each active pop gets a
+    PhotoCascade transduction stage (10 ms low-pass x2 + 800 ms
+    adaptation to a 30% pedestal), so the per-neuron value here is the
+    physical stimulus amplitude, not the drive the soma sees.
+    on_sample(j, k, t, stack, inc_f, spikes) fires every 2 steps
     (1 kHz); spikes = {"R","L","MID","T45"} boolean masks. The RNG draw
     order is fixed (R, L, MID, T45 noises) so any given seed reproduces
-    exactly across callers.
+    exactly across callers; chem_fn is deterministic stimulus and does
+    not participate in the draw order.
     """
     rng = np.random.default_rng(seed)
     st = build_stack(circuit, cal, rng)
     pops, syn, noises = st["pops"], st["syn"], st["noises"]
     photo = PhotoCascade(st["n_r"], DT_MS)
+    # chemosensory transduction cascades (exp019): ORN/GRN share the
+    # visual cascade kinetics (10 ms low-pass x2 + 800 ms adaptation to
+    # a 30% pedestal) -- real ORN responses are phasic-tonic, and the
+    # adapted pedestal keeps central loops from latching (README)
+    chem_casc = {name: PhotoCascade(len(ids), DT_MS)
+                 for name, ids in st["extra_ids"].items()} \
+        if chem_fn is not None else None
+    if chem_casc is not None:
+        # per-pop reusable buffers: a fresh zeros() per step churned
+        # ~0.8 MB/step and ballooned RSS into swap (exp019 fast-run
+        # finding); driven pops get one scratch each, undriven pops
+        # share one preallocated zero per pop
+        chem_zero = {name: np.zeros(len(ids))
+                     for name, ids in st["extra_ids"].items()}
+        chem_live = set()
     n_steps = int(t_end_ms / DT_MS)
     for k in range(n_steps):
         t = k * DT_MS
         inc_f = photo.step(lum_inc_fn(t))
+        chem_inc = None
+        if chem_fn is not None:
+            raw = chem_fn(t)
+            chem_inc = {}
+            for name in st["extra_ids"]:
+                if name in raw:
+                    chem_live.add(name)
+                    chem_inc[name] = chem_casc[name].step(raw[name])
+                elif name in chem_live:
+                    # stimulus off: keep decaying the cascade state,
+                    # but only while it is away from baseline (the
+                    # epsilon check skips ~pure-zero steps cheaply)
+                    c = chem_casc[name]
+                    if np.abs(c.y1).max() > 1e-9 \
+                            or np.abs(c.y2).max() > 1e-9:
+                        chem_inc[name] = c.step(chem_zero[name])
         if st["mech"]:
             sp_r = pops["R"].step(cal["I_R_BASE"] + inc_f
                                   + noises["R"].step())
@@ -285,6 +323,8 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None):
         sp_extra = {}
         for name in st["extra_pops"]:
             i_x = st["extra_base"][name] + noises[name].step()
+            if chem_inc is not None and name in chem_inc:
+                i_x = i_x + chem_inc[name]
             g_x = np.zeros(len(st["extra_ids"][name]))
             for grp in st["extra_in"][name]:
                 di, dg = syn[grp].to_neuron_drive()

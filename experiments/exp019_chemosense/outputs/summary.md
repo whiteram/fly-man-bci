@@ -1,0 +1,32 @@
+# exp019 run output
+
+
+## baseline (chem=-, t_end=10500 ms)
+
+## odor3_block (chem=odor3_short, t_end=3600 ms)
+- ORN[ORN_DA1] n=204: CEN in-epoch 1.01 Hz (pre-gap 0.00 Hz)
+- ORN[ORN_DA1] n=204: OLR in-epoch 0.46 Hz (pre-gap 0.46 Hz)
+- ORN[ORN_DA1] n=204: ORN in-epoch 0.65 Hz (pre-gap 0.00 Hz)
+- ORN[ORN_DM2] n=54: CEN in-epoch 1.10 Hz (pre-gap 1.11 Hz)
+- ORN[ORN_DM2] n=54: OLR in-epoch 0.45 Hz (pre-gap 0.46 Hz)
+- ORN[ORN_DM2] n=54: ORN in-epoch 0.18 Hz (pre-gap 0.00 Hz)
+- ORN[ORN_VA1v] n=130: CEN in-epoch 1.10 Hz (pre-gap 1.07 Hz)
+- ORN[ORN_VA1v] n=130: OLR in-epoch 0.46 Hz (pre-gap 0.46 Hz)
+- ORN[ORN_VA1v] n=130: ORN in-epoch 0.42 Hz (pre-gap 0.00 Hz)
+- ORN[ORN_DA1] n=204: scalp 0.1-4 Hz rms 0.2720 uV vs pre 0.1645 uV (x1.65)
+- ORN[ORN_DM2] n=54: scalp 0.1-4 Hz rms 0.1107 uV vs pre 0.1645 uV (x0.67)
+- ORN[ORN_VA1v] n=130: scalp 0.1-4 Hz rms 0.0116 uV vs pre 0.1645 uV (x0.07)
+
+## taste3_block (chem=taste3_short, t_end=3600 ms)
+- GRN[LgLG*] n=667: CEN in-epoch 0.01 Hz (pre-gap 0.00 Hz)
+- GRN[LgLG*] n=667: GRN in-epoch 27.57 Hz (pre-gap 0.00 Hz)
+- GRN[LgLG*] n=667: OLR in-epoch 0.46 Hz (pre-gap 0.46 Hz)
+- GRN[WG*] n=385: CEN in-epoch 0.00 Hz (pre-gap 0.00 Hz)
+- GRN[WG*] n=385: GRN in-epoch 16.53 Hz (pre-gap 0.00 Hz)
+- GRN[WG*] n=385: OLR in-epoch 0.45 Hz (pre-gap 0.46 Hz)
+- GRN[claw_tpGRN] n=50: CEN in-epoch 0.00 Hz (pre-gap 0.00 Hz)
+- GRN[claw_tpGRN] n=50: GRN in-epoch 2.02 Hz (pre-gap 0.00 Hz)
+- GRN[claw_tpGRN] n=50: OLR in-epoch 0.46 Hz (pre-gap 0.46 Hz)
+- GRN[LgLG*] n=667: scalp 0.1-4 Hz rms 0.2294 uV vs pre 0.2208 uV (x1.04)
+- GRN[WG*] n=385: scalp 0.1-4 Hz rms 0.0839 uV vs pre 0.2208 uV (x0.38)
+- GRN[claw_tpGRN] n=50: scalp 0.1-4 Hz rms 0.0071 uV vs pre 0.2208 uV (x0.03)
