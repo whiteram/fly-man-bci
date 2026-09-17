@@ -1,0 +1,21 @@
+{
+ "classes": [
+  "da1",
+  "dm2",
+  "va1v"
+ ],
+ "repeats": 6,
+ "fs": 1000.0,
+ "dur_ms": 3600.0,
+ "drive_ms": [
+  300,
+  1200
+ ],
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "odor_map": {
+  "da1": "ORN_DA1 (cVA)",
+  "dm2": "ORN_DM2 (ester)",
+  "va1v": "ORN_VA1v (fatty acid)"
+ },
+ "seed_map": "seed = 42 + i*repeats + r"
+}

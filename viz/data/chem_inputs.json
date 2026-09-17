@@ -368,12 +368,12 @@
     "label": "单气味 ORN_DM2：果醋酯（ vinegar，食物气味）（bci/olfactory 类别刺激）",
     "t_end_ms": 3600.0,
     "edge_ms": 50.0,
-    "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类",
+    "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类；幅度按 ORN 群大小补偿（DA1 204/DM2 54/VA1v 130 细胞；150 pA 下 DM2/VA1v 仅 +4%，bci 标定）",
     "channels": [
       {
         "pop": "ORN",
         "group": "ORN_DM2",
-        "amp_pa": 150.0,
+        "amp_pa": 600.0,
         "pulses": [
           [
             300,
@@ -389,12 +389,12 @@
     "label": "单气味 ORN_VA1v：脂肪酸（乳酸菌气味）（bci/olfactory 类别刺激）",
     "t_end_ms": 3600.0,
     "edge_ms": 50.0,
-    "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类",
+    "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类；幅度按 ORN 群大小补偿（bci 标定）",
     "channels": [
       {
         "pop": "ORN",
         "group": "ORN_VA1v",
-        "amp_pa": 150.0,
+        "amp_pa": 250.0,
         "pulses": [
           [
             300,

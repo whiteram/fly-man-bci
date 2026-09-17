@@ -197,12 +197,26 @@ C：−0.005~−0.008 µV、p=0.001–0.002，DN 谷氨酸能压制故极性反�
 解码**；路由方案效应约为直驱的 1/4 但解剖学正确。细节与表见
 [exp020 README](../experiments/exp020_proprioception/README.md)。
 
-## 5. 听觉（空白，未排期）
+## 5. 听觉（exp021 实现，JO-A → AMMC 通路）
 
-数据侧：JO-A1/A2/B1/B3/CA2（Johnston 器听觉神经元）115 + AMMC 208。
-近场声 150–500 Hz（求偶歌脉冲/正弦段）→ JON 电流 → AMMC → 中央脑。
-实现路径与嗅觉完全同构（一个新区域构建器 + chem_fn 式驱动），
-awesome-fly 社区无先例，适合作为差异化扩展。
+**数据侧证据**：
+
+- Johnston 器听觉亚群：subclass `auditory` 的 JO- 类型 **115 个**
+  （JO-A1/A2/A3/A4、JO-B1/B2/B3、JO-CA1/2；rootSide L 63/R 52）；
+  其中 26 个在连接组中只作为突触后出现（无 PreSyn 末梢），按"位置
+  来源缺失不进种群"惯例排除，保留 89。
+- 下游（w≥5）：**JOA_C 1,578 对 / 24,392 突触** → 中央脑（SAD001/
+  CB1076/SAD051/GNG636/AMMC0xx 等 cb_intrinsic，均在 central_brain
+  区域）+ 本地 JOA_R 38 对。
+- **建模选择**：近场求偶歌载波 150–300 Hz 远超 LIF 群跟随能力
+  （tau 10 ms），驱动编码**幅度包络**（pulse song ≈25 Hz 方波 /
+  sine song 平台），经共享 PhotoCascade 转导级联。
+
+**状态**：区域已实现（`audition`，构建器
+`experiments/exp021_audition/circuit6.py`，I_JOA_BASE 60 pA，
+chem_groups 按 `类型@rootSide` 建组）；BCI 范式 `bci/auditory/`
+（侧别×歌模式 4 类解码：4 类 54% / 侧别 75% / 模式 75%，均显著，
+见其 README）。awesome-fly 社区无先例，本项目率先落地。
 
 ---
 

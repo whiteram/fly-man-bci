@@ -41,7 +41,7 @@ def main():
             trial = out / f"_trial_{stem}"
             cmd = [sys.executable, str(ROOT / "viz" / "export_data.py"),
                    "--regions", REGIONS, "--visual-input", "dark",
-                   "--chem-input", f"odor_{cls}",
+                   "--chem-input", f"odor_{cls}_short",
                    "--t-end", str(T_END), "--seed", str(seed),
                    "--out", str(trial), "--gpu"]
             print("[acquire] " + " ".join(cmd[1:]), flush=True)
