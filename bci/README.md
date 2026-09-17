@@ -16,9 +16,11 @@
 | 目录 | 对齐数据集 | 状态 |
 |---|---|---|
 | `ssvep_benchmark/` | Tsinghua SSVEP-Benchmark（Wang et al. 2016，40 目标 8–15.8 Hz Δ0.2） | ✅ 频率编码试点 |
+| `motor_imagery/` | 运动想象 L/R 保持解码（BCI 竞赛 MI 范式思路；复用 exp020 MI-v2 协议） | ✅ 2 类 |
+| `olfactory/` | 气味身份 3 类解码（DA1/DM2/VA1v；exp019 电路） | ✅ 3 类 |
+| `auditory/` | 求偶歌侧别×模式 4 类解码（exp021 JOA 电路） | ✅ 4 类 |
 
-后续可加：`p300/`（oddball）、`motor_imagery/`（需运动通路动力学，
-暂缓）、`n170/` 等。
+后续可加：`p300/`（oddball）、`n170/` 等。
 
 ## 每个范式目录的固定结构
 

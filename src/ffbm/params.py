@@ -148,6 +148,9 @@ SECTIONS: dict = {
                           "exp019 味觉受体神经元基流（静息；同窗口）"),
         "i_pro_base_pa": (60.0, "pA", "assumed",
                           "exp020 本体感受神经元基流（静息肢体；同窗口）"),
+        "i_joa_base_pa": (60.0, "pA", "assumed",
+                          "exp021 Johnston 器听觉神经元基流（静息空气；"
+                          "同窗口）"),
         "ou_sigma_vpn_cb_pa": (40.0, "pA", "phenomenol.",
                                "扩展区域的 OU 噪声（与 MID 同量级）"),
         "sign_mapping": ("consensus_nt", "-", "assumed",
@@ -337,6 +340,7 @@ def cal() -> dict:
         "I_ORN_BASE": vpn["i_orn_base_pa"][0],
         "I_GRN_BASE": vpn["i_grn_base_pa"][0],
         "I_PRO_BASE": vpn["i_pro_base_pa"][0],
+        "I_JOA_BASE": vpn["i_joa_base_pa"][0],
         "OU_VPN_CB": vpn["ou_sigma_vpn_cb_pa"][0],
     }
 

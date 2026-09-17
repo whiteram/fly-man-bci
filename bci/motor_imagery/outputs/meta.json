@@ -1,0 +1,19 @@
+{
+ "classes": [
+  "L",
+  "R"
+ ],
+ "repeats": 6,
+ "fs": 1000.0,
+ "dur_ms": 3600.0,
+ "cue_ms": [
+  300,
+  1200
+ ],
+ "imagery_ms": [
+  1300,
+  3500
+ ],
+ "regions": "visual_bilateral,ol_rest,central_brain,vnc,proprioception",
+ "seed_map": "seed = 42 + i*repeats + r"
+}
