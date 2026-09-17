@@ -51,6 +51,7 @@ _CIRCUIT_CODE = [
     "experiments/exp016_vpn_central/circuit2.py",
     "experiments/exp017_full_cns/circuit3.py",
     "experiments/exp019_chemosense/circuit4.py",
+    "experiments/exp020_proprioception/circuit5.py",
     "experiments/exp005_medulla_ds/run.py",     # imported by exp015
 ]
 _KERNEL_CODE = [

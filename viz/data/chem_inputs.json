@@ -170,5 +170,47 @@
         ]
       }
     ]
+  },
+  {
+    "id": "mi_L_short",
+    "modality": "proprioception",
+    "label": "运动指令 L（左腿)",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "运动想象范式：300-1200 ms 指令窗注入一侧腿本体感受器的运动反馈模式（400 pA），其后 2.4 s 为无驱动的延迟/保持窗；类别=指令侧别",
+    "channels": [
+      {
+        "pop": "PRO",
+        "group": "*@L",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mi_R_short",
+    "modality": "proprioception",
+    "label": "运动指令 R（右腿）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "运动想象范式：300-1200 ms 指令窗注入一侧腿本体感受器的运动反馈模式（400 pA），其后 2.4 s 为无驱动的延迟/保持窗；类别=指令侧别",
+    "channels": [
+      {
+        "pop": "PRO",
+        "group": "*@R",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
   }
 ]

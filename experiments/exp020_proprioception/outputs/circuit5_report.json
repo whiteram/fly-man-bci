@@ -1,0 +1,72 @@
+{
+ "cells": {
+  "OLR": 62305,
+  "CEN": 33480,
+  "VNC": 15367,
+  "PRO": 1454
+ },
+ "edges": {
+  "OLR_V": {
+   "pairs": 774192,
+   "syn": 9547642,
+   "post": "OLR",
+   "forward": true
+  },
+  "CEN_V": {
+   "pairs": 152,
+   "syn": 1210,
+   "post": "CEN",
+   "forward": true
+  },
+  "CEN_R": {
+   "pairs": 208073,
+   "syn": 3513865,
+   "post": "CEN",
+   "forward": true
+  },
+  "CEN_C": {
+   "pairs": 1715321,
+   "syn": 29007814,
+   "post": "CEN",
+   "forward": true
+  },
+  "VNC_C": {
+   "pairs": 116099,
+   "syn": 2106815,
+   "post": "VNC",
+   "forward": false
+  },
+  "VNC_R": {
+   "pairs": 720558,
+   "syn": 13563722,
+   "post": "VNC",
+   "forward": false
+  },
+  "ASC_R": {
+   "pairs": 105157,
+   "syn": 2168302,
+   "post": "CEN",
+   "forward": false
+  },
+  "PRO_R": {
+   "pairs": 1325,
+   "syn": 13458,
+   "post": "PRO",
+   "forward": false
+  },
+  "PRO_C": {
+   "pairs": 4847,
+   "syn": 56417,
+   "post": "CEN",
+   "forward": true
+  },
+  "PRO_V": {
+   "pairs": 47888,
+   "syn": 687803,
+   "post": "VNC",
+   "forward": false
+  }
+ },
+ "pro_groups": {},
+ "n_groups": 167
+}

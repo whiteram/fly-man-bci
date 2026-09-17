@@ -47,6 +47,8 @@ _BUILDERS = {
                   / "circuit4.py", "build_olfactory"),
     "gustatory": (ROOT / "experiments" / "exp019_chemosense"
                   / "circuit4.py", "build_gustatory"),
+    "proprioception": (ROOT / "experiments" / "exp020_proprioception"
+                       / "circuit5.py", "build_proprioception"),
 }
 
 # vnc/central_brain/ol_rest share exp017's caches: assemble them
@@ -54,11 +56,12 @@ _BUILDERS = {
 # input regions come last -- they drive INTO central (antennal lobe /
 # SEZ partners live in central_brain), so central must be built first
 _ORDER = ("visual_bilateral", "vpn_central", "ol_rest", "central_brain",
-          "vnc", "olfactory", "gustatory")
+          "vnc", "olfactory", "gustatory", "proprioception")
 
 DEFAULT_REGIONS = {"visual_bilateral": True, "vpn_central": False,
                    "ol_rest": False, "central_brain": False,
-                   "vnc": False, "olfactory": False, "gustatory": False}
+                   "vnc": False, "olfactory": False, "gustatory": False,
+                   "proprioception": False}
 
 
 def _load(module_file: Path, attr: str):
@@ -99,12 +102,12 @@ def build_circuit(regions: dict | None = None):
         raise ValueError("visual_bilateral is the input driver of every "
                          "currently known downstream region; it cannot "
                          "be switched off alone")
-    for chem in ("olfactory", "gustatory"):
+    for chem in ("olfactory", "gustatory", "proprioception"):
         if cfg[chem] and not cfg["central_brain"]:
             raise ValueError(f"{chem} drives its central partners "
-                             "(antennal lobe / SEZ) inside the "
-                             "central_brain region -- enable "
-                             "central_brain with it")
+                             "(antennal lobe / SEZ / ascending "
+                             "targets) inside the central_brain region "
+                             "-- enable central_brain with it")
     active = [name for name, on in cfg.items() if on]
 
     circuit = None
