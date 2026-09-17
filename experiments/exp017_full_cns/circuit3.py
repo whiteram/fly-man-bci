@@ -51,6 +51,12 @@ OUT = Path(__file__).resolve().parent / "outputs"
 W_MIN = 5
 CAL = params_cal()
 
+# L/R midline for central cells (rootSide is empty for cb_* and
+# descending neurons). Calibrated against PRO terminal-x medians per
+# rootSide: L 440.5 / R 359.6 um -> midline 400.0; x > midline = L
+# (exp020 cen_groups_probe).
+MIDLINE_UM = 400.0
+
 CASCADE_TYPES = ("R1-R6", "L1", "L2", "L3", "Mi1", "Tm3", "Mi4", "Mi9",
                  "Tm1", "Tm2", "Tm4", "Tm9")
 
@@ -124,7 +130,39 @@ def _add_region(circuit, name, mask, ann, soma):
                   "tau_ms": 10.0, "t_refrac_ms": 2.0,
                   "i_base": i_key, "ou_sigma": ou}
     circuit["extra_pops"] = pops
+    if name == "CEN":
+        _chem_groups_cen(circuit, ann, ids, remap,
+                         pops[name]["ids"], soma)
     return len(ids)
+
+
+def _chem_groups_cen(circuit, ann, raw_ids, remap, ids_sorted, soma):
+    """type@side chem-drive groups for the central pop (exp020 MI-v2).
+
+    The connectome's DN drive lives in cb_intrinsic (LAL/PS/GNG/VES,
+    61% of DN input synapses) and in DN itself (12.9% recurrent); both
+    are addressable here so a chem channel can drive the motor-plan
+    layer through REAL synapses ("LAL*@L") or directly ("DN@L").
+    Side by soma x vs MIDLINE_UM; index arrays point into the CEN
+    compact id array."""
+    sub = ann.loc[ann["bodyId"].isin(remap),
+                  ["bodyId", "type", "superclass"]].copy()
+    sub["compact"] = sub["bodyId"].map(remap)
+    sub["side"] = np.where(
+        [soma[int(b)][0] > MIDLINE_UM for b in sub["bodyId"]], "L", "R")
+    groups = {}
+    for (tname, sd), grp in sub.groupby(
+            [sub["type"].fillna("?"), sub["side"]]):
+        groups[f"{tname}@{sd}"] = np.searchsorted(
+            ids_sorted, grp["compact"].to_numpy(np.int64))
+    dn = sub[sub["superclass"].fillna("") == "descending_neuron"]
+    for sd in ("L", "R"):
+        g = dn[dn["side"] == sd]
+        groups[f"DN@{sd}"] = np.searchsorted(
+            ids_sorted, g["compact"].to_numpy(np.int64))
+    chem_groups = circuit.get("chem_groups") or {}
+    chem_groups["CEN"] = groups
+    circuit["chem_groups"] = chem_groups
 
 
 def _edge_group(circuit, gname, pre_ids_original, post_name,

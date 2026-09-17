@@ -1,0 +1,347 @@
+{
+ "n_dn": 1314,
+ "dn_rootside": {
+  "?": 1314
+ },
+ "dn_top_types": {
+  "DNg08": 23,
+  "DNpe008": 19,
+  "DNg106": 16,
+  "DNg07": 16,
+  "DNge091": 14,
+  "DNge094": 13,
+  "DNg03": 12,
+  "DNg06": 12,
+  "DNp17": 12,
+  "DNg10": 12,
+  "DNge019": 11,
+  "DNpe015": 11
+ },
+ "dn_input_by_superclass": {
+  "cb_intrinsic": {
+   "syn": 2377770,
+   "pairs": 99211
+  },
+  "descending_neuron": {
+   "syn": 506965,
+   "pairs": 21281
+  },
+  "ascending_neuron": {
+   "syn": 492825,
+   "pairs": 21487
+  },
+  "visual_projection": {
+   "syn": 260527,
+   "pairs": 12655
+  },
+  "cb_sensory": {
+   "syn": 107249,
+   "pairs": 7205
+  },
+  "vnc_intrinsic": {
+   "syn": 84575,
+   "pairs": 5797
+  },
+  "vnc_sensory": {
+   "syn": 31704,
+   "pairs": 2406
+  },
+  "": {
+   "syn": 17898,
+   "pairs": 2098
+  },
+  "visual_centrifugal": {
+   "syn": 13266,
+   "pairs": 744
+  },
+  "sensory_ascending": {
+   "syn": 12121,
+   "pairs": 1216
+  },
+  "ol_intrinsic": {
+   "syn": 6564,
+   "pairs": 619
+  },
+  "sensory_descending": {
+   "syn": 3473,
+   "pairs": 165
+  }
+ },
+ "dn_input_by_type": {
+  "?": {
+   "syn": 61783,
+   "pairs": 4848
+  },
+  "LC4": {
+   "syn": 32229,
+   "pairs": 962
+  },
+  "LPLC4": {
+   "syn": 25938,
+   "pairs": 1107
+  },
+  "LPLC2": {
+   "syn": 22664,
+   "pairs": 1310
+  },
+  "BM": {
+   "syn": 18737,
+   "pairs": 906
+  },
+  "AN02A002": {
+   "syn": 17359,
+   "pairs": 383
+  },
+  "LPLC1": {
+   "syn": 11912,
+   "pairs": 618
+  },
+  "BM_Taste": {
+   "syn": 11786,
+   "pairs": 544
+  },
+  "LT51": {
+   "syn": 11543,
+   "pairs": 279
+  },
+  "AN07B004": {
+   "syn": 10133,
+   "pairs": 292
+  },
+  "GNG423": {
+   "syn": 8736,
+   "pairs": 185
+  },
+  "AN05B097": {
+   "syn": 8512,
+   "pairs": 245
+  },
+  "BM_InOm": {
+   "syn": 8217,
+   "pairs": 1130
+  },
+  "DNge046": {
+   "syn": 7746,
+   "pairs": 208
+  },
+  "DNg74_a": {
+   "syn": 7695,
+   "pairs": 240
+  },
+  "AN19A018": {
+   "syn": 7478,
+   "pairs": 292
+  },
+  "GNG553": {
+   "syn": 7441,
+   "pairs": 98
+  },
+  "DNge019": {
+   "syn": 7336,
+   "pairs": 314
+  },
+  "DNge027": {
+   "syn": 7253,
+   "pairs": 117
+  },
+  "VES088": {
+   "syn": 7216,
+   "pairs": 136
+  }
+ },
+ "pro_direct_dn": {
+  "pairs": 1080,
+  "syn": 10510
+ },
+ "two_hop": {
+  "ascending_neuron/AN02A002": {
+   "syn": 17359,
+   "pairs": 383
+  },
+  "ascending_neuron/AN07B004": {
+   "syn": 10133,
+   "pairs": 292
+  },
+  "ascending_neuron/AN02A001": {
+   "syn": 6112,
+   "pairs": 159
+  },
+  "cb_intrinsic/PS059": {
+   "syn": 5956,
+   "pairs": 143
+  },
+  "ascending_neuron/AN06B009": {
+   "syn": 5306,
+   "pairs": 277
+  },
+  "cb_intrinsic/PS307": {
+   "syn": 4989,
+   "pairs": 101
+  },
+  "ascending_neuron/AN05B097": {
+   "syn": 4274,
+   "pairs": 87
+  },
+  "cb_intrinsic/?": {
+   "syn": 4139,
+   "pairs": 233
+  },
+  "ascending_neuron/AN04B003": {
+   "syn": 3940,
+   "pairs": 98
+  },
+  "ascending_neuron/AN17A008": {
+   "syn": 3512,
+   "pairs": 44
+  },
+  "ascending_neuron/AN17A003": {
+   "syn": 3503,
+   "pairs": 157
+  },
+  "ascending_neuron/AN04B001": {
+   "syn": 3455,
+   "pairs": 88
+  },
+  "ascending_neuron/ANXXX049": {
+   "syn": 3389,
+   "pairs": 114
+  },
+  "cb_intrinsic/SAD093": {
+   "syn": 3283,
+   "pairs": 81
+  },
+  "ascending_neuron/AN19B044": {
+   "syn": 3081,
+   "pairs": 71
+  },
+  "descending_neuron/DNg98": {
+   "syn": 2988,
+   "pairs": 100
+  },
+  "ascending_neuron/AN06B040": {
+   "syn": 2947,
+   "pairs": 136
+  },
+  "ascending_neuron/AN19A018": {
+   "syn": 2880,
+   "pairs": 103
+  },
+  "cb_intrinsic/PS353": {
+   "syn": 2758,
+   "pairs": 102
+  },
+  "cb_intrinsic/GNG100": {
+   "syn": 2690,
+   "pairs": 74
+  }
+ },
+ "n_two_hop_intermediates": 19014,
+ "ascending_to_dn_by_type": {
+  "AN02A002": {
+   "syn": 17359,
+   "pairs": 383
+  },
+  "AN07B004": {
+   "syn": 10133,
+   "pairs": 292
+  },
+  "AN05B097": {
+   "syn": 8512,
+   "pairs": 245
+  },
+  "AN19A018": {
+   "syn": 7478,
+   "pairs": 292
+  },
+  "AN00A006": {
+   "syn": 6301,
+   "pairs": 173
+  },
+  "AN02A001": {
+   "syn": 6112,
+   "pairs": 159
+  },
+  "AN06B009": {
+   "syn": 5306,
+   "pairs": 277
+  },
+  "AN05B006": {
+   "syn": 5018,
+   "pairs": 151
+  },
+  "AN05B007": {
+   "syn": 4339,
+   "pairs": 142
+  },
+  "AN06B007": {
+   "syn": 4013,
+   "pairs": 104
+  }
+ },
+ "cen_intrinsic_to_dn_by_type": {
+  "?": {
+   "syn": 36160,
+   "pairs": 2180
+  },
+  "GNG423": {
+   "syn": 8736,
+   "pairs": 185
+  },
+  "GNG553": {
+   "syn": 7441,
+   "pairs": 98
+  },
+  "VES088": {
+   "syn": 7216,
+   "pairs": 136
+  },
+  "LAL083": {
+   "syn": 7075,
+   "pairs": 125
+  },
+  "PVLP122": {
+   "syn": 6683,
+   "pairs": 154
+  },
+  "AOTU019": {
+   "syn": 6516,
+   "pairs": 91
+  },
+  "PS100": {
+   "syn": 6507,
+   "pairs": 192
+  },
+  "LAL126": {
+   "syn": 6472,
+   "pairs": 108
+  },
+  "GNG503": {
+   "syn": 6388,
+   "pairs": 44
+  },
+  "PS059": {
+   "syn": 5956,
+   "pairs": 143
+  },
+  "CB4105": {
+   "syn": 5919,
+   "pairs": 170
+  },
+  "PLP300m": {
+   "syn": 5898,
+   "pairs": 119
+  },
+  "VES064": {
+   "syn": 5690,
+   "pairs": 82
+  },
+  "PVLP123": {
+   "syn": 5629,
+   "pairs": 152
+  }
+ },
+ "dn_side_by_terminal_x": {
+  "L": 0,
+  "R": 1314
+ }
+}

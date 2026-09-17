@@ -46,18 +46,74 @@
    长尾坑）；本解码器已改为无记忆的原始 rms + 直接置换检验。
 3. **结构性结论**：PRO_C 与 GRN_C 一样（≤5k 对量级的输入边组）在
    CEN_C=0.002 工作点点不亮中央回路——嗅觉之所以"看得见"，是因为
-   ORN_C 有 57k 对 + 触角叶回路的放大。要让"运动想象"真正可在延迟
-   窗解码，需要 (i) 更大的本体→中央连边驱动 DN 持续态（生物学上
-   对应实际运动后的感知回馈再入），或 (ii) 直接对 DN 群注入指令
-   （corollary discharge,EOF 有解剖数据支持）——列为后续方向。
+   ORN_C 有 57k 对 + 触角叶回路的放大。→ 由 **MI-v2** 解决（下节）。
+
+## MI-v2：DN 驱动通路（dn_probe.py / mi_run.py --set v2,ctrl）
+
+用户问题"能不能找直接驱动 DN 的通路"→ `dn_probe.py` 在原始连接组上
+量化了 DN（1,314 个）的全部输入（17.5 万对 / 392 万突触）：
+
+| DN 输入来源 | 突触 | 占比 | 已在哪个仿真边组 |
+|---|---|---|---|
+| cb_intrinsic（CX/LAL/SEZ：LAL083/126、PS059/100、GNG423…） | 2,378k | **60.7%** | CEN_C |
+| DN→DN 复归 | 507k | 12.9% | CEN_C |
+| 上升神经元 AN*（VNC→脑） | 505k | 12.9% | ASC_R |
+| 视觉 VPN（核心级联） | 261k | 6.7% | CEN_V |
+| PRO **直连** | 10.5k | 0.27% | PRO_C |
+
+**96% 的 DN 输入已在仿真电路里**——v1 延迟窗无信息缺的不是解剖通路
+而是驱动量级（PRO 直连只占 DN 输入 0.27%）。另：视觉 LC4/LPLC 逃避
+巨通路是最大的具名 DN 驱动类型（合计 ~82k 突触）；DN 无 rootSide，
+侧别靠末端坐标过中线（PRO 的 L/R 中位数校准 **midline=400 µm**，
+circuit3 据此注册 CEN 的 `类型@侧别` + `DN@L/R` chem 组）。
+
+范式升级（每试次 3.6 s，类别=侧别，各 12 试次）：
+300–1200 ms 指令窗不变（同侧腿 400 pA 复反馈）；**1300–3500 ms 想象窗
+新增内部驱动**（无任何外周输入，对应"无执行、自上而下保持"）：
+
+- **v2（通路路由）**：同侧 LAL* 群（317 细胞）1200 pA —— DN 的
+  生物学主驱动入口，经**真实 LAL→DN 突触**点亮运动计划层；
+- **ctrl（直驱上界）**：同侧 DN 群（596–712 细胞）800 pA 直接注入。
+
+幅度标定（mi2_cal_*）：PhotoCascade 有 800 ms 适配到 30% 台阶，持续
+驱动的稳态 = 幅度×0.3——300/250 pA（稳态 90/75 pA）完全不可见，
+×4 补偿后可见；尾窗（3500–4500 ms，驱动关）rms 回落基线，全程无
+点火（exp019 的 82 Hz 吸引子未触发）。
+
+### 结果（24 试次，6+6/类）
+
+| 窗口 | v2 L−R (µV) | p | ctrl L−R (µV) | p |
+|---|---|---|---|---|
+| cue | +0.0023 | 0.002 | +0.0023 | 0.003 |
+| delay 1300–2000 | **+0.0021** | **0.003** | **−0.0045** | **0.001** |
+| delay 2000–2700 | **+0.0010** | **0.013** | **−0.0082** | **0.001** |
+| delay 2700–3500 | **+0.0011** | **0.005** | **−0.0051** | **0.002** |
+
+1. **想象窗全程携带类别信息**（v1 同窗口 p=0.09–0.90 无信息）：
+   "运动想象"状态可以在**没有任何复反馈输入**的情况下从头皮 EEG
+   持续解码 2.2 s——这是本实验的核心阳性结果。
+2. **极性翻转是通路证据**：LAL 兴奋性路由 → 被驱动侧 rms 升高
+   （+）；DN 直驱（DN 群多为谷氨酸能，按 −1 符号布线）→ 压制同侧
+   CEN 背景（−），ctrl 的 acc=0% 即符号完美反转。两者都显著，且
+   直驱效应（|0.005–0.008|）约为路由（|0.001–0.002|）的 4×——
+   每单位注入电流经真实突触路由的效率略低，但换来解剖学正确性。
+3. **量级诚实声明**：效应仍只有背景的 0.1–1%（与 v1 指令窗同量级），
+   干净信号设定下 p≤0.013；对照 exp018 的缩放设备噪声仍需大量平均。
+   共模成分（LAL 驱动双侧 +0.009 / DN 驱动双侧压制）不解码侧别，
+   侧别轴在被驱动侧的偏侧分量上。
+4. **后续**：视觉威胁→LC4/LPLC→DN 逃避范式（数据里最大的 DN 驱动
+   通路，现成 CEN_V/VPN 线路）可做更强的"运动意图"头皮信号。
 
 ## 复现
 
 ```bash
 conda activate ffbm
-python experiments/exp020_proprioception/circuit5.py        # 装配报告
-python experiments/exp020_proprioception/mi_run.py          # 12 试次采集+解码
-python experiments/exp020_proprioception/mi_run.py --decode # 仅解码
+python experiments/exp020_proprioception/circuit5.py          # 装配报告
+python experiments/exp020_proprioception/dn_probe.py          # DN 通路探针
+python experiments/exp020_proprioception/cen_groups_probe.py  # 侧别/组规模
+python experiments/exp020_proprioception/mi_run.py            # v2+ctrl 采集+解码
+python experiments/exp020_proprioception/mi_run.py --set v2   # 仅 A 方案
+python experiments/exp020_proprioception/mi_run.py --decode   # 仅解码
 ```
 
-（首试次含新区集 circuit/内核构建；稳态 ~190 s/试次。）
+（首试次含新区集 circuit/内核构建；稳态 ~210 s/试次。）

@@ -212,5 +212,133 @@
         ]
       }
     ]
+  },
+  {
+    "id": "mi2_L_short",
+    "modality": "motor_imagery",
+    "label": "运动想象 v2-L：腿反馈指令 + 同侧 LAL→DN 保持驱动",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "MI-v2（exp020，DN 通路探针设计）：300-1200 ms 指令窗 = 一侧腿本体反馈（400 pA，与 v1 相同）；1300-3500 ms 想象窗 = 同侧 LAL 群（317 细胞，300 pA）经真实 LAL→DN 突触（LAL083/126/PS 等占 DN 输入 61%）驱动运动计划层——对应皮层运动想象『无执行、自上而下保持』；类别=侧别；幅度含 PhotoCascade 800 ms 适配补偿（稳态=30%）：LAL 1200 pA→稳态 360 pA，DN 800 pA→稳态 240 pA（exp020 标定：300/250 pA 稳态 90/75 pA 不可见）",
+    "channels": [
+      {
+        "pop": "PRO",
+        "group": "*@L",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 1200.0,
+        "pulses": [
+          [
+            1300,
+            3500
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mi2_R_short",
+    "modality": "motor_imagery",
+    "label": "运动想象 v2-R：腿反馈指令 + 同侧 LAL→DN 保持驱动",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "同 mi2_L_short，侧别为右；幅度含 PhotoCascade 800 ms 适配补偿（稳态=30%）：LAL 1200 pA→稳态 360 pA，DN 800 pA→稳态 240 pA（exp020 标定：300/250 pA 稳态 90/75 pA 不可见）",
+    "channels": [
+      {
+        "pop": "PRO",
+        "group": "*@R",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@R",
+        "amp_pa": 1200.0,
+        "pulses": [
+          [
+            1300,
+            3500
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mi2c_L_short",
+    "modality": "motor_imagery",
+    "label": "对照 C-L：腿反馈指令 + 同侧 DN 直驱（上界）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "MI-v2 对照：想象窗直接注入同侧 DN 群（596-712 细胞，250 pA）——绕过通路的『集总冠状放电』上界，用于对照 LAL 路由的效率",
+    "channels": [
+      {
+        "pop": "PRO",
+        "group": "*@L",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "DN@L",
+        "amp_pa": 250.0,
+        "pulses": [
+          [
+            1300,
+            3500
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mi2c_R_short",
+    "modality": "motor_imagery",
+    "label": "对照 C-R：腿反馈指令 + 同侧 DN 直驱（上界）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "同 mi2c_L_short，侧别为右",
+    "channels": [
+      {
+        "pop": "PRO",
+        "group": "*@R",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "DN@R",
+        "amp_pa": 250.0,
+        "pulses": [
+          [
+            1300,
+            3500
+          ]
+        ]
+      }
+    ]
   }
 ]
