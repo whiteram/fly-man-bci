@@ -433,6 +433,8 @@ class ExponentialSynapses:
         g_unit: float = 0.02,
         e_rev_exc: float = 0.0,
         e_rev_inh: float = -75.0,
+        std_u: float | None = None,
+        std_tau_rec: float | None = None,
     ):
         """post_index remaps edge post ids to contiguous [0, n_post) rows.
 
@@ -499,6 +501,18 @@ class ExponentialSynapses:
 
         self.decay = np.exp(-dt / tau_s)
         self.y = np.zeros(self.n_edges, dtype=np.float32)
+        # optional short-term depression (Tsodyks-Markram-style resource
+        # gate): per-edge d in (0,1]; a delivery scales its kick by d and
+        # depletes d *= (1-U); d recovers toward 1 every step.  Opt-in
+        # via edge-spec "std": [U, tau_rec_ms] (bci/mmdev).  Forces the
+        # non-numba fallback path and rejects delays.
+        self.std = std_u is not None
+        if self.std:
+            # depletion happens at RELEASE time (the gated kick enters
+            # the delay ring when the spike is emitted); delays fine
+            self.std_u = np.float32(std_u)
+            self.std_rec = np.float32(np.exp(-dt / std_tau_rec))
+            self.std_d = np.ones(self.n_edges, dtype=np.float32)
         # numba step-kernel scratch (delivery spans; sized for the worst
         # case of every presynaptic neuron spiking in one step)
         self._tmp_t = np.empty(self.n_edges, dtype=np.int64)
@@ -524,7 +538,12 @@ class ExponentialSynapses:
                 spans = _repeat_ranges(self.deliv_starts[sel],
                                        self.deliv_counts[sel])
                 targets = self.flat_idx[spans]
-                self.y[targets] += self.kick[targets]
+                if self.std:
+                    self.y[targets] += (self.kick[targets]
+                                        * self.std_d[targets])
+                    self.std_d[targets] *= (1.0 - self.std_u)
+                else:
+                    self.y[targets] += self.kick[targets]
 
     def _deliver_delayed(self, spiked_pre: np.ndarray):
         if not len(spiked_pre):
@@ -537,7 +556,11 @@ class ExponentialSynapses:
         spans = _repeat_ranges(self.deliv_starts[sel], self.deliv_counts[sel])
         targets = self.flat_idx[spans]
         bins = self.delay_bins[targets]
-        kicks = self.kick[targets]
+        if self.std:
+            kicks = self.kick[targets] * self.std_d[targets]
+            self.std_d[targets] *= (1.0 - self.std_u)
+        else:
+            kicks = self.kick[targets]
         for b in np.unique(bins):
             m = bins == b
             if b == 0:
@@ -548,7 +571,7 @@ class ExponentialSynapses:
 
     def step(self, spiked_pre: np.ndarray) -> np.ndarray:
         """One dt advance; returns per-edge current state (pA)."""
-        if _HAVE_NUMBA and self.n_edges:
+        if _HAVE_NUMBA and self.n_edges and not self.std:
             sel = (self._sel_rows(spiked_pre) if len(spiked_pre)
                    else np.empty(0, dtype=np.int64))
             if self.delayed:
@@ -564,6 +587,8 @@ class ExponentialSynapses:
                           self._tmp_t, self._tmp_v)
             return self.y
         self.y *= self.decay
+        if self.std:
+            self.std_d += (1.0 - self.std_d) * self.std_rec
         if self.delayed:
             self.y += self.buffer[self.ptr]
             self.buffer[self.ptr].fill(0.0)

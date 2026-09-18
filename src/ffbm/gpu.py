@@ -247,6 +247,38 @@ void k_deliver(float* y, float* buf, int ptr, int nE, int buf_len,
     }
 }
 
+// short-term depression: per-edge recovery toward 1 (each step)
+extern "C" __global__
+void k_std_rec(float* d, float rec, int nE) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < nE) d[i] += (1.0f - d[i]) * rec;
+}
+
+// delivery with a depression gate (depletion at RELEASE time; the
+// gated kick goes to y for bin 0 or into the ring row for later bins)
+extern "C" __global__
+void k_deliver_std(float* y, float* buf, int ptr, int nE, int buf_len,
+                   const unsigned char* spike_row,
+                   const long long* starts, const long long* counts,
+                   const long long* flat_idx, const int* bins,
+                   const float* kick, float* d, float u, int n_rows)
+{
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= n_rows || !spike_row[p]) return;
+    for (long long j = starts[p]; j < starts[p] + counts[p]; ++j) {
+        long long t = flat_idx[j];
+        float k = kick[t] * d[t];
+        d[t] *= (1.0f - u);
+        int b = bins[t];
+        if (b == 0) {
+            y[t] += k;
+        } else {
+            int row = (ptr + b - 1) % buf_len;
+            buf[(long long)row * nE + t] += k;
+        }
+    }
+}
+
 // gather this step's spike bits for a group's presynaptic rows from the
 // concatenated all-population mask buffer
 extern "C" __global__
@@ -288,6 +320,7 @@ def _kernels():
                      "k_acc_init", "k_acc_add", "k_chem_add",
                      "k_lif_g64", "k_exp_ring",
                      "k_buf_clear", "k_deliver", "k_spike_row",
+                     "k_std_rec", "k_deliver_std",
                      "k_ecur_f32"):
             _K[name] = cp.RawKernel(_SRC, name, options=_FAMD)
     return _K
@@ -387,6 +420,11 @@ class _ExpPoolG:
         self.post_local = cp.asarray(pool.post_local.astype(np.int64))
         self.out_i = cp.zeros(self.n_post, cp.float32)
         self.out_g = cp.zeros(self.n_post, cp.float32)
+        self.std = bool(getattr(pool, "std", False))
+        if self.std:
+            self.std_d = cp.asarray(pool.std_d)
+            self.std_u = np.float32(pool.std_u)
+            self.std_rec = np.float32(pool.std_rec)
 
     def ecur_row(self, K, v_post, out_row, keep=None):
         """edge_currents(v_post) cast f32 into a ybuf row (bitwise the
@@ -424,6 +462,16 @@ class _ExpPoolG:
         _go(K["k_spike_row"], self.n_rows,
             (self.spike_row, self.src_off, self.local, self.mask_all,
              np.int32(self.n_rows)))
+        if self.std:
+            _go(K["k_std_rec"], self.n_edges,
+                (self.std_d, self.std_rec, np.int32(self.n_edges)))
+            _go(K["k_deliver_std"], self.n_rows,
+                (self.y, self.buffer, np.int32(self.ptr),
+                 np.int32(self.n_edges), np.int32(self.buf_len),
+                 self.spike_row, self.starts, self.counts,
+                 self.flat_idx, self.bins, self.kick,
+                 self.std_d, self.std_u, np.int32(self.n_rows)))
+            return
         _go(K["k_deliver"], self.n_rows,
             (self.y, self.buffer, np.int32(self.ptr), np.int32(self.n_edges),
              np.int32(self.buf_len), self.spike_row, self.starts,

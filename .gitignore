@@ -67,3 +67,5 @@ bci/arousal/outputs/*.npy
 bci/arousal/outputs/_trial_*/
 bci/visualfield/outputs/*.npy
 bci/visualfield/outputs/_trial_*/
+bci/mmdev/outputs/*.npy
+bci/mmdev/outputs/_trial_*/

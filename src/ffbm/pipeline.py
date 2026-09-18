@@ -184,13 +184,16 @@ def build_stack(circuit, cal, rng):
     for name, spec in extra_edges.items():
         e_sub = spec["table"]
         post = spec["post"]
+        _std = spec.get("std")
         syn[name] = ExponentialSynapses(
             *edges(e_sub), e_sub["weight"].to_numpy(np.float32),
             pop_index[post], dt=DT_MS, gain=1.0, tau_s=_res(spec["tau_s"]),
             n_post=len(extra_pops[post]["ids"]),
             delay_ms=delays(e_sub), conductance=True,
             g_unit=_res(spec["g_unit"]), e_rev_exc=cal["E_REV_EXC"],
-            e_rev_inh=cal["E_REV_INH"])
+            e_rev_inh=cal["E_REV_INH"],
+            std_u=(_std[0] if _std else None),
+            std_tau_rec=(_std[1] if _std else None))
 
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
                                t_refrac=(1e9 if mech

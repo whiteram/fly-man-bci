@@ -109,6 +109,10 @@ def main():
     ap.add_argument("--noise-scale", type=float, default=1.0,
                     help="scale every OU noise sigma (bci/arousal "
                     "state manipulation: quiet < 1 < active)")
+    ap.add_argument("--std-gates", type=str, default=None,
+                    help="opt-in short-term depression on extra edge "
+                    "groups, 'GRP:U,tau_rec_ms;...' (bci/mmdev; "
+                    "runtime mutation, no cache impact)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -738,6 +742,14 @@ def main():
     extra_rate = {n: np.zeros(n_field)
                   for n in (circuit.get("extra_pops") or {})}
     cal = dict(fp.CAL)
+    if args.std_gates:
+        for _part in args.std_gates.split(";"):
+            _g, _params = _part.split(":")
+            _u, _tau = _params.split(",")
+            if _g not in (circuit.get("extra_edges") or {}):
+                ap.error(f"--std-gates: edge group '{_g}' not in circuit")
+            circuit["extra_edges"][_g]["std"] = [float(_u), float(_tau)]
+            print(f"std gate: {_g} U={_u} tau_rec={_tau} ms")
     if args.noise_scale != 1.0:
         _ns = args.noise_scale
         if isinstance(cal.get("OU"), dict):
