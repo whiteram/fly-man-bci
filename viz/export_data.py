@@ -113,6 +113,10 @@ def main():
                     help="opt-in short-term depression on extra edge "
                     "groups, 'GRP:U,tau_rec_ms;...' (bci/mmdev; "
                     "runtime mutation, no cache impact)")
+    ap.add_argument("--base-scale", type=float, default=1.0,
+                    help="scale every *_BASE bias current (bci/"
+                    "gainstate: the working point IS a state axis -- "
+                    "moves spontaneous firing AND stimulus gain)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -742,6 +746,14 @@ def main():
     extra_rate = {n: np.zeros(n_field)
                   for n in (circuit.get("extra_pops") or {})}
     cal = dict(fp.CAL)
+    if args.base_scale != 1.0:
+        _bs = args.base_scale
+        for _k in list(cal):
+            if _k.endswith("_BASE") and isinstance(cal[_k],
+                                                   (int, float)):
+                cal[_k] *= _bs
+        print(f"base scale: all *_BASE bias currents x {_bs} "
+              "(bci/gainstate working-point axis)")
     if args.std_gates:
         for _part in args.std_gates.split(";"):
             _g, _params = _part.split(":")

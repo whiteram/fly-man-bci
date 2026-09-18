@@ -69,3 +69,5 @@ bci/visualfield/outputs/*.npy
 bci/visualfield/outputs/_trial_*/
 bci/mmdev/outputs/*.npy
 bci/mmdev/outputs/_trial_*/
+bci/gainstate/outputs/*.npy
+bci/gainstate/outputs/_trial_*/
