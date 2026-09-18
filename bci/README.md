@@ -19,6 +19,7 @@
 | `motor_imagery/` | 运动想象 L/R 保持解码（BCI 竞赛 MI 范式思路；复用 exp020 MI-v2 协议） | ✅ 2 类 |
 | `olfactory/` | 气味身份 3 类解码（DA1/DM2/VA1v；exp019 电路） | ✅ 3 类 |
 | `auditory/` | 求偶歌侧别×模式 4 类解码（exp021 JOA 电路） | ✅ 4 类 |
+| `cvep/` | BETA 数据集（Liu et al. 2021，40 目标 m-序列编码 c-VEP） | ✅ 40 类 100% |
 
 后续可加：`p300/`（oddball）、`n170/` 等。
 

@@ -35,3 +35,5 @@ experiments/exp020_proprioception/outputs/**/_debug_*
 experiments/exp020_proprioception/outputs/**/viz_data.json
 experiments/exp020_proprioception/outputs/**/stim_frames.bin
 experiments/exp020_proprioception/outputs/*.txt
+bci/cvep/outputs/eeg_*.npy
+bci/cvep/outputs/_trial_*/
