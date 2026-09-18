@@ -19,17 +19,6 @@
    "loop": true
   },
   {
-   "id": "ssvep1_f15.8",
-   "kind": "video",
-   "label": "SSVEP 15.8 Hz single-target",
-   "source": "data/stimuli/ssvep/single_f15.8.npy",
-   "fps": 60.0,
-   "blur_px": 0.0,
-   "lo": 0.05,
-   "hi": 3.0,
-   "linearize_srgb": false
-  },
-  {
    "id": "dark",
    "kind": "video",
    "label": "全暗基线（单黑帧，化学感觉实验的视觉静默对照）",
@@ -78,6 +67,17 @@
    "kind": "video",
    "label": "P300 oddball train (SOA 800 ms, targets @4,11)",
    "source": "data/stimuli/p300/train.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
+  },
+  {
+   "id": "ssvep1_f14.0",
+   "kind": "video",
+   "label": "SSVEP 14.0 Hz single-target",
+   "source": "data/stimuli/ssvep/single_f14.0.npy",
    "fps": 60.0,
    "blur_px": 0.0,
    "lo": 0.05,

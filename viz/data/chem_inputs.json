@@ -1658,5 +1658,207 @@
         ]
       }
     ]
+  },
+  {
+    "id": "odormix_ab",
+    "modality": "olfactory",
+    "label": "混合物 AB 同时（DA1+DM2）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci/odormix：两气味同一脉冲窗 [300,1200] 同时给（DA1 150 + DM2 600 pA，均衡幅度）——混合非线性检验",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "odormix_abseq",
+    "modality": "olfactory",
+    "label": "顺序 A→B（DA1 先）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci/odormix：A 先 B 后（DA1 [300,700] → DM2 [800,1200]）——顺序解码",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            700
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "odormix_baseq",
+    "modality": "olfactory",
+    "label": "顺序 B→A（DM2 先）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "同 odormix_abseq，顺序反转",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            300,
+            700
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            800,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dose_075",
+    "modality": "olfactory",
+    "label": "DA1 剂量 75 pA",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci/dose：浓度档 0.5×/1×/2×（1×=odor_da1_short 复用）",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 75.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dose_300",
+    "modality": "olfactory",
+    "label": "DA1 剂量 300 pA",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci/dose：浓度档 0.5×/1×/2×（1×=odor_da1_short 复用）",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hyb_l",
+    "modality": "hybrid",
+    "label": "Hybrid 想象-L（SSVEP 闪烁 + LAL 保持驱动）",
+    "t_end_ms": 10500.0,
+    "edge_ms": 100.0,
+    "note": "bci/hybrid：SSVEP 视觉闪烁全程 + 同侧 LAL*@L 1200 pA 平台 [1500,9800]（想象保持）；与 hyb_n 对照测双任务干扰",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 1200.0,
+        "pulses": [
+          [
+            1500,
+            9800
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hyb_r",
+    "modality": "hybrid",
+    "label": "Hybrid 想象-R（SSVEP 闪烁 + LAL 保持驱动）",
+    "t_end_ms": 10500.0,
+    "edge_ms": 100.0,
+    "note": "bci/hybrid：SSVEP 视觉闪烁全程 + 同侧 LAL*@R 1200 pA 平台 [1500,9800]（想象保持）；与 hyb_n 对照测双任务干扰",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@R",
+        "amp_pa": 1200.0,
+        "pulses": [
+          [
+            1500,
+            9800
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hyb_n",
+    "modality": "hybrid",
+    "label": "Hybrid 对照：纯视觉（同工作点）",
+    "t_end_ms": 10500.0,
+    "edge_ms": 100.0,
+    "cen_gain": 0.002,
+    "note": "bci/hybrid 对照：无 chem 驱动但显式 cen_gain=0.002（与想象试次同工作点，避免增益混杂）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 0.0,
+        "pulses": [
+          [
+            1500,
+            9800
+          ]
+        ]
+      }
+    ]
   }
 ]

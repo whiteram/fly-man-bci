@@ -55,3 +55,9 @@ bci/cnv/outputs/*.npy
 bci/cnv/outputs/_trial_*/
 bci/auddev/outputs/*.npy
 bci/auddev/outputs/_trial_*/
+bci/odormix/outputs/*.npy
+bci/odormix/outputs/_trial_*/
+bci/dose/outputs/*.npy
+bci/dose/outputs/_trial_*/
+bci/hybrid/outputs/*.npy
+bci/hybrid/outputs/_trial_*/

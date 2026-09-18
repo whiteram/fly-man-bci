@@ -1,0 +1,17 @@
+{
+ "levels": [
+  "075",
+  "150",
+  "300"
+ ],
+ "repeats": 6,
+ "fs": 1000.0,
+ "dur_ms": 3600.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "amps": [
+  75.0,
+  150.0,
+  300.0
+ ],
+ "seed_map": "seed = 42 + i*repeats + r"
+}
