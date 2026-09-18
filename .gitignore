@@ -49,3 +49,9 @@ bci/gustatory/outputs/*.npy
 bci/gustatory/outputs/_trial_*/
 bci/touch/outputs/*.npy
 bci/touch/outputs/_trial_*/
+bci/p300/outputs/*.npy
+bci/p300/outputs/_trial_*/
+bci/cnv/outputs/*.npy
+bci/cnv/outputs/_trial_*/
+bci/auddev/outputs/*.npy
+bci/auddev/outputs/_trial_*/

@@ -72,6 +72,17 @@
    "lo": 0.05,
    "hi": 3.0,
    "linearize_srgb": false
+  },
+  {
+   "id": "p300_train",
+   "kind": "video",
+   "label": "P300 oddball train (SOA 800 ms, targets @4,11)",
+   "source": "data/stimuli/p300/train.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
   }
  ]
 }

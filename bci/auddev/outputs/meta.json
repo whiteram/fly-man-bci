@@ -1,0 +1,30 @@
+{
+ "runs": 6,
+ "fs": 1000.0,
+ "dur_ms": 3600.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,audition",
+ "bursts_ms": [
+  [
+   300,
+   800
+  ],
+  [
+   900,
+   1400
+  ],
+  [
+   1500,
+   2000
+  ],
+  [
+   2100,
+   2600
+  ],
+  [
+   2700,
+   3200
+  ]
+ ],
+ "deviant_index": 2,
+ "seed_map": "seed = 42 + r"
+}

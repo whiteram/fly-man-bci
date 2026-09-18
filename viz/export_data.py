@@ -819,7 +819,14 @@ def main():
         # "no_cen_damp": the 82 Hz latch IS the modeled seizure.
         # See exp019 README.
         _G_CEN_CHEM = 0.002
-        if not cspec.get("no_cen_damp", False) \
+        if "cen_gain" in cspec:
+            # bci/seizure gain sweep: explicit recurrence gain, between
+            # the safe working point (0.002) and the default (0.004)
+            circuit["extra_edges"]["CEN_C"]["g_unit"] = \
+                float(cspec["cen_gain"])
+            print(f"chem calibration: CEN_C recurrence gain -> "
+                  f"{cspec['cen_gain']} (explicit cen_gain)")
+        elif not cspec.get("no_cen_damp", False) \
                 and "CEN_C" in (circuit.get("extra_edges") or {}):
             circuit["extra_edges"]["CEN_C"]["g_unit"] = _G_CEN_CHEM
             print(f"chem calibration: CEN_C recurrence gain -> "
