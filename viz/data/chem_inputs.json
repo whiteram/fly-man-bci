@@ -945,5 +945,175 @@
         ]
       }
     ]
+  },
+  {
+    "id": "sz_l",
+    "modality": "seizure",
+    "label": "癫痫灶-L：默认复归增益下的同侧 LAL 焦点驱动（点火=发作）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/seizure：与 exp019 标定相反，故意不压 CEN_C 增益（no_cen_damp）——默认增益下任何超阈 chem 输入触发 82 Hz 自持点火（exp019 发现的发作样吸引子）；800-2800 ms 焦点驱动同侧 LAL（600 pA）= 发作灶；类别=灶侧别",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sz_r",
+    "modality": "seizure",
+    "label": "癫痫灶-R：默认复归增益下的同侧 LAL 焦点驱动（点火=发作）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/seizure：与 exp019 标定相反，故意不压 CEN_C 增益（no_cen_damp）——默认增益下任何超阈 chem 输入触发 82 Hz 自持点火（exp019 发现的发作样吸引子）；800-2800 ms 焦点驱动同侧 LAL（600 pA）= 发作灶；类别=灶侧别",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@R",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sz_ctl",
+    "modality": "seizure",
+    "label": "对照：chem 工作点下同幅驱动（不点火）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "bci/seizure 对照：同幅同窗 LAL 驱动但保持 CEN_C=0.002 工作点（有 damp）——预期无点火",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "taste_lglg",
+    "modality": "gustatory",
+    "label": "单器官糖脉冲：唇瓣（bci/gustatory 类别刺激）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci 范式：唇瓣味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（LgLG 400 pA；群大小 667/385/50，参照 LgLG 400 pA）",
+    "channels": [
+      {
+        "pop": "GRN",
+        "group": "LgLG",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "taste_wg",
+    "modality": "gustatory",
+    "label": "单器官糖脉冲：翅（bci/gustatory 类别刺激）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci 范式：翅味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（WG 693 pA；群大小 667/385/50，参照 LgLG 400 pA）",
+    "channels": [
+      {
+        "pop": "GRN",
+        "group": "WG",
+        "amp_pa": 693.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "taste_claw",
+    "modality": "gustatory",
+    "label": "单器官糖脉冲：跗节（bci/gustatory 类别刺激）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci 范式：跗节味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（claw_tpGRN 5336 pA；群大小 667/385/50，参照 LgLG 400 pA）",
+    "channels": [
+      {
+        "pop": "GRN",
+        "group": "claw_tpGRN",
+        "amp_pa": 5336.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "touch_l",
+    "modality": "touch",
+    "label": "体表触觉-L（bci/touch 类别刺激）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci 范式：同侧全体表触觉群（SNta*，~1.2k 细胞）900 ms 触压脉冲 @300 ms（300 pA，总驱动≈嗅觉全量标定）；类别=触压侧别",
+    "channels": [
+      {
+        "pop": "TC",
+        "group": "*@L",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "touch_r",
+    "modality": "touch",
+    "label": "体表触觉-R（bci/touch 类别刺激）",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci 范式：同侧全体表触觉群（SNta*，~1.2k 细胞）900 ms 触压脉冲 @300 ms（300 pA，总驱动≈嗅觉全量标定）；类别=触压侧别",
+    "channels": [
+      {
+        "pop": "TC",
+        "group": "*@R",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
   }
 ]

@@ -148,6 +148,8 @@ SECTIONS: dict = {
                           "exp019 味觉受体神经元基流（静息；同窗口）"),
         "i_pro_base_pa": (60.0, "pA", "assumed",
                           "exp020 本体感受神经元基流（静息肢体；同窗口）"),
+        "i_tc_base_pa": (60.0, "pA", "assumed",
+                          "exp022 体表触觉感受神经元基流（静息；同窗口）"),
         "i_joa_base_pa": (60.0, "pA", "assumed",
                           "exp021 Johnston 器听觉神经元基流（静息空气；"
                           "同窗口）"),
@@ -341,6 +343,7 @@ def cal() -> dict:
         "I_GRN_BASE": vpn["i_grn_base_pa"][0],
         "I_PRO_BASE": vpn["i_pro_base_pa"][0],
         "I_JOA_BASE": vpn["i_joa_base_pa"][0],
+        "I_TC_BASE": vpn["i_tc_base_pa"][0],
         "OU_VPN_CB": vpn["ou_sigma_vpn_cb_pa"][0],
     }
 

@@ -1,0 +1,16 @@
+{
+ "classes": [
+  "sz_l",
+  "sz_r",
+  "ctl"
+ ],
+ "repeats": 4,
+ "fs": 1000.0,
+ "dur_ms": 3600.0,
+ "drive_ms": [
+  800,
+  2800
+ ],
+ "regions": "visual_bilateral,ol_rest,central_brain",
+ "seed_map": "seed = 42 + i*repeats + r"
+}

@@ -57,10 +57,26 @@ class PhotoCascade:
         return self.g * self.y2
 
 
+class _IdMap:
+    """Compact id -> row lookup for an ascending-sorted id array.
+
+    Backed by searchsorted instead of the old dense
+    np.full(max_id + 1) table: the region builders' compact bands run
+    into the billions (ORN 2e9, PRO 3e9, JOA 4e9, TC 5e9), where the
+    dense form allocated max_id * 8 bytes and OOMed (37 GiB at the TC
+    band)."""
+
+    def __init__(self, ids):
+        self.ids = np.asarray(ids)
+        assert self.ids.size == 0 or np.all(self.ids[1:] >= self.ids[:-1]), \
+            "_IdMap requires ascending ids"
+
+    def __getitem__(self, x):
+        return np.searchsorted(self.ids, x)
+
+
 def _indices(ids):
-    idx = np.full(int(np.asarray(ids).max()) + 1, -1, dtype=np.int64)
-    idx[ids] = np.arange(len(ids))
-    return idx
+    return _IdMap(ids)
 
 
 def _release(v, rmap):

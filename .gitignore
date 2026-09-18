@@ -43,3 +43,9 @@ bci/direction/outputs/*.npy
 bci/direction/outputs/_trial_*/
 bci/mrcp/outputs/*.npy
 bci/mrcp/outputs/_trial_*/
+bci/seizure/outputs/*.npy
+bci/seizure/outputs/_trial_*/
+bci/gustatory/outputs/*.npy
+bci/gustatory/outputs/_trial_*/
+bci/touch/outputs/*.npy
+bci/touch/outputs/_trial_*/

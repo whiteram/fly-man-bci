@@ -815,9 +815,12 @@ def main():
         # recurrence-only gain at 0.002 (feedforward groups untouched)
         # the response is antennal-lobe specific and decays after the
         # pulse. Visual runs keep exp017's behavior (override only when
-        # --chem-input is active). See exp019 README.
+        # --chem-input is active).  bci/seizure opts OUT via
+        # "no_cen_damp": the 82 Hz latch IS the modeled seizure.
+        # See exp019 README.
         _G_CEN_CHEM = 0.002
-        if "CEN_C" in (circuit.get("extra_edges") or {}):
+        if not cspec.get("no_cen_damp", False) \
+                and "CEN_C" in (circuit.get("extra_edges") or {}):
             circuit["extra_edges"]["CEN_C"]["g_unit"] = _G_CEN_CHEM
             print(f"chem calibration: CEN_C recurrence gain -> "
                   f"{_G_CEN_CHEM} (chem-run working point, exp019)")
