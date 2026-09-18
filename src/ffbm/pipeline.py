@@ -185,6 +185,7 @@ def build_stack(circuit, cal, rng):
         e_sub = spec["table"]
         post = spec["post"]
         _std = spec.get("std")
+        _pl = spec.get("plast")
         syn[name] = ExponentialSynapses(
             *edges(e_sub), e_sub["weight"].to_numpy(np.float32),
             pop_index[post], dt=DT_MS, gain=1.0, tau_s=_res(spec["tau_s"]),
@@ -193,7 +194,9 @@ def build_stack(circuit, cal, rng):
             g_unit=_res(spec["g_unit"]), e_rev_exc=cal["E_REV_EXC"],
             e_rev_inh=cal["E_REV_INH"],
             std_u=(_std[0] if _std else None),
-            std_tau_rec=(_std[1] if _std else None))
+            std_tau_rec=(_std[1] if _std else None),
+            plast_lr=(_pl["lr"] if _pl else None),
+            plast_tau_ms=(_pl["tau_ms"] if _pl else None))
 
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
                                t_refrac=(1e9 if mech
@@ -253,7 +256,7 @@ def build_stack(circuit, cal, rng):
 
 
 def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None,
-             chem_fn=None):
+             chem_fn=None, mod_fn=None):
     """Run one trial of the cascade.
 
     lum_inc_fn(t_ms) -> phototransduction input increment, pA, scalar or
@@ -370,8 +373,9 @@ def simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, on_sample=None,
             return st["extra_ids"][pop][sp_extra_[pop]]
 
         for grp, pre_names in st["extra_pre"].items():
+            _mod = (mod_fn(t) if mod_fn is not None else 0.0)
             syn[grp].step(np.concatenate(
-                [spiked_ids(p) for p in pre_names]))
+                [spiked_ids(p) for p in pre_names]), _mod)
         if k % 2 == 0 and on_sample is not None:
             on_sample(k // 2, k, t, st, inc_f,
                       {"R": sp_r, "L": sp_l, "MID": sp_mid,

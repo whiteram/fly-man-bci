@@ -117,6 +117,15 @@ def main():
                     help="scale every *_BASE bias current (bci/"
                     "gainstate: the working point IS a state axis -- "
                     "moves spontaneous firing AND stimulus gain)")
+    ap.add_argument("--plastic-mb", action="store_true",
+                    help="split KC->MBON synapses out of CEN_C into a "
+                    "plastic edge group (bci/condit; runtime surgery, "
+                    "salted kernel key -- one rebuild, then cached)")
+    ap.add_argument("--plastic-window", type=str, default=None,
+                    help="reinforcement gate window 'a,b' ms (mod=1 "
+                    "inside; the DAN-drive proxy)")
+    ap.add_argument("--plastic-lr", type=float, default=0.0015,
+                    help="plasticity learning rate (per step, gated)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -184,6 +193,50 @@ def main():
     print(f"regions: OFF = {', '.join(_off) or '(none)'}"
           + ("   <-- pass --regions to enable" if _off else ""),
           flush=True)
+    if args.plastic_mb:
+        # runtime surgery (bci/condit): move KC->MBON pairs out of the
+        # CEN_C recurrence table into a dedicated PLASTIC group; the
+        # circuit cache stays untouched but the kernel key is salted so
+        # the forward kernels rebuild for the split topology
+        from ffbm import data as _fdata
+        _ann = _fdata.load_annotations()
+        _cls = _ann["class"].fillna("")
+        _sup = _ann["superclass"].fillna("")
+        _soma = _fdata.neuron_positions(_ann)
+        _cen_raw = np.array(sorted(
+            _ann.loc[(_sup.str.startswith("cb_")
+                      | (_sup == "descending_neuron"))
+            & _ann["bodyId"].isin(_soma), "bodyId"].astype(int)),
+            dtype=np.int64)
+        _cen_ids = circuit["extra_pops"]["CEN"]["ids"]
+        _rmap = dict(zip(_cen_raw.tolist(), _cen_ids.tolist()))
+        _kc = set(_rmap[int(b)] for b in
+                  _ann.loc[_cls == "Kenyon_Cell", "bodyId"]
+                  if int(b) in _rmap)
+        _mbon = set(_rmap[int(b)] for b in
+                    _ann.loc[_cls == "MBON", "bodyId"]
+                    if int(b) in _rmap)
+        _tab = circuit["extra_edges"]["CEN_C"]["table"]
+        _m = _tab["body_pre"].isin(_kc) & _tab["body_post"].isin(_mbon)
+        _kcm = _tab[_m].reset_index(drop=True)
+        circuit["extra_edges"]["CEN_C"]["table"] = \
+            _tab[~_m].reset_index(drop=True)
+        circuit["extra_edges"]["KCM"] = {
+            "pre": ("CEN",), "post": "CEN", "table": _kcm,
+            "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
+            "g_unit": circuit["extra_edges"]["CEN_C"]["g_unit"],
+            "forward": True,
+            "plast": {"lr": float(args.plastic_lr),
+                      "tau_ms": 400.0}}
+        print(f"plastic-mb: KCM split {len(_kcm)} KC->MBON pairs "
+              f"from CEN_C (lr={args.plastic_lr})")
+        ckey = (ckey + "+plmb") if ckey is not None else None
+    mod_fn = None
+    if args.plastic_window:
+        _wa, _wb = (float(v) for v in args.plastic_window.split(","))
+
+        def mod_fn(t, _a=_wa, _b=_wb):
+            return 1.0 if _a <= t < _b else 0.0
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]
@@ -871,11 +924,16 @@ def main():
             # the safe working point (0.002) and the default (0.004)
             circuit["extra_edges"]["CEN_C"]["g_unit"] = \
                 float(cspec["cen_gain"])
+            if "KCM" in circuit["extra_edges"]:
+                circuit["extra_edges"]["KCM"]["g_unit"] = \
+                    float(cspec["cen_gain"])
             print(f"chem calibration: CEN_C recurrence gain -> "
                   f"{cspec['cen_gain']} (explicit cen_gain)")
         elif not cspec.get("no_cen_damp", False) \
                 and "CEN_C" in (circuit.get("extra_edges") or {}):
             circuit["extra_edges"]["CEN_C"]["g_unit"] = _G_CEN_CHEM
+            if "KCM" in circuit["extra_edges"]:
+                circuit["extra_edges"]["KCM"]["g_unit"] = _G_CEN_CHEM
             print(f"chem calibration: CEN_C recurrence gain -> "
                   f"{_G_CEN_CHEM} (chem-run working point, exp019)")
 
@@ -1070,10 +1128,18 @@ def main():
 
         trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
                   int(T_END / fp.DT_MS), on_record=record_gpu,
-                  chem_fn=chem_fn)
+                  chem_fn=chem_fn, mod_fn=mod_fn)
         if jbuf:
             flush_scalp_gpu(n_field - jbuf, jbuf)
         cp.cuda.runtime.deviceSynchronize()
+        if args.plastic_mb and "KCM" in getattr(trial, "exp", {}):
+            _ws = trial.exp["KCM"].plast_w
+            _el = trial.exp["KCM"].plast_elig
+            print(f"plastic result: KCM w_scale mean "
+                  f"{float(_ws.mean()):.4f} min {float(_ws.min()):.4f} "
+                  f"floor-hit {int((_ws <= 0.0201).sum())}/{_ws.size} "
+                  f"| elig max {float(_el.max()):.4f}",
+                  flush=True)
         phi_scalp_g *= 1e-12
         phi_scalp = cp.asnumpy(phi_scalp_g)
         phi = cp.asnumpy(phi_g)
@@ -1085,7 +1151,8 @@ def main():
         jbuf = 0
     else:
         fp.simulate(circuit, cal, lambda t: I_LUM * (luminance(t) - 1.0),
-                    SEED, T_END, on_sample=record, chem_fn=chem_fn)
+                    SEED, T_END, on_sample=record, chem_fn=chem_fn,
+                    mod_fn=mod_fn)
         if jbuf:
             flush_scalp(n_field - jbuf, jbuf)
     if extra_rate and not args.gpu:

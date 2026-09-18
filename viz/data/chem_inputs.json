@@ -1989,5 +1989,200 @@
         ]
       }
     ]
+  },
+  {
+    "id": "condit",
+    "modality": "conditioning",
+    "label": "嗅觉条件化：训练 A+奖励(PAM) → 测试 A/B",
+    "t_end_ms": 8000.0,
+    "edge_ms": 100.0,
+    "note": "bci/condit：训练段 0.5-2.5s 气味 A(DA1 400pA)+双侧 PAM 群 800pA(奖励=DAN 发放)；测试段 A@4.2s(150pA)/B@6.2s(DM2 600pA 均衡)；配 --plastic-mb --plastic-window 500,2500，对照用 --plastic-lr 0（同奖励同动力学，唯一差异=学习开关）",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            4200,
+            5200
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            6200,
+            7200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "condit_kc",
+    "modality": "conditioning",
+    "label": "可塑性机制验证：直接驱动 KC + 奖励窗",
+    "t_end_ms": 8000.0,
+    "edge_ms": 100.0,
+    "note": "bci/condit 诊断：训练窗直接 chem 驱动 KC 主簇（KCg-m/KCab-s/KCab-m @双侧 400pA，绕开被工作点压制的 PN→KC 通路）+ PAM 奖励 800pA；只看 KCM w_scale 是否下调（机制在完整 GPU 管线的端到端验证）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KC*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "condt2",
+    "modality": "conditioning",
+    "label": "驱动条件化 v2：KC 表征训练+奖励 → KC 探针",
+    "t_end_ms": 8000.0,
+    "edge_ms": 100.0,
+    "note": "bci/condit v2：通路约束（PN→KC 在 CEN_C 内被 chem 工作点 0.002 压制，气味到不了 KC）下的驱动版——训练 0.5-2.5s：KC 主簇双侧 1600 pA（=气味 KC 表征注入）+ PAM 双侧 800 pA（奖励）；探针 4.2-4.7s：同 KC 驱动（500 ms）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6，对照 lr=0；读出=探针响应的通路级抑郁",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KC*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
   }
 ]

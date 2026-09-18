@@ -279,6 +279,47 @@ void k_deliver_std(float* y, float* buf, int ptr, int nE, int buf_len,
     }
 }
 
+// DAN-gated plasticity advance: eligibility decay + gated weight
+// depression (mod = reinforcement proxy, scalar this step)
+extern "C" __global__
+void k_plast_adv(float* elig, float* w, float decay, float lr,
+                 float mod, float floor, int nE) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= nE) return;
+    float e = elig[i] * decay;
+    elig[i] = e;
+    if (mod > 0.0f) {
+        float wv = w[i] * (1.0f - lr * mod * e);
+        w[i] = wv < floor ? floor : wv;
+    }
+}
+
+// delivery with a plastic weight scale (depletion at RELEASE time,
+// delayed groups route the scaled kick through the ring)
+extern "C" __global__
+void k_deliver_plast(float* y, float* buf, int ptr, int nE, int buf_len,
+                     const unsigned char* spike_row,
+                     const long long* starts, const long long* counts,
+                     const long long* flat_idx, const int* bins,
+                     const float* kick, float* w, float* elig,
+                     int n_rows)
+{
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= n_rows || !spike_row[p]) return;
+    for (long long j = starts[p]; j < starts[p] + counts[p]; ++j) {
+        long long t = flat_idx[j];
+        float k = kick[t] * w[t];
+        elig[t] += 1.0f;
+        int b = bins[t];
+        if (b == 0) {
+            y[t] += k;
+        } else {
+            int row = (ptr + b - 1) % buf_len;
+            buf[(long long)row * nE + t] += k;
+        }
+    }
+}
+
 // gather this step's spike bits for a group's presynaptic rows from the
 // concatenated all-population mask buffer
 extern "C" __global__
@@ -321,6 +362,7 @@ def _kernels():
                      "k_lif_g64", "k_exp_ring",
                      "k_buf_clear", "k_deliver", "k_spike_row",
                      "k_std_rec", "k_deliver_std",
+                     "k_plast_adv", "k_deliver_plast",
                      "k_ecur_f32"):
             _K[name] = cp.RawKernel(_SRC, name, options=_FAMD)
     return _K
@@ -425,6 +467,13 @@ class _ExpPoolG:
             self.std_d = cp.asarray(pool.std_d)
             self.std_u = np.float32(pool.std_u)
             self.std_rec = np.float32(pool.std_rec)
+        self.plast = bool(getattr(pool, "plast", False))
+        if self.plast:
+            self.plast_elig = cp.asarray(pool.elig)
+            self.plast_w = cp.asarray(pool.w_scale)
+            self.plast_decay = np.float32(pool.elig_decay)
+            self.plast_lr = np.float32(pool.plast_lr)
+            self.plast_floor = np.float32(pool.w_floor)
 
     def ecur_row(self, K, v_post, out_row, keep=None):
         """edge_currents(v_post) cast f32 into a ybuf row (bitwise the
@@ -447,9 +496,10 @@ class _ExpPoolG:
              self.out_i, self.out_g, np.int32(self.n_post)))
         return self.out_i, self.out_g
 
-    def step(self, K):
+    def step(self, K, mod=0.0):
         """End-of-step advance: decay + ring + delivery (numba order:
-        decay, ring add, ring clear, ptr advance, THEN delivery)."""
+        decay, ring add, ring clear, ptr advance, THEN delivery).  mod
+        = reinforcement gate for plastic groups."""
         if not self.n_edges:
             return
         if self.delayed:
@@ -462,6 +512,19 @@ class _ExpPoolG:
         _go(K["k_spike_row"], self.n_rows,
             (self.spike_row, self.src_off, self.local, self.mask_all,
              np.int32(self.n_rows)))
+        if self.plast:
+            _go(K["k_plast_adv"], self.n_edges,
+                (self.plast_elig, self.plast_w, self.plast_decay,
+                 self.plast_lr, np.float32(mod), self.plast_floor,
+                 np.int32(self.n_edges)))
+            _go(K["k_deliver_plast"], self.n_rows,
+                (self.y, self.buffer, np.int32(self.ptr),
+                 np.int32(self.n_edges), np.int32(self.buf_len),
+                 self.spike_row, self.starts, self.counts,
+                 self.flat_idx, self.bins, self.kick,
+                 self.plast_w, self.plast_elig,
+                 np.int32(self.n_rows)))
+            return
         if self.std:
             _go(K["k_std_rec"], self.n_edges,
                 (self.std_d, self.std_rec, np.int32(self.n_edges)))
@@ -603,7 +666,7 @@ class GPUTrial:
         return self._ou[name][2]
 
     # ------------------------------------------------------------------
-    def _step(self, t, inc_f):
+    def _step(self, t, inc_f, mod=0.0):
         st = self.st
         K = self.K
         inc = cp.asarray(np.asarray(inc_f, dtype=np.float64))
@@ -692,18 +755,19 @@ class GPUTrial:
                 self.exp[name].step(K)
         for grp in st["extra_pre"]:
             if grp in self.exp:
-                self.exp[grp].step(K)
+                self.exp[grp].step(K, mod)
 
         self._batch_pos += 1
         if self._batch_pos >= self.NOISE_BATCH:
             self._draw_noise_batch()
 
     def run(self, lum_inc_fn, n_steps, hook=None, on_record=None,
-            chem_fn=None):
+            chem_fn=None, mod_fn=None):
         """hook(k, t) fires after each step (parity checking).
         on_record(k, j, t, inc_f) mirrors simulate()'s on_sample cadence
         (every 2 steps); inc_f is the CPU photo increment (numpy f64).
-        chem_fn(t) -> {pop: f64 increment array} (exp019 chem drive)."""
+        chem_fn(t) -> {pop: f64 increment array} (exp019 chem drive).
+        mod_fn(t) -> float reinforcement gate for plastic groups."""
         photo = PhotoCascade(self.st["n_r"], self.st["pops"]["R"].dt)
         dt = float(self.st["pops"]["R"].dt)
         for k in range(n_steps):
@@ -712,7 +776,8 @@ class GPUTrial:
             if chem_fn is not None:
                 self._chem = {n: cp.asarray(v, dtype=cp.float64)
                               for n, v in chem_fn(t).items()}
-            self._step(t, inc_f)
+            _mod = mod_fn(t) if mod_fn is not None else 0.0
+            self._step(t, inc_f, _mod)
             if hook is not None:
                 hook(k, t)
             if on_record is not None and k % 2 == 0:
@@ -735,7 +800,7 @@ class GPUTrial:
 
 
 def gpu_simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, hook=None,
-                 on_record=None, chem_fn=None):
+                 on_record=None, chem_fn=None, mod_fn=None):
     """GPU twin of pipeline.simulate (mech branch).
 
     Consumes the seed exactly like simulate (build_stack draws the
@@ -744,5 +809,5 @@ def gpu_simulate(circuit, cal, lum_inc_fn, seed, t_end_ms, hook=None,
     st = build_stack(circuit, cal, rng)
     trial = GPUTrial(st)
     trial.run(lum_inc_fn, int(t_end_ms / st["pops"]["R"].dt), hook=hook,
-              on_record=on_record, chem_fn=chem_fn)
+              on_record=on_record, chem_fn=chem_fn, mod_fn=mod_fn)
     return st, trial

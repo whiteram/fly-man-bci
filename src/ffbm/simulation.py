@@ -435,6 +435,8 @@ class ExponentialSynapses:
         e_rev_inh: float = -75.0,
         std_u: float | None = None,
         std_tau_rec: float | None = None,
+        plast_lr: float | None = None,
+        plast_tau_ms: float | None = None,
     ):
         """post_index remaps edge post ids to contiguous [0, n_post) rows.
 
@@ -513,6 +515,19 @@ class ExponentialSynapses:
             self.std_u = np.float32(std_u)
             self.std_rec = np.float32(np.exp(-dt / std_tau_rec))
             self.std_d = np.ones(self.n_edges, dtype=np.float32)
+        # DAN-gated plasticity (fly olfactory conditioning rule):
+        # per-edge eligibility e accumulates on presynaptic spikes and
+        # decays (tau); each step the weight scale is DEPRESSED by
+        # lr * mod(t) * e  (mod = reinforcement/dopamine proxy passed
+        # per step).  Three-factor learning without post activity --
+        # the documented KC x DAN form of mushroom-body conditioning.
+        self.plast = plast_lr is not None
+        if self.plast:
+            self.plast_lr = np.float32(plast_lr)
+            self.elig = np.zeros(self.n_edges, dtype=np.float32)
+            self.elig_decay = np.float32(np.exp(-dt / plast_tau_ms))
+            self.w_scale = np.ones(self.n_edges, dtype=np.float32)
+            self.w_floor = np.float32(0.02)
         # numba step-kernel scratch (delivery spans; sized for the worst
         # case of every presynaptic neuron spiking in one step)
         self._tmp_t = np.empty(self.n_edges, dtype=np.int64)
@@ -542,6 +557,10 @@ class ExponentialSynapses:
                     self.y[targets] += (self.kick[targets]
                                         * self.std_d[targets])
                     self.std_d[targets] *= (1.0 - self.std_u)
+                elif self.plast:
+                    self.y[targets] += (self.kick[targets]
+                                        * self.w_scale[targets])
+                    self.elig[targets] += 1.0
                 else:
                     self.y[targets] += self.kick[targets]
 
@@ -559,6 +578,9 @@ class ExponentialSynapses:
         if self.std:
             kicks = self.kick[targets] * self.std_d[targets]
             self.std_d[targets] *= (1.0 - self.std_u)
+        elif self.plast:
+            kicks = self.kick[targets] * self.w_scale[targets]
+            self.elig[targets] += 1.0
         else:
             kicks = self.kick[targets]
         for b in np.unique(bins):
@@ -569,9 +591,12 @@ class ExponentialSynapses:
                 row = (self.ptr + int(b) - 1) % self.buf_len
                 np.add.at(self.buffer[row], targets[m], kicks[m])
 
-    def step(self, spiked_pre: np.ndarray) -> np.ndarray:
-        """One dt advance; returns per-edge current state (pA)."""
-        if _HAVE_NUMBA and self.n_edges and not self.std:
+    def step(self, spiked_pre: np.ndarray, mod: float = 0.0
+             ) -> np.ndarray:
+        """One dt advance; returns per-edge current state (pA).  mod =
+        reinforcement gate for plastic synapses (ignored elsewhere)."""
+        if _HAVE_NUMBA and self.n_edges and not self.std \
+                and not self.plast:
             sel = (self._sel_rows(spiked_pre) if len(spiked_pre)
                    else np.empty(0, dtype=np.int64))
             if self.delayed:
@@ -589,6 +614,12 @@ class ExponentialSynapses:
         self.y *= self.decay
         if self.std:
             self.std_d += (1.0 - self.std_d) * self.std_rec
+        if self.plast:
+            self.elig *= self.elig_decay
+            if mod > 0.0:
+                self.w_scale = np.maximum(
+                    self.w_scale * (1.0 - self.plast_lr * mod
+                                    * self.elig), self.w_floor)
         if self.delayed:
             self.y += self.buffer[self.ptr]
             self.buffer[self.ptr].fill(0.0)
