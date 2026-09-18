@@ -783,14 +783,21 @@ def main():
             return min(v, 1.0)
 
         def chem_fn(t):
+            # multiple channels may target the SAME pop (e.g. the MRCP
+            # staircase stacks same-group channels) -- SUM their
+            # increments; historical entries never overlapped in time
+            # so summation is identical to the previous last-wins
+            # behavior for them
             out = {}
             for pop, idx, amp, pulses, _ch in chans:
                 lv = level(pulses, t)
                 if lv <= 0.0:
                     continue
-                inc = np.zeros(len(pops_x[pop]["ids"]))
-                inc[idx] = amp * lv
-                out[pop] = inc
+                inc = out.get(pop)
+                if inc is None:
+                    inc = np.zeros(len(pops_x[pop]["ids"]))
+                    out[pop] = inc
+                inc[idx] += amp * lv
             return out
 
         chem_meta = {"id": cspec["id"],

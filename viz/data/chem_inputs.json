@@ -815,5 +815,135 @@
         ]
       }
     ]
+  },
+  {
+    "id": "mrcp_l",
+    "modality": "motor_readiness",
+    "label": "运动准备 MRCP-L：LAL 阶梯坡道 + 执行复反馈",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "MRCP 范式：LAL*@L 阶梯坡道（300/600/900 pA @1300/1900/2500，3100 补满 1200——PhotoCascade 30 适配补偿后稳态 90→360 pA）= 准备电位上升期；2800 ms 同侧腿 PRO 400 pA 复反馈 = 运动执行/感知副本；类别=侧别",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            1300,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            1900,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            2500,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "PRO",
+        "group": "*@L",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            2800,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            3100,
+            3500
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mrcp_r",
+    "modality": "motor_readiness",
+    "label": "运动准备 MRCP-R：LAL 阶梯坡道 + 执行复反馈",
+    "t_end_ms": 3600.0,
+    "edge_ms": 100.0,
+    "note": "MRCP 范式：LAL*@R 阶梯坡道（300/600/900 pA @1300/1900/2500，3100 补满 1200——PhotoCascade 30 适配补偿后稳态 90→360 pA）= 准备电位上升期；2800 ms 同侧腿 PRO 400 pA 复反馈 = 运动执行/感知副本；类别=侧别",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@R",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            1300,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@R",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            1900,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@R",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            2500,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "PRO",
+        "group": "*@R",
+        "amp_pa": 400.0,
+        "pulses": [
+          [
+            2800,
+            3500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "LAL*@R",
+        "amp_pa": 300.0,
+        "pulses": [
+          [
+            3100,
+            3500
+          ]
+        ]
+      }
+    ]
   }
 ]

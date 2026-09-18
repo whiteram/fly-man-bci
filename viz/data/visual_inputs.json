@@ -50,6 +50,28 @@
    "lo": 0.05,
    "hi": 3.0,
    "linearize_srgb": false
+  },
+  {
+   "id": "loom_static",
+   "kind": "video",
+   "label": "static disk",
+   "source": "data/stimuli/looming/static.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
+  },
+  {
+   "id": "dir_270",
+   "kind": "video",
+   "label": "drifting grating 270 deg (4 Hz)",
+   "source": "data/stimuli/direction/d270.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
   }
  ]
 }

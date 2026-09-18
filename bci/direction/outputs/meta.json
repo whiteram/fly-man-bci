@@ -1,0 +1,17 @@
+{
+ "classes": [
+  "000",
+  "090",
+  "180",
+  "270"
+ ],
+ "repeats": 6,
+ "fs": 1000.0,
+ "dur_ms": 3000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain",
+ "grating": {
+  "tf_hz": 4.0,
+  "lambda_px": 24.0
+ },
+ "seed_map": "seed = 42 + i*repeats + r"
+}
