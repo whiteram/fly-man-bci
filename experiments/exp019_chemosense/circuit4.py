@@ -134,12 +134,19 @@ def _add_sensory_pop(circuit, name, class_name, i_key):
     circuit["extra_pops"] = pops
 
     # chem_groups: annotation type -> indices into pops[name]["ids"]
-    # (sorted compact ids -- index == position in the sorted array)
-    sub = ann.loc[m, ["bodyId", "type"]].copy()
+    # (sorted compact ids -- index == position in the sorted array);
+    # side-qualified duplicates "<type>@<rootSide>" are added for the
+    # stereo paradigms (bci/stereo) -- type-only keys stay so existing
+    # chem entries (ORN_DA1, LgLG*, claw_tpGRN, ...) keep matching
+    sub = ann.loc[m, ["bodyId", "type", "rootSide"]].copy()
     sub["compact"] = sub["bodyId"].map(remap)
     groups = {}
     for tname, grp in sub.groupby("type"):
         groups[str(tname)] = np.searchsorted(
+            _CACHE[f"ids_{name}"], grp["compact"].to_numpy(np.int64))
+    for (tname, sd), grp in sub.groupby(
+            [sub["type"].fillna("?"), sub["rootSide"].fillna("?")]):
+        groups[f"{tname}@{sd}"] = np.searchsorted(
             _CACHE[f"ids_{name}"], grp["compact"].to_numpy(np.int64))
     chem_groups = circuit.get("chem_groups") or {}
     chem_groups[name] = groups

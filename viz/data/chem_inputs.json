@@ -1860,5 +1860,47 @@
         ]
       }
     ]
+  },
+  {
+    "id": "orn_l",
+    "modality": "olfactory",
+    "label": "立体嗅觉-L：同侧 DA1 气味脉冲",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci/stereo：同侧 DA1 群（rootSide L，51 细胞）900 ms 脉冲 @300 ms，幅度按侧别群大小补偿（L 310 / R 150 pA）；类别=气味来向",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1@L",
+        "amp_pa": 310.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "orn_r",
+    "modality": "olfactory",
+    "label": "立体嗅觉-R：同侧 DA1 气味脉冲",
+    "t_end_ms": 3600.0,
+    "edge_ms": 50.0,
+    "note": "bci/stereo：同侧 DA1 群（rootSide R，105 细胞）900 ms 脉冲 @300 ms，幅度按侧别群大小补偿（L 310 / R 150 pA）；类别=气味来向",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1@R",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            1200
+          ]
+        ]
+      }
+    ]
   }
 ]

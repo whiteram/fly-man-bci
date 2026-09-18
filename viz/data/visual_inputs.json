@@ -83,6 +83,18 @@
    "lo": 0.05,
    "hi": 3.0,
    "linearize_srgb": false
+  },
+  {
+   "id": "vf_right",
+   "kind": "video",
+   "label": "right-half 10 Hz flicker (eye_map half_split)",
+   "source": "data/stimuli/visualfield/right.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false,
+   "eye_map": "half_split"
   }
  ]
 }

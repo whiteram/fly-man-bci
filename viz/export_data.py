@@ -106,6 +106,9 @@ def main():
     ap.add_argument("--out", type=str, default=None,
                     help="override the output directory (default "
                     "viz/data, smoke: viz/data_smoke)")
+    ap.add_argument("--noise-scale", type=float, default=1.0,
+                    help="scale every OU noise sigma (bci/arousal "
+                    "state manipulation: quiet < 1 < active)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -658,7 +661,8 @@ def main():
             # projection, which leaves the frame's middle band
             # unsampled and gives each eye a different horizontal band.
             # (geometry validated in scripts/poc_eye_map_geometry.py)
-            if str(cfg.get("eye_map", "per_eye")) == "per_eye":
+            if str(cfg.get("eye_map", "per_eye")) in ("per_eye",
+                                                      "half_split"):
                 r_pos_map = r_pos.copy()
                 mid = 0.5 * (r_pos[side_r, 0].mean()
                              + r_pos[~side_r, 0].mean())
@@ -684,6 +688,12 @@ def main():
                     (x_hi + x_pad) - (x_lo - x_pad), 1e-9) * (W - 1)
                 pyf[m] = (y_i[m] - (y_lo - y_pad)) / max(
                     (y_hi + y_pad) - (y_lo - y_pad), 1e-9) * (H - 1)
+            if str(cfg.get("eye_map", "per_eye")) == "half_split":
+                # each lobe samples its OWN half of the frame (right
+                # lobe -> left half, left lobe -> right half;
+                # bci/visualfield monocular-paradigm support)
+                pxf[groups[0]] *= 0.5
+                pxf[groups[1]] = 0.5 * (W - 1) + pxf[groups[1]] * 0.5
             # float coords -> bilinear sampling: nearest-neighbour
             # aliases at low video resolutions (sub-ommatidial pixels)
             pxf = np.clip(pxf, 0, W - 1)
@@ -728,6 +738,19 @@ def main():
     extra_rate = {n: np.zeros(n_field)
                   for n in (circuit.get("extra_pops") or {})}
     cal = dict(fp.CAL)
+    if args.noise_scale != 1.0:
+        _ns = args.noise_scale
+        if isinstance(cal.get("OU"), dict):
+            cal["OU"] = {k: v * _ns for k, v in cal["OU"].items()}
+        for k in list(cal):
+            if k.startswith("OU") and "TAU" not in k \
+                    and isinstance(cal[k], (int, float)):
+                cal[k] *= _ns
+        for _spec in (circuit.get("extra_pops") or {}).values():
+            if "ou_sigma" in _spec:
+                _spec["ou_sigma"] = _spec["ou_sigma"] * _ns
+        print(f"noise scale: all OU sigmas x {_ns} "
+              "(bci/arousal state manipulation)")
 
     # ---- chemosensory drive (exp019): a chem_inputs.json entry turns
     # into a stateless chem_fn(t) -> {pop: per-neuron pA increment}
