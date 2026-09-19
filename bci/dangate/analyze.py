@@ -58,7 +58,7 @@ def main(prefix=""):
                 eg = OUT / f"{tag}.npy"
                 if eg.exists():
                     e = np.load(eg)
-                    e = e.mean(axis=0) if e.ndim == 2 else e
+                    e = e.mean(axis=1) if e.ndim == 2 else e
                     seg = slice(int(PROBE[0]), int(PROBE[1]))
                     base = e[int(3000):int(4000)]
                     probes.append(float(np.sqrt(

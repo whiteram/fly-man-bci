@@ -55,11 +55,38 @@ V_A 增长使 AB+ 阶段 DAN 误差反应被压低 → B 学得少；control 臂
 | --plastic-dan-gate | 150,0.05,400 | τ_ms, 门增益, 基线窗 ms |
 | --plastic-lr | −1e-6 | 负=电位化 |
 
+## 全量结果（2 臂 × 2 session × 4+6 试次，lr −2e-7）
+
+| 量 | blocked | control | 比 |
+|---|---|---|---|
+| w_B 终值（KCab-m→MBON）| 0.267 | 0.296 | 1.11× |
+| p2 误差积分（mod ms）| 860 | 979 | 压制 12% |
+| p2 首试次误差 | ~850 | 1320 | **早期分离 55%** |
+
+三个电路原生现象成立：
+
+1. **误差随 V 单调下降**（blocked p1：1082→853 pilot / 全量
+   p2 平台 ~860 vs 无 V 的 1950）——多巴胺分室放电率编码 R−V；
+2. **分室特异性**：control 臂 p1（C+）误差纹丝不动（~1950 平线，
+   V_C 不入 DAN_err 分室——KCab-s 驱动的 MBON 不投射该分室），
+   p2 里 A 一出现误差立刻掉到 1320；
+3. **阻断涌现但弱**（1.11×/12% vs RW 门的 4.8×）：瓶颈=MBON
+   二值开关把门的地板限制在 ~41% 残余（797/1950）——B 在 40%
+   门占空比下 6 次配对仍累积到 control 的 90%。晚期两臂收敛
+  （control 的 A 在 p2 内也学起来了）。
+
+**与 blocking/blocking2 合并的结论链**：窗门无阻断 → RW 误差门
+4.8× 阻断 → 电路化误差门 1.11× 阻断。阻断随误差项的实现层级
+（实验层算术 → 电路分室放电）**变弱但不消失**——弱的根源不是
+概念而是 MBON 工作点的二值性。增强路径（新立项）：MBON 超极化
+偏置（负幅值 chem 通道）使其进入分级区、或降低奖励幅度收窄 DAN
+动态范围。
+
 ## 用法
 
 ```bash
 conda activate ffbm
 python bci/dangate/acquire.py --pilot        # blocked 臂 2+3 试次
-python bci/dangate/acquire.py                # 2 臂 × 2 session（~40 试次）
+python bci/dangate/acquire.py --lr=-2e-7 --w0 0.03 --kcm-gain 0.015 --mbmd-gain 178
 python bci/dangate/analyze.py
 ```
