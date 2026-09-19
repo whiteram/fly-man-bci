@@ -148,11 +148,12 @@ def main():
                          "point's recurrence damping (true odor -> KC "
                          "transmission; bci/condit3)")
     ap.add_argument("--mb-mod-gain", type=float, default=None,
-                    help="MB-modulator surgery: split APL/DPM<->KC/MBON "
-                         "feedback rows (9k+ pairs) out of CEN_C into "
-                         "group MBM at this ABSOLUTE gain -- restores "
-                         "divisive normalization of KC output, raises "
-                         "the stable KC->MBON readout-leg ceiling")
+                    help="MB-modulator surgery: split the APL (GABA) <->"
+                         "KC/MBON feedback rows out of CEN_C into group "
+                         "MBM at this ABSOLUTE gain -- restores divisive "
+                         "normalization of KC output, raises the stable "
+                         "KC->MBON readout-leg ceiling (DPM excluded: "
+                         "dopaminergic positive loop)")
     ap.add_argument("--gain-scale", type=str, default=None,
                     help="runtime pathway-gain modulation, 'GRP=f[,"
                          "GRP=f...]': multiply the named extra edge "
@@ -318,16 +319,20 @@ def main():
         ckey = (ckey + "+alg") if ckey is not None else None
     if args.mb_mod_gain is not None:
         # MB-modulator surgery (bci/condit3 follow-up): APL (1 per side,
-        # GABAergic wide field) and DPM (amnesiac neuropeptide) carry a
-        # MASSIVE feedback loop with the KC compartment -- APL<->KC
-        # 9,326 pairs / 400k syn -- all inside the damped CEN_C table.
-        # Splitting both directions into MBM at an independent gain
-        # restores divisive normalization of KC output, which should
-        # raise the stable ceiling for the KC->MBON readout leg
-        # (true-odor conditioning visibility; the nolr control latched
-        # at KCM x250 without it).
+        # GABAergic wide field) carries a MASSIVE negative-feedback loop
+        # with the KC compartment -- APL<->KC 9,326 pairs / 400k syn --
+        # all inside the damped CEN_C table.  Splitting both directions
+        # into MBM at an independent gain restores divisive normalization
+        # of KC output, which should raise the stable ceiling for the
+        # KC->MBON readout leg (true-odor conditioning visibility; the
+        # nolr control latched at KCM x250 without it).  DPM is
+        # deliberately EXCLUDED: it is dopaminergic (+1 sign) and its
+        # 4k DPM->KC rows form a POSITIVE loop that amplifies runaway
+        # instead of limiting it (measured: nolr 780 uV latch at
+        # gain 0.2 with DPM included) -- DPM's real role is slow
+        # neuropeptide modulation, not fast feedback.
         _apm = set(_rmap[int(b)] for b in
-                   _ann.loc[_ann["type"].isin(("APL", "DPM")), "bodyId"]
+                   _ann.loc[_ann["type"] == "APL", "bodyId"]
                    if int(b) in _rmap)
         _kcmb = _kc | _mbon
         _tab = circuit["extra_edges"]["CEN_C"]["table"]
