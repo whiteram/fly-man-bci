@@ -1,0 +1,22 @@
+{
+ "chem": "odor_da1_short",
+ "scales": [
+  0.25,
+  0.5,
+  1.0,
+  2.0,
+  4.0
+ ],
+ "seeds": [
+  171,
+  271
+ ],
+ "dur_ms": 3600.0,
+ "groups": "ORN,ALPN,ALLN,Kenyon_Cell,MBON",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "odor_ms": [
+  300,
+  1200
+ ],
+ "base_pa": 150.0
+}

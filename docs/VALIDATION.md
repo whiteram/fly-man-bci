@@ -10,7 +10,7 @@
 | 2 | KC 自发发放率 | **0 Hz**（暗场 4.5s × 4,064 KC，elig 稳态探针灵敏度 <5×10⁻⁴ Hz/细胞）| **~0.004 Hz**（蛾在体，n=117；果蝇"近可忽略"）——比 PN 低 ~2000× | ✅ **匹配**（两者实际静默）| 稳态 elig = 率×tau（`--plastic-mb` 全窗开，hyb_n 工作点）；[Nature Neurosci 2008](https://www.nature.com/articles/nn.2192)、[J Neurophysiol 2008](https://journals.physiology.org/doi/full/10.1152/jn.01283.2007)、[Neuron 2014](https://pmc.ncbi.nlm.nih.gov/articles/PMC4000970) |
 | 3 | KC 气味诱发率 | 驱动版 ~78-125 Hz（elig 反推）；真实气味通路（al-gain 0.01）~78 Hz max | **稀疏：数 Hz，多数 KC 无响应**（每气味 ~5-10 尖峰）| ❌ **偏高 1-2 个量级** | 稳态 elig 反推（condit/condit3 校准运行）；[Honegger 2011](https://www.jneurosci.org/content/33/25/10568)、[Cell Reports 2017](https://www.sciencedirect.science/article/pii/S0896627317305639) |
 | 4 | 嗅觉响应起始延迟 | 头皮起始 **126 ms**（气味脉冲后 3σ 判据），峰 678 ms | PN 响应"数十 ms"量级起始、快速上升并适应（强调气味起始/导数）| ✅ 量级一致；峰时程=适应包络（定性一致 "rise and accommodate"）| bci/olfactory da1_r0 事后分析；[Bhandawat 2007](https://pmc.ncbi.nlm.nih.gov)、[Kim 2015](https://pmc.ncbi.nlm.nih.gov) |
-| 5 | PN 层弱信号放大 | 未单独记录（PN 在 CEN 大群内）| 弱 ORN 输入在 PN 层放大、强的不放大 | ⏸ 待仪器化（PN 分群速率记录）| Bhandawat 2007 |
+| 5 | PN 层弱信号放大 | **PN/ORN 诱发率比 15.1×（阈上最低强度）→ 3.2×（4× 强度），PN 饱和 ~22 Hz**（`--pop-rate` 分群速率；ORN_DA1 剂量 ×{0.25..4}，2 种子）| 弱 ORN 输入在 PN 层放大、强的不放大 | ✅ **定性匹配**（扩张非线性：阈值处增益最高、随强度压缩；模型经由 30:1 汇聚+阈下整合涌现，非树突机制）| bci/pnrate；[Bhandawat 2007](https://pmc.ncbi.nlm.nih.gov) |
 
 ## 不匹配项的机制解读（#3）
 
@@ -24,7 +24,11 @@
 ## 诚实边界
 
 - 头皮信号由外周（ORN/感觉末梢）主导——中央速率类度量无法从
-  头皮反推，需分群速率记录仪器化（列为后续）；
+  头皮反推，需分群速率记录仪器化（**已落地**：`--pop-rate`，
+  行 #5 即用其测得）；
+- #5 的模型侧"放大"来自 30:1 ORN:PN 汇聚 + LIF 阈值整合（自发
+  0、阈上即饱和 ~22 Hz），不是 Bhandawat 的树突/突触前机制——
+  行为特征匹配、实现机制不同源（与 #3 的稀疏化缺失互为镜像）；
 - elig 稳态探针给的是突触前率的上包络（max 边）；均值的反推
   需按 w 衰减积分，未做（避免过度推算）；
 - 文献值跨物种（蛾/果蝇）混用处在 #2 已标注；量级比较为主。
@@ -38,4 +42,6 @@ central_brain,olfactory --visual-input dark --chem-input hyb_n \
   --plastic-mb --plastic-window 500,5000 --plastic-lr 3e-6 \
   --t-end 5000 --seed 901 --out <tmp> --gpu   # -> "elig max 0.0000"
 # 嗅觉起始延迟：bci/olfactory 输出 + 3σ 判据（见本表方法列）
+# PN 层弱信号放大（行 #5）：
+python bci/pnrate/acquire.py && python bci/pnrate/analyze.py
 ```
