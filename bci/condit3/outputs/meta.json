@@ -1,0 +1,32 @@
+{
+ "conditions": [
+  "learn",
+  "nolr"
+ ],
+ "probes": [
+  "condt3a",
+  "condt3b"
+ ],
+ "lr": {
+  "learn": "5e-5",
+  "nolr": "0.0"
+ },
+ "al_gain": 0.01,
+ "runs": 5,
+ "fs": 1000.0,
+ "dur_ms": 5000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "train_ms": [
+  500,
+  2500
+ ],
+ "probe_ms": [
+  4300,
+  4700
+ ],
+ "probe_odor": {
+  "a": "DA1 (trained)",
+  "b": "DM2 (untrained)"
+ },
+ "seed_map": "sequential from 242"
+}

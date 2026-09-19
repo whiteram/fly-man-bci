@@ -2238,5 +2238,113 @@
         ]
       }
     ]
+  },
+  {
+    "id": "condt3a",
+    "modality": "conditioning",
+    "label": "真气味条件化：ORN DA1 训练+PAM 奖励 → 探针=DA1（训练气味）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/condit3：配 --al-gain 0.01（AL→KC 独立增益，绕过 chem 工作点对 PN→KC 的 500× 压制）+ --plastic-mb --plastic-window 500,2500 --plastic-lr 5e-5；训练 0.5-2.5s：真实气味入口 ORN_DA1 150pA + PAM 双侧 800pA；探针 4.2-4.7s 同入口；对照 lr=0；读出=探针净响应的通路级抑郁 + A/B 特异性（condt3a vs condt3b）",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "condt3b",
+    "modality": "conditioning",
+    "label": "真气味条件化：ORN DA1 训练+PAM 奖励 → 探针=DM2（未训练气味，群大小补偿幅度）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/condit3：配 --al-gain 0.01（AL→KC 独立增益，绕过 chem 工作点对 PN→KC 的 500× 压制）+ --plastic-mb --plastic-window 500,2500 --plastic-lr 5e-5；训练 0.5-2.5s：真实气味入口 ORN_DA1 150pA + PAM 双侧 800pA；探针 4.2-4.7s 同入口；对照 lr=0；读出=探针净响应的通路级抑郁 + A/B 特异性（condt3a vs condt3b）",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
   }
 ]

@@ -1,0 +1,25 @@
+{
+ "freqs": [
+  10.0,
+  14.0
+ ],
+ "sides": [
+  "l",
+  "r"
+ ],
+ "k_arms": {
+  "k0": null,
+  "k4": "OLR_V=4",
+  "k16": "OLR_V=16"
+ },
+ "repeats": 2,
+ "fs": 1000.0,
+ "dur_ms": 10500.0,
+ "regions": "visual_bilateral,ol_rest,central_brain",
+ "imagery_ms": [
+  1500,
+  9800
+ ],
+ "gain_group": "OLR_V (visual cascade -> central feedforward)",
+ "nwp": "no-imagery control WITH hyb_n chem (0.002 working point) -- hybrid confound check"
+}

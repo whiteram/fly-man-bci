@@ -37,3 +37,13 @@ conda activate ffbm
 python bci/hybrid/acquire.py         # 6 条件 × 3（10.5 s/试次）
 python bci/hybrid/analyze.py
 ```
+
+## 更正（2026-09-19，bci/attend nwp 臂复核）
+
+本 README 的 "~500× 掩没" 数字与纯视觉电路（ssvep_benchmark，
+线 SNR 347）对比得出。attend 的 nwp 对照臂（无想象 + 显式 0.002
+工作点）测得：工作点份额 **×1.0**（hyb_n 代码漏传 `--chem-input`
+但测量上无影响）、双任务份额 ×1.4——掩没的主体（~300×）来自
+**纳入中枢区域本身**（宽带中枢背景抬高线频处底噪），而非想象
+任务或工作点衰减。结论方向不变（视觉线在混合电路中不可读），
+归因修正为中枢区域整体自发活动；详见 `bci/attend/README.md`。

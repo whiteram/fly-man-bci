@@ -137,6 +137,18 @@ def main():
     ap.add_argument("--plastic-state-out", type=str, default=None,
                     help="write KCM w_scale + edge-id checksum after the "
                          "run (GPU only)")
+    ap.add_argument("--al-gain", type=float, default=None,
+                    help="AL-independence surgery: split AL->KC (PN->"
+                         "Kenyon) rows out of CEN_C into group ALK at "
+                         "this ABSOLUTE gain, escaping the chem working "
+                         "point's recurrence damping (true odor -> KC "
+                         "transmission; bci/condit3)")
+    ap.add_argument("--gain-scale", type=str, default=None,
+                    help="runtime pathway-gain modulation, 'GRP=f[,"
+                         "GRP=f...]': multiply the named extra edge "
+                         "groups' g_unit by f (resolved absolute; not "
+                         "in any cache key -- g_unit is a runtime "
+                         "scalar; bci/attend attention model)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -258,6 +270,45 @@ def main():
               + (f", tau_w={args.plastic_tau_w:g} ms"
                  if args.plastic_tau_w > 0 else "") + ")")
         ckey = (ckey + "+plmb") if ckey is not None else None
+    if args.al_gain is not None:
+        # AL-independence surgery (bci/condit3): the AL->KC (PN->Kenyon)
+        # rows live in the CEN_C recurrence table, so the chem working
+        # point (g 0.002) crushes the real odor->KC pathway 500x.  Split
+        # them into an ALK feedforward group at an independent ABSOLUTE
+        # gain.  AL local recurrence (PN<->LN) stays damped: the minimal
+        # step is the feedforward ORN ->(ORN_C, full gain) PN ->(ALK) KC
+        # pathway; stability must be calibrated (latch risk).
+        if "_rmap" not in locals():
+            from ffbm import data as _fdata
+            _ann = _fdata.load_annotations()
+            _sup = _ann["superclass"].fillna("")
+            _soma = _fdata.neuron_positions(_ann)
+            _cen_raw = np.array(sorted(
+                _ann.loc[(_sup.str.startswith("cb_")
+                          | (_sup == "descending_neuron"))
+                & _ann["bodyId"].isin(_soma), "bodyId"].astype(int)),
+                dtype=np.int64)
+            _cen_ids = circuit["extra_pops"]["CEN"]["ids"]
+            _rmap = dict(zip(_cen_raw.tolist(), _cen_ids.tolist()))
+        _al = set(_rmap[int(b)] for b in
+                  _ann.loc[_ann["class"].isin(
+                      ("ALPN", "ALLN", "ALIN", "ALON")), "bodyId"]
+                  if int(b) in _rmap)
+        _kc = set(_rmap[int(b)] for b in
+                  _ann.loc[_ann["class"] == "Kenyon_Cell", "bodyId"]
+                  if int(b) in _rmap)
+        _tab = circuit["extra_edges"]["CEN_C"]["table"]
+        _m = _tab["body_pre"].isin(_al) & _tab["body_post"].isin(_kc)
+        _alk = _tab[_m].reset_index(drop=True)
+        circuit["extra_edges"]["CEN_C"]["table"] = \
+            _tab[~_m].reset_index(drop=True)
+        circuit["extra_edges"]["ALK"] = {
+            "pre": ("CEN",), "post": "CEN", "table": _alk,
+            "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
+            "g_unit": float(args.al_gain), "forward": True}
+        print(f"al-gain: ALK split {len(_alk)} AL->KC pairs from CEN_C "
+              f"(gain={args.al_gain:g})", flush=True)
+        ckey = (ckey + "+alg") if ckey is not None else None
     mod_fn = None
     if args.plastic_window:
         _wa, _wb = (float(v) for v in args.plastic_window.split(","))
@@ -963,6 +1014,23 @@ def main():
                 circuit["extra_edges"]["KCM"]["g_unit"] = _G_CEN_CHEM
             print(f"chem calibration: CEN_C recurrence gain -> "
                   f"{_G_CEN_CHEM} (chem-run working point, exp019)")
+    if args.gain_scale:
+        # runtime pathway-gain modulation (bci/attend): multiply named
+        # extra edge groups' g_unit.  g_unit is a runtime scalar (never
+        # in a cache key), so no kernel rebuild; applied AFTER the chem
+        # working point so arms can scale suppressed groups back up.
+        for _tok in args.gain_scale.split(","):
+            _gn, _, _fac = _tok.partition("=")
+            _gn = _gn.strip()
+            if _gn not in circuit["extra_edges"]:
+                raise SystemExit(
+                    f"--gain-scale: unknown edge group {_gn!r} "
+                    f"(have: {sorted(circuit['extra_edges'])})")
+            _gu = circuit["extra_edges"][_gn]["g_unit"]
+            _gu = cal[_gu] if isinstance(_gu, str) else float(_gu)
+            circuit["extra_edges"][_gn]["g_unit"] = _gu * float(_fac)
+            print(f"gain-scale: {_gn} g_unit x{float(_fac):g} "
+                  f"-> {_gu * float(_fac):.4g}", flush=True)
 
     extra_post = {g: s["post"] for g, s in
                   (circuit.get("extra_edges") or {}).items()}
