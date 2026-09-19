@@ -21,7 +21,7 @@ def main():
         if not sc.exists():
             continue
         e = np.load(sc)
-        e = e.mean(axis=0) if e.ndim == 2 else e
+        e = e.mean(axis=1) if e.ndim == 2 else e
         ig = float(np.sqrt((e[IGNITE] ** 2).mean()) * 1e6 * 1.7)
         pl = float(np.sqrt((e[PLATEAU] ** 2).mean()) * 1e6 * 1.7)
         cls_txt = ""
@@ -37,15 +37,21 @@ def main():
         b = rows["base"]["plateau_uv"]
         coll = [a for a, r in rows.items()
                 if a != "base" and r["plateau_uv"] < 0.3 * b]
+        none_txt = "NONE OF THE TESTED PATHWAYS"
         print(f"\n[sleep2] base plateau {b:.2f} uV; collapsed by: "
-              f"{', '.join(coll) if coll else 'NONE OF THE TESTED "
-              f'PATHWAYS'}")
-        verdict = (f"maintainer = {' + '.join(coll)}" if len(coll) == 1
+              f"{', '.join(coll) if coll else none_txt}")
+        PATH = {"noCEN_C": "CEN_C recurrence (full 0.004 gain)",
+                "noCEN_R": "OLR->CEN feedforward",
+                "noOLR_V": "visual core->OLR",
+                "noCEN_V": "visual core->CEN",
+                "noORN_C": "ORN->CEN"}
+        verdict = (f"maintainer = {PATH[coll[0]]}" if len(coll) == 1
                    else ("distributed/no single pathway" if not coll
-                         else f"multiple contributors: {coll}"))
+                         else f"multiple contributors: "
+                              f"{[PATH.get(a, a) for a in coll]}"))
         print(f"[sleep2] verdict: {verdict}")
     (OUT / "summary.json").write_text(json.dumps(
-        {"rows": rows, "verdict": verdict if 'verdict' in dir() else None},
+        {"rows": rows, "verdict": (verdict if "base" in rows else None)},
         indent=1))
 
 

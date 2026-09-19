@@ -1,0 +1,19 @@
+{
+ "arms": {
+  "base": null,
+  "noCEN_C": "CEN_C=0.02",
+  "noCEN_R": "CEN_R=0.02",
+  "noOLR_V": "OLR_V=0.02",
+  "noCEN_V": "CEN_V=0.02",
+  "noORN_C": "ORN_C=0.02"
+ },
+ "dur_ms": 20000.0,
+ "seed": 606,
+ "chem": "sz_l",
+ "groups": "Kenyon_Cell,MBON,ALPN,DAN",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "plateau_ms": [
+  10000,
+  20000
+ ]
+}

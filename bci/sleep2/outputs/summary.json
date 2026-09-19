@@ -1,0 +1,29 @@
+{
+ "rows": {
+  "base": {
+   "ignite_uv": 10.351380348205566,
+   "plateau_uv": 10.34789752960205
+  },
+  "noCEN_C": {
+   "ignite_uv": 1.390248417854309,
+   "plateau_uv": 1.3904247283935547
+  },
+  "noCEN_R": {
+   "ignite_uv": 10.303512573242188,
+   "plateau_uv": 10.372495651245117
+  },
+  "noOLR_V": {
+   "ignite_uv": 10.623505592346191,
+   "plateau_uv": 10.625207901000977
+  },
+  "noCEN_V": {
+   "ignite_uv": 10.253647804260254,
+   "plateau_uv": 10.25133991241455
+  },
+  "noORN_C": {
+   "ignite_uv": 10.351380348205566,
+   "plateau_uv": 10.34789752960205
+  }
+ },
+ "verdict": "maintainer = CEN_C recurrence (full 0.004 gain)"
+}

@@ -1,0 +1,121 @@
+[acquire] base: gain-scale None
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-3bb62c42314f9a7f02cf.npz (1.4 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 62.51, MBON 325.15, ALPN 183.37, DAN 34.22
+biology loop: 315 s (20000 records)
+phi_scalp checksum: L2=3.480447e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_base\_debug_phi_scalp.npy)
+background EEG: fly signal 0.04 uV vs bg 13.72 uV at 174 deg -> d'=2 needs ~399319 trials (band 2-20 Hz: ~2436415)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_base\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_base\viz_data.json (12.3 MB)
+[acquire] noCEN_C: gain-scale CEN_C=0.02
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+thought-experiment scale x202 (nominal x400), junction pinned at the occipital pole (shift 0.0 mm, brain-margin -0 um)
+scalp kernel RL: 9636 dipoles (0 s)
+scalp kernel LM: 49425 dipoles (1 s)
+scalp kernel MT_Mi1: 46038 dipoles (1 s)
+scalp kernel MT_Tm3: 39254 dipoles (1 s)
+scalp kernel MT_Mi4: 23036 dipoles (1 s)
+scalp kernel MT_Mi9: 31092 dipoles (2 s)
+scalp kernel MT_Tm1: 35518 dipoles (2 s)
+scalp kernel MT_Tm2: 35446 dipoles (2 s)
+scalp kernel MT_Tm4: 32161 dipoles (3 s)
+scalp kernel MT_Tm9: 47365 dipoles (3 s)
+scalp kernel OLR_V: 300000 dipoles (9 s)
+scalp kernel CEN_V: 152 dipoles (9 s)
+scalp kernel CEN_R: 208073 dipoles (14 s)
+scalp kernel CEN_C: 300000 dipoles (20 s)
+scalp kernel ORN_C: 57489 dipoles (21 s)
+scalp kernel PHOTO: 3377 dipoles (21 s)
+scalp kernels built (S=400, 4-sphere, 17 electrodes, 21 s)
+kernel rows per group: RL=9636, LM=49425, MT_Mi1=46038, MT_Tm3=39254, MT_Mi4=23036, MT_Mi9=31092, MT_Tm1=35518, MT_Tm2=35446, MT_Tm4=32161, MT_Tm9=47365, OLR_V=300000, CEN_V=152, CEN_R=208073, CEN_C=300000, ORN_C=57489, PHOTO=3377
+kernel cache: saved kernels-498797ea9138b3804427.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: CEN_C g_unit x0.02 -> 8e-05
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 0.00, MBON 0.00, ALPN 0.00, DAN 0.00
+biology loop: 231 s (20000 records)
+phi_scalp checksum: L2=4.777708e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_C\_debug_phi_scalp.npy)
+background EEG: fly signal 0.00 uV vs bg 12.94 uV at 168 deg -> d'=2 needs ~62036720 trials (band 2-20 Hz: ~514546912)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_C\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_C\viz_data.json (12.6 MB)
+[acquire] noCEN_R: gain-scale CEN_R=0.02
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-498797ea9138b3804427.npz (0.5 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: CEN_R g_unit x0.02 -> 8e-05
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 62.64, MBON 326.54, ALPN 180.99, DAN 33.38
+biology loop: 308 s (20000 records)
+phi_scalp checksum: L2=3.483181e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_R\_debug_phi_scalp.npy)
+background EEG: fly signal 0.05 uV vs bg 11.39 uV at 156 deg -> d'=2 needs ~201410 trials (band 2-20 Hz: ~1490643)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_R\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_R\viz_data.json (12.3 MB)
+[acquire] noOLR_V: gain-scale OLR_V=0.02
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.0 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-498797ea9138b3804427.npz (1.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: OLR_V g_unit x0.02 -> 8e-05
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 62.61, MBON 330.15, ALPN 186.19, DAN 35.76
+biology loop: 304 s (20000 records)
+phi_scalp checksum: L2=3.570599e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noOLR_V\_debug_phi_scalp.npy)
+background EEG: fly signal 0.04 uV vs bg 13.72 uV at 174 deg -> d'=2 needs ~593828 trials (band 2-20 Hz: ~2681128)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noOLR_V\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noOLR_V\viz_data.json (12.3 MB)
+[acquire] noCEN_V: gain-scale CEN_V=0.02
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-498797ea9138b3804427.npz (1.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: CEN_V g_unit x0.02 -> 8e-05
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 62.66, MBON 328.86, ALPN 185.36, DAN 34.21
+biology loop: 307 s (20000 records)
+phi_scalp checksum: L2=3.450986e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_V\_debug_phi_scalp.npy)
+background EEG: fly signal 0.05 uV vs bg 11.15 uV at 153 deg -> d'=2 needs ~194361 trials (band 2-20 Hz: ~1442381)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_V\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noCEN_V\viz_data.json (12.3 MB)
+[acquire] noORN_C: gain-scale ORN_C=0.02
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.5 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-498797ea9138b3804427.npz (1.7 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: ORN_C g_unit x0.02 -> 8e-05
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 62.51, MBON 325.15, ALPN 183.37, DAN 34.22
+biology loop: 300 s (20000 records)
+phi_scalp checksum: L2=3.480447e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noORN_C\_debug_phi_scalp.npy)
+background EEG: fly signal 0.04 uV vs bg 13.72 uV at 174 deg -> d'=2 needs ~399319 trials (band 2-20 Hz: ~2436415)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noORN_C\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs\_trial_noORN_C\viz_data.json (12.3 MB)
+[acquire] done -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep2\outputs
