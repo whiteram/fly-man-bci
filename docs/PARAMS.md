@@ -106,6 +106,8 @@
 | i_pro_base_pa | 60.0 | pA | 假设 | exp020 本体感受神经元基流（静息肢体；同窗口） |
 | i_tc_base_pa | 60.0 | pA | 假设 | exp022 体表触觉感受神经元基流（静息；同窗口） |
 | i_joa_base_pa | 60.0 | pA | 假设 | exp021 Johnston 器听觉神经元基流（静息空气；同窗口） |
+| i_th_base_pa | 60.0 | pA | 假设 | exp023 温度感受神经元基流（静息温度；同窗口） |
+| i_hy_base_pa | 60.0 | pA | 假设 | exp023 湿度感受神经元基流（静息湿度；同窗口） |
 | ou_sigma_vpn_cb_pa | 40.0 | pA | 现象学 | 扩展区域的 OU 噪声（与 MID 同量级） |
 | sign_mapping | consensus_nt | - | 假设 | ACh→+1；GABA/Glu→−1；多巴胺/5-HT/章鱼胺/未知→+1（多数为兴奋/调质，文档化为假设） |
 | positions | soma | - | 假设 | 扩展区域用胞体位置近似突触位置（syn-points 13 GB 未做子集扫描；偶极长度因此保守偏短） |

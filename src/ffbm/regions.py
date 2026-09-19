@@ -53,6 +53,8 @@ _BUILDERS = {
                  / "circuit6.py", "build_audition"),
     "touch": (ROOT / "experiments" / "exp022_touch_haltere"
               / "circuit7.py", "build_touch"),
+    "thermal": (ROOT / "experiments" / "exp023_thermal"
+                / "circuit8.py", "build_thermal"),
 }
 
 # vnc/central_brain/ol_rest share exp017's caches: assemble them
@@ -60,13 +62,14 @@ _BUILDERS = {
 # input regions come last -- they drive INTO central (antennal lobe /
 # SEZ partners live in central_brain), so central must be built first
 _ORDER = ("visual_bilateral", "vpn_central", "ol_rest", "central_brain",
-          "vnc", "olfactory", "gustatory", "proprioception", "audition", "touch")
+          "vnc", "olfactory", "gustatory", "proprioception", "audition",
+          "touch", "thermal")
 
 DEFAULT_REGIONS = {"visual_bilateral": True, "vpn_central": False,
                    "ol_rest": False, "central_brain": False,
                    "vnc": False, "olfactory": False, "gustatory": False,
                    "proprioception": False, "audition": False,
-                   "touch": False}
+                   "touch": False, "thermal": False}
 
 
 def _load(module_file: Path, attr: str):
@@ -107,7 +110,8 @@ def build_circuit(regions: dict | None = None):
         raise ValueError("visual_bilateral is the input driver of every "
                          "currently known downstream region; it cannot "
                          "be switched off alone")
-    for chem in ("olfactory", "gustatory", "proprioception", "audition", "touch"):
+    for chem in ("olfactory", "gustatory", "proprioception", "audition",
+                "touch", "thermal"):
         if cfg[chem] and not cfg["central_brain"]:
             raise ValueError(f"{chem} drives its central partners "
                              "(antennal lobe / SEZ / ascending "

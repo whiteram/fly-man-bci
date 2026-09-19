@@ -218,6 +218,28 @@ chem_groups 按 `类型@rootSide` 建组）；BCI 范式 `bci/auditory/`
 （侧别×歌模式 4 类解码：4 类 54% / 侧别 75% / 模式 75%，均显著，
 见其 README）。awesome-fly 社区无先例，本项目率先落地。
 
+
+## 6. 温度与湿度（exp023 实现，TRN/HRN → 中央脑通路）
+
+**数据侧证据**：
+
+- 温度受体 **25 个**（class `thermosensory`：TRN_VP1m 11 热通路 /
+  TRN_VP2 7 + TRN_VP3a 6 + VP3b 1 冷通路；rootSide L 12/R 13），
+  全部有 PreSyn 末梢；湿度受体 **66 个**（class `hygrosensory`：
+  HRN_VP4 28 干 / HRN_VP1d 18 + VP1l 8 + VP5 12 湿；L 29/R 36）。
+- 下游（w≥5）：**TH_C 1,257 对 / 44,989 突触** 与 **HY_C 2,524 对
+  / 45,968 突触** → 中央脑（热/冷与干/湿传入的 CEN 前馈偶极子）
+  + 本地 TH_R 67 对 / HY_R 179 对。
+- **建模选择**：TRN/HRN 为紧张性发放——刺激用 3s 慢斜坡
+  （300ms 平滑沿），经共享 PhotoCascade 转导。
+
+**状态**：区域已实现（`thermal`，构建器
+`experiments/exp023_thermal/circuit8.py`，I_TH_BASE/I_HY_BASE
+60 pA，双 pop TH/HY，chem_groups 按 `类型@rootSide`）；BCI 范式
+`bci/thermal/`：**温度 warm/cool 空间 LOO 92%（p=0.017，整体
+rms 平坦——又一空间模式轴证据）**；湿度 dry/moist 58% 不显著
+（干/湿中央靶点重叠更高的结构假设，诚实阴性）。
+
 ---
 
 ## 实现位置说明（为什么这样放）

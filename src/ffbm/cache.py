@@ -54,6 +54,7 @@ _CIRCUIT_CODE = [
     "experiments/exp020_proprioception/circuit5.py",
     "experiments/exp021_audition/circuit6.py",
     "experiments/exp022_touch_haltere/circuit7.py",
+    "experiments/exp023_thermal/circuit8.py",
     "experiments/exp005_medulla_ds/run.py",     # imported by exp015
 ]
 _KERNEL_CODE = [

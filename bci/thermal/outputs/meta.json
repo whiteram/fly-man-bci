@@ -1,0 +1,22 @@
+{
+ "blocks": {
+  "temp": [
+   "thermal_w",
+   "thermal_c"
+  ],
+  "hygro": [
+   "hygro_d",
+   "hygro_m"
+  ]
+ },
+ "runs": 6,
+ "fs": 1000.0,
+ "dur_ms": 3600.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,thermal",
+ "window_ms": [
+  1500,
+  3400
+ ],
+ "note": "class 0 = first entry of each block (warm / dry)",
+ "seed_map": "sequential from 742"
+}

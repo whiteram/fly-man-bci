@@ -153,6 +153,10 @@ SECTIONS: dict = {
         "i_joa_base_pa": (60.0, "pA", "assumed",
                           "exp021 Johnston 器听觉神经元基流（静息空气；"
                           "同窗口）"),
+        "i_th_base_pa": (60.0, "pA", "assumed",
+                         "exp023 温度感受神经元基流（静息温度；同窗口）"),
+        "i_hy_base_pa": (60.0, "pA", "assumed",
+                         "exp023 湿度感受神经元基流（静息湿度；同窗口）"),
         "ou_sigma_vpn_cb_pa": (40.0, "pA", "phenomenol.",
                                "扩展区域的 OU 噪声（与 MID 同量级）"),
         "sign_mapping": ("consensus_nt", "-", "assumed",
@@ -344,6 +348,8 @@ def cal() -> dict:
         "I_PRO_BASE": vpn["i_pro_base_pa"][0],
         "I_JOA_BASE": vpn["i_joa_base_pa"][0],
         "I_TC_BASE": vpn["i_tc_base_pa"][0],
+        "I_TH_BASE": vpn["i_th_base_pa"][0],
+        "I_HY_BASE": vpn["i_hy_base_pa"][0],
         "OU_VPN_CB": vpn["ou_sigma_vpn_cb_pa"][0],
     }
 

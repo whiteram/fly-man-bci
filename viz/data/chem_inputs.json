@@ -2596,5 +2596,351 @@
         ]
       }
     ]
+  },
+  {
+    "id": "dual1",
+    "modality": "conditioning",
+    "label": "双时间常数记忆 dual1：全 KC 训练+奖励 → γ/αβ 双探针",
+    "t_end_ms": 5200.0,
+    "edge_ms": 100.0,
+    "note": "bci/dualmem 短/长时记忆分离：训练驱动全 KC（两组同学习），探针分窗——γ 窗 4.2-4.45s（KCg*）、α/β 窗 4.6-4.85s（KCab*）；配 --plastic-mb --plastic-dual-tauw 30000,300000（γ 快恢复=短时记忆，α/β 慢恢复=长时记忆）+ --plastic-window 500,2500 --plastic-lr 3e-6 + 状态链；dualx 为无奖励消退版",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KC*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4450
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4450
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4600,
+            4850
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4600,
+            4850
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dualx",
+    "modality": "conditioning",
+    "label": "双时间常数记忆 dualx：全 KC 训练（无奖励）→ γ/αβ 双探针（消退）",
+    "t_end_ms": 5200.0,
+    "edge_ms": 100.0,
+    "note": "bci/dualmem 短/长时记忆分离：训练驱动全 KC（两组同学习），探针分窗——γ 窗 4.2-4.45s（KCg*）、α/β 窗 4.6-4.85s（KCab*）；配 --plastic-mb --plastic-dual-tauw 30000,300000（γ 快恢复=短时记忆，α/β 慢恢复=长时记忆）+ --plastic-window 500,2500 --plastic-lr 3e-6 + 状态链；dualx 为无奖励消退版",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KC*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4450
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4450
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4600,
+            4850
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4600,
+            4850
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "thermal_w",
+    "modality": "thermal",
+    "label": "温/湿度刺激 thermal_w",
+    "t_end_ms": 3600.0,
+    "edge_ms": 300.0,
+    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+    "channels": [
+      {
+        "pop": "TH",
+        "group": "TRN_VP1m*@L",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "TH",
+        "group": "TRN_VP1m*@R",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "thermal_c",
+    "modality": "thermal",
+    "label": "温/湿度刺激 thermal_c",
+    "t_end_ms": 3600.0,
+    "edge_ms": 300.0,
+    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+    "channels": [
+      {
+        "pop": "TH",
+        "group": "TRN_VP2*@L",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "TH",
+        "group": "TRN_VP2*@R",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "TH",
+        "group": "TRN_VP3*@L",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "TH",
+        "group": "TRN_VP3*@R",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hygro_d",
+    "modality": "thermal",
+    "label": "温/湿度刺激 hygro_d",
+    "t_end_ms": 3600.0,
+    "edge_ms": 300.0,
+    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+    "channels": [
+      {
+        "pop": "HY",
+        "group": "HRN_VP4*@L",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "HY",
+        "group": "HRN_VP4*@R",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hygro_m",
+    "modality": "thermal",
+    "label": "温/湿度刺激 hygro_m",
+    "t_end_ms": 3600.0,
+    "edge_ms": 300.0,
+    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+    "channels": [
+      {
+        "pop": "HY",
+        "group": "HRN_VP1*@L",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "HY",
+        "group": "HRN_VP1*@R",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "HY",
+        "group": "HRN_VP5*@L",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      },
+      {
+        "pop": "HY",
+        "group": "HRN_VP5*@R",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            3300
+          ]
+        ]
+      }
+    ]
   }
 ]

@@ -134,6 +134,12 @@ def main():
                     help="slow homeostatic recovery of plastic w_scale "
                          "toward 1, ms (0 = frozen weights; extinction, "
                          "bci/condit2)")
+    ap.add_argument("--plastic-dual-tauw", type=str, default=None,
+                    help="'g_ms,ab_ms': split KCM by presynaptic KC "
+                         "subtype (KCg* vs the rest) into TWO plastic "
+                         "groups with separate recovery time constants "
+                         "-- the short-vs-long memory dissociation "
+                         "(bci/dualmem; overrides --plastic-tau-w)")
     ap.add_argument("--plastic-state-in", type=str, default=None,
                     help="npz written by --plastic-state-out: continue "
                          "the session from these KCM weights (cross-"
@@ -254,45 +260,69 @@ def main():
                     if int(b) in _rmap)
     if args.plastic_mb:
         # runtime surgery (bci/condit): move KC->MBON pairs out of the
-        # CEN_C recurrence table into a dedicated PLASTIC group; the
+        # CEN_C recurrence table into dedicated PLASTIC group(s); the
         # circuit cache stays untouched but the kernel key is salted so
-        # the forward kernels rebuild for the split topology
+        # the forward kernels rebuild for the split topology.  With
+        # --plastic-dual-tauw the split is by presynaptic KC subtype
+        # (KCg* = gamma vs the rest = alpha/beta-like), each group with
+        # its OWN recovery tau -- the fly's short-vs-long-memory
+        # compartment dissociation (bci/dualmem).
+        import hashlib
         _tab = circuit["extra_edges"]["CEN_C"]["table"]
         _m = _tab["body_pre"].isin(_kc) & _tab["body_post"].isin(_mbon)
-        _kcm = _tab[_m].reset_index(drop=True)
+        _kcm_all = _tab[_m].reset_index(drop=True)
         circuit["extra_edges"]["CEN_C"]["table"] = \
             _tab[~_m].reset_index(drop=True)
-        circuit["extra_edges"]["KCM"] = {
-            "pre": ("CEN",), "post": "CEN", "table": _kcm,
-            "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
-            "g_unit": circuit["extra_edges"]["CEN_C"]["g_unit"],
-            "forward": True,
-            "plast": {"lr": float(args.plastic_lr),
-                      "tau_ms": 400.0,
-                      **({"tau_w_ms": float(args.plastic_tau_w)}
-                         if args.plastic_tau_w > 0 else {})}}
-        # edge-identity checksum: the synapse reorders rows with
-        # lexsort((pre, post)) -- a DETERMINISTIC function of the table
-        # content -- so hashing the table's id bytes pins the w_scale
-        # ordering; a state file from an invocation with a different KCM
-        # edge list is rejected
-        import hashlib
-        _ord = np.lexsort((_kcm["body_pre"].to_numpy(np.int64),
-                           _kcm["body_post"].to_numpy(np.int64)))
-        KCM_PRE = _kcm["body_pre"].to_numpy(np.int64)[_ord]
         _inv_rmap = {int(v): int(k) for k, v in _rmap.items()}
         _typ = _ann.set_index("bodyId")["type"]
-        KCM_PRE_TYPE = np.array(
-            [str(_typ.get(_inv_rmap.get(int(p), -1), "?"))
-             for p in KCM_PRE], dtype="<U24")
-        KCM_CHECKSUM = hashlib.md5(np.concatenate([
-            _kcm["body_pre"].to_numpy(np.int64),
-            _kcm["body_post"].to_numpy(np.int64)]).tobytes()).hexdigest()
-        print(f"plastic-mb: KCM split {len(_kcm)} KC->MBON pairs "
-              f"from CEN_C (lr={args.plastic_lr}"
-              + (f", tau_w={args.plastic_tau_w:g} ms"
-                 if args.plastic_tau_w > 0 else "") + ")")
-        ckey = (ckey + "+plmb") if ckey is not None else None
+        if args.plastic_dual_tauw:
+            _tg, _tab_tau = (float(v) for v in
+                             args.plastic_dual_tauw.split(","))
+            _pt = _kcm_all["body_pre"].map(
+                lambda p: str(_typ.get(_inv_rmap.get(int(p), -1), "?")))
+            _isg = _pt.str.startswith("KCg").to_numpy()
+            parts = (("KCMg", _kcm_all[_isg].reset_index(drop=True),
+                      _tg), ("KCMab",
+                             _kcm_all[~_isg].reset_index(drop=True),
+                             _tab_tau))
+        else:
+            parts = (("KCM", _kcm_all,
+                      float(args.plastic_tau_w)
+                      if args.plastic_tau_w > 0 else None),)
+        # KCM_STATE[gname] = (pre ids in SYNAPSE order, pre-type labels,
+        #                     checksum) -- the per-group state identity
+        KCM_STATE = {}
+        for gname, ktab, tau_w in parts:
+            circuit["extra_edges"][gname] = {
+                "pre": ("CEN",), "post": "CEN", "table": ktab,
+                "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
+                "g_unit": circuit["extra_edges"]["CEN_C"]["g_unit"],
+                "forward": True,
+                "plast": {"lr": float(args.plastic_lr),
+                          "tau_ms": 400.0,
+                          **({"tau_w_ms": tau_w}
+                             if tau_w is not None else {})}}
+            # edge identity: the synapse reorders rows with
+            # lexsort((pre, post)) -- DETERMINISTIC in the table content
+            # -- so hashing the table's id bytes pins the w_scale order
+            _ord = np.lexsort((ktab["body_pre"].to_numpy(np.int64),
+                               ktab["body_post"].to_numpy(np.int64)))
+            _pre = ktab["body_pre"].to_numpy(np.int64)[_ord]
+            KCM_STATE[gname] = (
+                _pre,
+                np.array([str(_typ.get(_inv_rmap.get(int(p), -1), "?"))
+                          for p in _pre], dtype="<U24"),
+                hashlib.md5(np.concatenate([
+                    ktab["body_pre"].to_numpy(np.int64),
+                    ktab["body_post"].to_numpy(np.int64)]).tobytes()
+                ).hexdigest())
+            _pw = f", tau_w={tau_w:g} ms" if tau_w is not None else ""
+            print(f"plastic-mb: {gname} split {len(ktab)} KC->MBON "
+                  f"pairs (lr={args.plastic_lr}{_pw})", flush=True)
+        # salt distinguishes the DUAL-group topology from single KCM
+        # (the kernel cache key has no other topology awareness)
+        ckey = ((ckey + "+plmb2") if args.plastic_dual_tauw
+                else (ckey + "+plmb")) if ckey is not None else None
     if args.al_gain is not None:
         # AL-independence surgery (bci/condit3): the AL->KC (PN->Kenyon)
         # rows live in the CEN_C recurrence table, so the chem working
@@ -1201,16 +1231,27 @@ def main():
         trial = fgpu.GPUTrial(st_g)
         Kg = trial.K
         if args.plastic_state_in:
+            import hashlib as _hl
             _si = np.load(args.plastic_state_in)
-            if str(_si["checksum"]) != KCM_CHECKSUM:
+            _combined = _hl.md5("|".join(
+                f"{_g}:{KCM_STATE[_g][2]}"
+                for _g in sorted(KCM_STATE)).encode()).hexdigest()
+            if str(_si["checksum"]) == _combined:
+                _src = {g: _si[f"w_{g}"] for g in KCM_STATE}
+            elif (len(KCM_STATE) == 1 and "KCM" in KCM_STATE
+                    and str(_si["checksum"]) == KCM_STATE["KCM"][2]):
+                _src = {"KCM": _si["w"]}    # legacy single-group file
+            else:
                 raise SystemExit(
-                    "plastic state mismatch: edge ids differ from this "
-                    "session's KCM split -- refusing to load")
-            _pw = trial.exp["KCM"].plast_w
-            assert _si["w"].shape == _pw.shape
-            _pw.set(np.ascontiguousarray(_si["w"]))
-            print(f"plastic state IN: w mean {float(_si['w'].mean()):.4f}"
-                  f" min {float(_si['w'].min()):.4f}", flush=True)
+                    "plastic state mismatch: edge ids differ from "
+                    "this session's split -- refusing to load")
+            for _g, _wv in _src.items():
+                _pw = trial.exp[_g].plast_w
+                assert _wv.shape == _pw.shape
+                _pw.set(np.ascontiguousarray(_wv))
+                print(f"plastic state IN {_g}: w mean "
+                      f"{float(_wv.mean()):.4f} min "
+                      f"{float(_wv.min()):.4f}", flush=True)
         ybuf_g = {name: cp.zeros((CHUNK, coef_f32[name].shape[1]),
                                  cp.float32) for name in gnames}
         coef_g = {name: cp.asarray(coef_f32[name]) for name in gnames}
@@ -1282,19 +1323,41 @@ def main():
         if jbuf:
             flush_scalp_gpu(n_field - jbuf, jbuf)
         cp.cuda.runtime.deviceSynchronize()
-        if args.plastic_mb and "KCM" in getattr(trial, "exp", {}):
-            _ws = trial.exp["KCM"].plast_w
-            _el = trial.exp["KCM"].plast_elig
-            print(f"plastic result: KCM w_scale mean "
-                  f"{float(_ws.mean()):.4f} min {float(_ws.min()):.4f} "
-                  f"floor-hit {int((_ws <= 0.0201).sum())}/{_ws.size} "
-                  f"| elig max {float(_el.max()):.4f}",
-                  flush=True)
-            if args.plastic_state_out:
-                _w_out = cp.asnumpy(_ws).astype(np.float32)
-                np.savez(args.plastic_state_out, w=_w_out,
-                         n=_w_out.size, checksum=KCM_CHECKSUM,
-                         pre=KCM_PRE, pre_type=KCM_PRE_TYPE)
+        if args.plastic_mb:
+            _state_out = {}
+            for _g in KCM_STATE:
+                if _g not in getattr(trial, "exp", {}):
+                    continue
+                _ws = trial.exp[_g].plast_w
+                _el = trial.exp[_g].plast_elig
+                print(f"plastic result {_g}: w_scale mean "
+                      f"{float(_ws.mean()):.4f} min "
+                      f"{float(_ws.min()):.4f} "
+                      f"floor-hit {int((_ws <= 0.0201).sum())}/{_ws.size}"
+                      f" | elig max {float(_el.max()):.4f}", flush=True)
+                _state_out[f"w_{_g}"] = \
+                    cp.asnumpy(_ws).astype(np.float32)
+            if args.plastic_state_out and _state_out:
+                _payload = {f"pre_{g}": v[0] for g, v in
+                            KCM_STATE.items()}
+                _payload.update({f"pre_type_{g}": v[1] for g, v in
+                                 KCM_STATE.items()})
+                _payload.update(_state_out)
+                if len(KCM_STATE) == 1 and "KCM" in KCM_STATE:
+                    # single group: legacy flat keys + legacy checksum
+                    # (state-in takes the legacy branch; old analyze
+                    # readers keep working)
+                    _payload.update(
+                        w=_state_out["w_KCM"],
+                        n=_state_out["w_KCM"].size,
+                        pre=KCM_STATE["KCM"][0],
+                        pre_type=KCM_STATE["KCM"][1],
+                        checksum=KCM_STATE["KCM"][2])
+                else:
+                    _payload["checksum"] = hashlib.md5("|".join(
+                        f"{g}:{KCM_STATE[g][2]}"
+                        for g in sorted(KCM_STATE)).encode()).hexdigest()
+                np.savez(args.plastic_state_out, **_payload)
         phi_scalp_g *= 1e-12
         phi_scalp = cp.asnumpy(phi_scalp_g)
         phi = cp.asnumpy(phi_g)

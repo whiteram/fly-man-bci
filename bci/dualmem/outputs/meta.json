@@ -1,0 +1,27 @@
+{
+ "sessions": 4,
+ "n_acq": 8,
+ "n_ext": 8,
+ "fs": 1000.0,
+ "dur_ms": 5200.0,
+ "lr": "3e-6",
+ "dual_tauw": "30000,300000",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "train_ms": [
+  500,
+  2500
+ ],
+ "probe_g_ms": [
+  4300,
+  4400
+ ],
+ "probe_ab_ms": [
+  4700,
+  4800
+ ],
+ "groups": {
+  "KCMg": "KCg* tau_w 30 s",
+  "KCMab": "rest tau_w 300 s"
+ },
+ "seed_map": "642 + 10r + k"
+}
