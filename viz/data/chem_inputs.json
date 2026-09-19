@@ -2964,5 +2964,222 @@
         ]
       }
     ]
+  },
+  {
+    "id": "dangateA",
+    "modality": "conditioning",
+    "label": "误差门电路化 dangateA: A(KCg-m)+DAN_err 奖励 → A 探针（阶段1）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "DAN_err",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dangateAB",
+    "modality": "conditioning",
+    "label": "误差门电路化 dangateAB: A+B(KCab-m)+DAN_err 奖励 → B 探针（阶段2）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "DAN_err",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dangateC",
+    "modality": "conditioning",
+    "label": "误差门电路化 dangateC: C(KCab-s)+DAN_err 奖励 → C 探针（阶段1）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCab-s@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "DAN_err",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
   }
 ]

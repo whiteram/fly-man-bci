@@ -280,8 +280,11 @@ void k_deliver_std(float* y, float* buf, int ptr, int nE, int buf_len,
 }
 
 // DAN-gated plasticity advance: eligibility decay + gated weight
-// depression (mod = reinforcement proxy, scalar this step) + optional
-// slow homeostatic recovery of w toward 1 (rec = dt/tau_w, 0 = off)
+// update + optional slow homeostatic recovery.  lr >= 0: DEPRESSION
+// toward floor, recovery toward 1 (mod = reinforcement proxy, scalar
+// this step; rec = dt/tau_w, 0 = off).  lr < 0: POTENTIATION toward 1
+// with the floor slot carrying baseline w0 (also the recovery target,
+// bci/dangate appetitive form).
 extern "C" __global__
 void k_plast_adv(float* elig, float* w, float decay, float lr,
                  float mod, float floor, float rec, int nE) {
@@ -289,12 +292,22 @@ void k_plast_adv(float* elig, float* w, float decay, float lr,
     if (i >= nE) return;
     float e = elig[i] * decay;
     elig[i] = e;
-    if (mod > 0.0f) {
-        float wv = w[i] * (1.0f - lr * mod * e);
-        w[i] = wv < floor ? floor : wv;
-    }
-    if (rec > 0.0f) {
-        w[i] += (1.0f - w[i]) * rec;
+    if (lr >= 0.0f) {
+        if (mod > 0.0f) {
+            float wv = w[i] * (1.0f - lr * mod * e);
+            w[i] = wv < floor ? floor : wv;
+        }
+        if (rec > 0.0f) {
+            w[i] += (1.0f - w[i]) * rec;
+        }
+    } else {
+        if (mod > 0.0f) {
+            float wv = w[i] + (-lr) * mod * e;
+            w[i] = wv > 1.0f ? 1.0f : wv;
+        }
+        if (rec > 0.0f) {
+            w[i] += (floor - w[i]) * rec;
+        }
     }
 }
 

@@ -186,18 +186,27 @@ def build_stack(circuit, cal, rng):
         post = spec["post"]
         _std = spec.get("std")
         _pl = spec.get("plast")
+        # extra-edge tables all carry the consensus-neurotransmitter
+        # sign column (ACh/modulator +1, GABA/Glu -1; exp017), but it
+        # is LATENT by default -- conductance pools built without sign
+        # take E_rev_exc for every edge.  An edge spec opts in with
+        # "use_sign": True (bci/dangate MBMD: the learned value V must
+        # INHIBIT the DANs, so the GABA rows have to matter).
+        _sign = (e_sub["sign"].to_numpy(np.float32)
+                 if spec.get("use_sign") else None)
         syn[name] = ExponentialSynapses(
             *edges(e_sub), e_sub["weight"].to_numpy(np.float32),
             pop_index[post], dt=DT_MS, gain=1.0, tau_s=_res(spec["tau_s"]),
             n_post=len(extra_pops[post]["ids"]),
             delay_ms=delays(e_sub), conductance=True,
             g_unit=_res(spec["g_unit"]), e_rev_exc=cal["E_REV_EXC"],
-            e_rev_inh=cal["E_REV_INH"],
+            e_rev_inh=cal["E_REV_INH"], sign=_sign,
             std_u=(_std[0] if _std else None),
             std_tau_rec=(_std[1] if _std else None),
             plast_lr=(_pl["lr"] if _pl else None),
             plast_tau_ms=(_pl["tau_ms"] if _pl else None),
-            plast_tau_w_ms=(_pl.get("tau_w_ms") if _pl else None))
+            plast_tau_w_ms=(_pl.get("tau_w_ms") if _pl else None),
+            plast_w0=(_pl.get("w0") if _pl else None))
 
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
                                t_refrac=(1e9 if mech

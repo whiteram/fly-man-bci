@@ -438,6 +438,7 @@ class ExponentialSynapses:
         plast_lr: float | None = None,
         plast_tau_ms: float | None = None,
         plast_tau_w_ms: float | None = None,
+        plast_w0: float | None = None,
     ):
         """post_index remaps edge post ids to contiguous [0, n_post) rows.
 
@@ -526,13 +527,23 @@ class ExponentialSynapses:
         # (per step: w += (1-w) dt/tau_w) -- always on, not gated; with
         # the gate closed (no reinforcement) it alone produces
         # extinction (bci/condit2).  0/None = frozen weights.
+        # NEGATIVE lr flips the rule to POTENTIATION from baseline w0
+        # toward 1 (bci/dangate: appetitive form -- the KC->MBON readout
+        # GROWS with pairing, giving MBON->DAN feedback a rising
+        # prediction signal); w0 then also serves as the recovery floor
+        # and the recovery target.
         self.plast = plast_lr is not None
         if self.plast:
             self.plast_lr = np.float32(plast_lr)
             self.elig = np.zeros(self.n_edges, dtype=np.float32)
             self.elig_decay = np.float32(np.exp(-dt / plast_tau_ms))
-            self.w_scale = np.ones(self.n_edges, dtype=np.float32)
-            self.w_floor = np.float32(0.02)
+            self.w_scale = (np.full(self.n_edges, np.float32(plast_w0),
+                                    dtype=np.float32)
+                            if plast_w0 is not None
+                            else np.ones(self.n_edges, dtype=np.float32))
+            self.w_floor = (np.float32(plast_w0)
+                            if (plast_w0 is not None and plast_lr < 0)
+                            else np.float32(0.02))
             self.w_rec = (np.float32(dt / plast_tau_w_ms)
                           if plast_tau_w_ms else np.float32(0.0))
         # numba step-kernel scratch (delivery spans; sized for the worst
@@ -623,12 +634,21 @@ class ExponentialSynapses:
             self.std_d += (1.0 - self.std_d) * self.std_rec
         if self.plast:
             self.elig *= self.elig_decay
-            if mod > 0.0:
-                self.w_scale = np.maximum(
-                    self.w_scale * (1.0 - self.plast_lr * mod
-                                    * self.elig), self.w_floor)
-            if self.w_rec:
-                self.w_scale += (1.0 - self.w_scale) * self.w_rec
+            if self.plast_lr >= 0:        # depression toward floor
+                if mod > 0.0:
+                    self.w_scale = np.maximum(
+                        self.w_scale * (1.0 - self.plast_lr * mod
+                                        * self.elig), self.w_floor)
+                if self.w_rec:
+                    self.w_scale += (1.0 - self.w_scale) * self.w_rec
+            else:                          # potentiation toward 1 (w0 =
+                if mod > 0.0:              # floor slot = recovery target)
+                    self.w_scale = np.minimum(
+                        self.w_scale + (-self.plast_lr) * mod
+                        * self.elig, 1.0)
+                if self.w_rec:
+                    self.w_scale += (self.w_floor
+                                     - self.w_scale) * self.w_rec
         if self.delayed:
             self.y += self.buffer[self.ptr]
             self.buffer[self.ptr].fill(0.0)

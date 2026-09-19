@@ -164,12 +164,51 @@ def main():
                     help="MBM synaptic time constant, ms (default: same "
                          "as CEN_C; fast-kinetics APL variant, "
                          "bci/condit3 follow-up)")
+    ap.add_argument("--plastic-w0", type=float, default=None,
+                    help="initial plastic w_scale (default 1.0 = the "
+                         "depression form's ceiling; with a NEGATIVE "
+                         "--plastic-lr the rule flips to potentiation "
+                         "from this baseline toward 1 and w0 doubles as "
+                         "the recovery target, bci/dangate)")
+    ap.add_argument("--plastic-kcm-gain", type=float, default=None,
+                    help="ABSOLUTE g_unit for the plastic KC->MBON "
+                         "group, escaping the CEN_C working-point "
+                         "damping so MBON firing can carry the value "
+                         "prediction V (bci/dangate)")
+    ap.add_argument("--mbon-dan-gain", type=float, default=None,
+                    help="value-feedback surgery: split MBON->DAN rows "
+                         "out of CEN_C into group MBMD at this ABSOLUTE "
+                         "gain -- the learned V inhibits the reward-"
+                         "driven DANs, closing the circuit-level error "
+                         "loop (bci/dangate; 349 inhib / 244 exc rows)")
+    ap.add_argument("--plastic-dan-gate", type=str, default=None,
+                    help="'tau_ms,gain[,t_ref_ms]': derive the "
+                         "reinforcement gate from the DAN population "
+                         "firing rate itself (low-passed; baseline "
+                         "frozen over the last half of [0,t_ref)) -- "
+                         "mod = clip((r-r0)*gain, 0, 1) replaces the "
+                         "--plastic-window gate; a _dan_trace.npy "
+                         "(t, r, mod) is written next to the output "
+                         "(GPU only, bci/dangate)")
     ap.add_argument("--gain-scale", type=str, default=None,
                     help="runtime pathway-gain modulation, 'GRP=f[,"
                          "GRP=f...]': multiply the named extra edge "
                          "groups' g_unit by f (resolved absolute; not "
                          "in any cache key -- g_unit is a runtime "
                          "scalar; bci/attend attention model)")
+    ap.add_argument("--pop-rate", type=str, default=None,
+                    help="comma list of population-rate groups to "
+                         "record into _pop_rate.npz (Hz per neuron, "
+                         "1-ms bins): annotation CLASS names subset "
+                         "within CEN (MBON, Kenyon_Cell, DAN, ALPN, "
+                         "..) or a whole extra-pop name (ORN, OLR, ..) "
+                         "-- the central-subpopulation instrumentation "
+                         "for the validation table (VALIDATION #5)")
+    ap.add_argument("--chem-amp-scale", type=float, default=1.0,
+                    help="multiply every chem channel amplitude by this "
+                         "runtime factor (intensity sweeps with a "
+                         "single entry, bci/pnrate dose-response; not "
+                         "in any cache key)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -178,6 +217,9 @@ def main():
     if (args.plastic_state_in or args.plastic_state_out) and (
             not args.plastic_mb or not args.gpu):
         ap.error("--plastic-state-in/out requires --plastic-mb --gpu")
+    if args.plastic_dan_gate and not args.gpu:
+        ap.error("--plastic-dan-gate requires --gpu (device spike "
+                 "readback)")
     global OUT
     if args.smoke:
         fparams.SECTIONS["stimulus"]["t_epochs"] = (
@@ -243,7 +285,8 @@ def main():
     # ---- shared annotation preamble for the CEN_C runtime surgeries
     # (plastic-mb / al-gain / mb-mod-gain) ----
     if (args.plastic_mb or args.al_gain is not None
-            or args.mb_mod_gain is not None):
+            or args.mb_mod_gain is not None
+            or args.mbon_dan_gain is not None):
         from ffbm import data as _fdata
         _ann = _fdata.load_annotations()
         _cls = _ann["class"].fillna("")
@@ -262,6 +305,9 @@ def main():
         _mbon = set(_rmap[int(b)] for b in
                     _ann.loc[_cls == "MBON", "bodyId"]
                     if int(b) in _rmap)
+        _dan = set(_rmap[int(b)] for b in
+                   _ann.loc[_cls == "DAN", "bodyId"]
+                   if int(b) in _rmap)
     if args.plastic_mb:
         # runtime surgery (bci/condit): move KC->MBON pairs out of the
         # CEN_C recurrence table into dedicated PLASTIC group(s); the
@@ -300,10 +346,14 @@ def main():
             circuit["extra_edges"][gname] = {
                 "pre": ("CEN",), "post": "CEN", "table": ktab,
                 "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
-                "g_unit": circuit["extra_edges"]["CEN_C"]["g_unit"],
+                "g_unit": (float(args.plastic_kcm_gain)
+                           if args.plastic_kcm_gain is not None
+                           else circuit["extra_edges"]["CEN_C"]["g_unit"]),
                 "forward": True,
                 "plast": {"lr": float(args.plastic_lr),
                           "tau_ms": 400.0,
+                          **({"w0": float(args.plastic_w0)}
+                             if args.plastic_w0 is not None else {}),
                           **({"tau_w_ms": tau_w}
                              if tau_w is not None else {})}}
             # edge identity: the synapse reorders rows with
@@ -389,12 +439,160 @@ def main():
               f"{_pre_n} modulator->, {len(_mbm) - _pre_n} <-principal)",
               flush=True)
         ckey = (ckey + "+mbm") if ckey is not None else None
+    if args.mbon_dan_gain is not None:
+        # value-feedback surgery (bci/dangate): the error-gate circuit
+        # closing.  The MBON->DAN rows (593 pairs: 349 GABA / 244
+        # excitatory, net weighted sign -2127) stay buried in the damped
+        # CEN_C table, so the learned value prediction V can never reach
+        # the DANs.  Splitting them into MBMD at an ABSOLUTE gain lets
+        # the potentiated KC->MBON readout (V) inhibit the reward-driven
+        # PAM/PPL1 cells -- dopamine itself becomes error-coding:
+        #   DAN rate  ~  R(reward drive) - V(MBON feedback)
+        #   mod       =  clip((r - r0) * gain, 0, 1)
+        # which replaces the experiment-layer Rescorla-Wagner scalar of
+        # bci/blocking2 with circuit dynamics.
+        _tab = circuit["extra_edges"]["CEN_C"]["table"]
+        _m = _tab["body_pre"].isin(_mbon) & _tab["body_post"].isin(_dan)
+        # minimal negative-feedback architecture: keep ONLY the GABA
+        # rows (349 of 593).  The mix's net sign is driving-force
+        # unstable in conductance mode (exc rows push with ~55 mV vs
+        # the GABA rows' ~25 mV, so the consensus net -2127 arrives
+        # net-EXCITATORY at the DANs: measured r max 209 -> 521 Hz on
+        # the first paired trial with the full mix).  The appetitive
+        # error loop only needs the inhibitory projection -- the fly's
+        # MBON->PAM feedback for appetitive learning is the GABAergic
+        # pathway; the 244 excitatory rows are dropped as a documented
+        # modeling choice, not a connectome claim.
+        _mbmd = _tab[_m & (_tab["sign"] < 0)].reset_index(drop=True)
+        circuit["extra_edges"]["CEN_C"]["table"] = \
+            _tab[~_m].reset_index(drop=True)
+        circuit["extra_edges"]["MBMD"] = {
+            "pre": ("CEN",), "post": "CEN", "table": _mbmd,
+            "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
+            "g_unit": float(args.mbon_dan_gain), "forward": True,
+            "use_sign": True}
+        # compartment-private error loop: expose the MBMD-contacted DAN
+        # subset as a synthetic chem group so (a) the dan-gate monitor
+        # and (b) a reward channel can address exactly the cells where
+        # the V-subtraction happens (the fly's MBON->PAM feedback is
+        # compartment-specific; driving/reading the whole cluster
+        # dilutes the error signal)
+        _tg = np.unique(_mbmd["body_post"].to_numpy(np.int64))
+        _tg_idx = np.searchsorted(
+            circuit["extra_pops"]["CEN"]["ids"], _tg)
+        ((circuit.get("chem_groups") or {}).setdefault("CEN", {})
+         )["DAN_err"] = _tg_idx
+        print(f"mbon-dan-gain: MBMD split {len(_mbmd)} GABA MBON->DAN "
+              f"pairs from CEN_C (gain={args.mbon_dan_gain:g}; "
+              f"{len(_tg)} DAN_err cells)", flush=True)
+        ckey = (ckey + "+mdg") if ckey is not None else None
+    # ---- population-rate instrumentation (VALIDATION #5) -----------
+    # groups resolve AFTER the surgeries so DAN_err etc. could be added
+    # later; class subsets index into the CEN pop, bare pop names cover
+    # a whole extra pop
+    POP_RATE = {}
+    if args.pop_rate:
+        if "_rmap" not in locals():
+            from ffbm import data as _fdata
+            _ann = _fdata.load_annotations()
+            _cls = _ann["class"].fillna("")
+            _sup = _ann["superclass"].fillna("")
+            _soma = _fdata.neuron_positions(_ann)
+            _cen_raw = np.array(sorted(
+                _ann.loc[(_sup.str.startswith("cb_")
+                          | (_sup == "descending_neuron"))
+                & _ann["bodyId"].isin(_soma), "bodyId"].astype(int)),
+                dtype=np.int64)
+            _cen_ids_pr = circuit["extra_pops"]["CEN"]["ids"]
+            _rmap = dict(zip(_cen_raw.tolist(),
+                             _cen_ids_pr.tolist()))
+        for _g in (s.strip() for s in args.pop_rate.split(",")):
+            if not _g:
+                continue
+            if _g in (circuit.get("extra_pops") or {}):
+                POP_RATE[_g] = ("POP", None,
+                                len(circuit["extra_pops"][_g]["ids"]))
+                continue
+            _ids = set(_rmap[int(b)] for b in
+                       _ann.loc[_cls == _g, "bodyId"]
+                       if int(b) in _rmap)
+            if not _ids:
+                raise SystemExit(f"--pop-rate: no CEN class {_g!r}")
+            _idx = np.searchsorted(
+                circuit["extra_pops"]["CEN"]["ids"],
+                np.array(sorted(_ids), dtype=np.int64))
+            POP_RATE[_g] = ("CEN", _idx, len(_idx))
+        print(f"pop-rate: "
+              + ", ".join(f"{g}[{v[2]}]" for g, v in POP_RATE.items()),
+              flush=True)
     mod_fn = None
     if args.plastic_window:
         _wa, _wb = (float(v) for v in args.plastic_window.split(","))
 
         def mod_fn(t, _a=_wa, _b=_wb, _s=float(args.plastic_mod_scale)):
             return _s if _a <= t < _b else 0.0
+    # ---- circuit-level reinforcement gate (bci/dangate) --------------
+    # replaces the window gate: the DAN (PAM/PPL1) population rate IS
+    # the dopamine signal.  mod_fn reads the PREVIOUS step's spikes
+    # (causal: dopamine follows the reward/MBON state), low-passes the
+    # population rate, freezes a baseline r0 over the last half of the
+    # pre-stimulus window and clips deviations above it.  With the
+    # MBMD value-feedback split active, a learned V suppresses r below
+    # its unpaired level -- the gate closes -- WITHOUT any experiment-
+    # layer error arithmetic.  _DAN_CTX["mask"] is bound late (device
+    # spike-mask view of the CEN pop, set right before trial.run).
+    _DAN_CTX = {}
+    if args.plastic_dan_gate:
+        import fnmatch as _fm
+        _dp = args.plastic_dan_gate.split(",")
+        _dtau, _dgain = float(_dp[0]), float(_dp[1])
+        _dtref = float(_dp[2]) if len(_dp) > 2 else 500.0
+        _gm = (circuit.get("chem_groups") or {}).get("CEN", {})
+        if "DAN_err" in _gm:
+            # compartment-private monitor: exactly the DANs the MBMD
+            # value-feedback reaches (bci/dangate)
+            _didx = np.asarray(_gm["DAN_err"], dtype=np.int64)
+            _src = f"DAN_err compartment ({len(_didx)} cells)"
+        else:
+            _sel = np.zeros(
+                len(circuit["extra_pops"]["CEN"]["ids"]), dtype=bool)
+            _hits = sorted(
+                t for t in _gm
+                if _fm.fnmatch(t, "PAM*") or _fm.fnmatch(t, "PPL*"))
+            for _t in _hits:
+                _sel[_gm[_t]] = True
+            _didx = np.flatnonzero(_sel)
+            _src = f"{len(_hits)} types ({', '.join(_hits[:4])}" \
+                   f"{'...' if len(_hits) > 4 else ''})"
+        print(f"dan-gate: monitoring {_src} -> {len(_didx)} neurons, "
+              f"tau={_dtau:g} ms, gain={_dgain:g}, t_ref={_dtref:g} ms",
+              flush=True)
+        _d_dt_s = float(fp.DT_MS) * 1e-3
+        _d_alpha = 1.0 - np.exp(-_d_dt_s * 1e3 / _dtau)
+
+        def mod_fn(t, _ctx=_DAN_CTX, _idx=_didx,
+                   _a=_d_alpha, _g=_dgain, _tr=_dtref, _hz=1.0
+                   / (len(_didx) * _d_dt_s)):
+            _m = _ctx.get("mask")
+            _s = int(_m[_idx].sum()) if _m is not None else 0
+            _r = _ctx.get("r", 0.0) + (_s * _hz - _ctx.get("r", 0.0)) * _a
+            _ctx["r"] = _r
+            if t < _tr:                      # pre-stimulus: accumulate
+                _ctx.setdefault("r0s", []).append(_r)   # baseline window
+                _ctx.setdefault("log", []).append((t, _r, 0.0))
+                return 0.0
+            if "r0" not in _ctx:             # freeze on first crossing
+                _r0s = _ctx["r0s"]
+                _ctx["r0"] = (float(np.mean(_r0s[len(_r0s) // 2:]))
+                             if _r0s else 0.0)
+                print(f"dan-gate: baseline r0 = {_ctx['r0']:.2f} Hz",
+                      flush=True)
+            _v = (_r - _ctx["r0"]) * _g
+            _mod = _v if _v > 0.0 else 0.0
+            if _mod > 1.0:
+                _mod = 1.0
+            _ctx["log"].append((t, _r, _mod))
+            return _mod
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]
@@ -1023,13 +1221,17 @@ def main():
                 print(f"chem: no {pop} types match '{ch['group']}' "
                       "-- channel skipped")
                 continue
-            chans.append((pop, np.flatnonzero(sel), float(ch["amp_pa"]),
+            chans.append((pop, np.flatnonzero(sel),
+                          float(ch["amp_pa"]) * float(args.chem_amp_scale),
                           [(float(a), float(b))
                            for a, b in ch["pulses"]], ch))
+            _amp_s = float(ch["amp_pa"]) * float(args.chem_amp_scale)
             print(f"chem: {pop}[{ch['group']}] -> {int(sel.sum())} "
                   f"neurons ({', '.join(sorted(hits)[:4])}"
                   f"{'...' if len(hits) > 4 else ''}), "
-                  f"{ch['amp_pa']:.0f} pA x {len(ch['pulses'])} pulses")
+                  f"{_amp_s:.0f} pA x {len(ch['pulses'])} pulses"
+                  + (f" (x{args.chem_amp_scale:g} amp scale)"
+                     if args.chem_amp_scale != 1.0 else ""))
 
         def level(pulses, t):
             v = 0.0
@@ -1077,21 +1279,26 @@ def main():
         # "no_cen_damp": the 82 Hz latch IS the modeled seizure.
         # See exp019 README.
         _G_CEN_CHEM = 0.002
+        # the damp must NOT clobber an explicit --plastic-kcm-gain: the
+        # KCM readout leg needs to escape the working point for MBON
+        # firing to carry V (bci/dangate)
+        _kcm_x = circuit["extra_edges"].get("KCM")
+        _kcm_damp = _kcm_x is not None and \
+            args.plastic_kcm_gain is None
         if "cen_gain" in cspec:
             # bci/seizure gain sweep: explicit recurrence gain, between
             # the safe working point (0.002) and the default (0.004)
             circuit["extra_edges"]["CEN_C"]["g_unit"] = \
                 float(cspec["cen_gain"])
-            if "KCM" in circuit["extra_edges"]:
-                circuit["extra_edges"]["KCM"]["g_unit"] = \
-                    float(cspec["cen_gain"])
+            if _kcm_damp:
+                _kcm_x["g_unit"] = float(cspec["cen_gain"])
             print(f"chem calibration: CEN_C recurrence gain -> "
                   f"{cspec['cen_gain']} (explicit cen_gain)")
         elif not cspec.get("no_cen_damp", False) \
                 and "CEN_C" in (circuit.get("extra_edges") or {}):
             circuit["extra_edges"]["CEN_C"]["g_unit"] = _G_CEN_CHEM
-            if "KCM" in circuit["extra_edges"]:
-                circuit["extra_edges"]["KCM"]["g_unit"] = _G_CEN_CHEM
+            if _kcm_damp:
+                _kcm_x["g_unit"] = _G_CEN_CHEM
             print(f"chem calibration: CEN_C recurrence gain -> "
                   f"{_G_CEN_CHEM} (chem-run working point, exp019)")
     if args.gain_scale:
@@ -1142,6 +1349,7 @@ def main():
               f"({sum(b.nbytes for b in ybuf.values()) / 1e6:.0f} MB)",
               flush=True)
     jbuf = 0
+    pr_cpu = {g: np.zeros(n_field) for g in POP_RATE}
 
     def flush_scalp(j0, c):
         for name in gnames:
@@ -1160,6 +1368,11 @@ def main():
         for name in extra_rate:
             extra_rate[name][j] = (1000.0 * int(sp[name].sum())
                                    / len(st["extra_ids"][name]))
+        for _g, (_kind, _ix, _n_pr) in POP_RATE.items():
+            pr_cpu[_g][j] = (
+                1000.0 * int(
+                    (sp[_g] if _kind == "POP"
+                     else sp["CEN"][_ix]).sum()) / _n_pr)
 
         def y_of(name):
             if name == "PHOTO":
@@ -1258,6 +1471,9 @@ def main():
                 print(f"plastic state IN {_g}: w mean "
                       f"{float(_wv.mean()):.4f} min "
                       f"{float(_wv.min()):.4f}", flush=True)
+        if args.plastic_dan_gate:
+            _DAN_CTX["mask"] = trial._mask("CEN")   # late-bound device
+            # view; mod_fn reads the previous step's spikes
         ybuf_g = {name: cp.zeros((CHUNK, coef_f32[name].shape[1]),
                                  cp.float32) for name in gnames}
         coef_g = {name: cp.asarray(coef_f32[name]) for name in gnames}
@@ -1275,6 +1491,9 @@ def main():
                  "MID": cp.zeros(n_field, cp.int64),
                  "T4": cp.zeros(n_field, cp.int64),
                  "T5": cp.zeros(n_field, cp.int64)}
+        pr_idx_g = {g: (None if v[0] == "POP" else cp.asarray(v[1]))
+                    for g, v in POP_RATE.items()}
+        pr_cnt_g = {g: cp.zeros(n_field, cp.int64) for g in POP_RATE}
         mb = (sum(b.nbytes for b in ybuf_g.values())
               + sum(c.nbytes for c in coef_g.values())) / 1e6
         print(f"GPU forward buffers: {CHUNK} records, {mb:.0f} MB "
@@ -1321,6 +1540,10 @@ def main():
             sum_g["MID"][j] = trial._mask("MID").sum()
             sum_g["T4"][j] = m45[is_t4_g].sum()
             sum_g["T5"][j] = m45[is_t5_g].sum()
+            for _g, _ix in pr_idx_g.items():
+                _mk = (trial._mask(_g) if _ix is None
+                       else trial._mask("CEN")[_ix])
+                pr_cnt_g[_g][j] = _mk.sum()
             stim[j] = float(np.mean(luminance(t)))
 
         trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
@@ -1364,6 +1587,26 @@ def main():
                         f"{g}:{KCM_STATE[g][2]}"
                         for g in sorted(KCM_STATE)).encode()).hexdigest()
                 np.savez(args.plastic_state_out, **_payload)
+        if POP_RATE:
+            _pr = {g: cp.asnumpy(pr_cnt_g[g]) * (1000.0 / POP_RATE[g][2])
+                   for g in POP_RATE}
+            np.savez(OUT / "_pop_rate.npz", **_pr)
+            _win = slice(int(1000), int(2000))    # ms -> 1-ms bins
+            print("pop-rate (1-2 s, Hz/neuron): "
+                  + ", ".join(f"{g} {_pr[g][_win].mean():.2f}"
+                              for g in _pr), flush=True)
+        if args.plastic_dan_gate and _DAN_CTX.get("log"):
+            np.save(OUT / "_dan_trace.npy",
+                    np.asarray(_DAN_CTX["log"], dtype=np.float64))
+            _lg = _DAN_CTX["log"]
+            _mmax = max(m for _, _, m in _lg)
+            print(f"dan-gate: trace {len(_lg)} steps -> "
+                  f"{OUT / '_dan_trace.npy'} | r max "
+                  f"{max(r for _, r, _ in _lg):.1f} Hz, r0 "
+                  f"{_DAN_CTX.get('r0', float('nan')):.2f} Hz, "
+                  f"mod max {_mmax:.3f}, mod integral "
+                  f"{sum(m for _, _, m in _lg) * float(fp.DT_MS):.1f} ms",
+                  flush=True)
         phi_scalp_g *= 1e-12
         phi_scalp = cp.asnumpy(phi_scalp_g)
         phi = cp.asnumpy(phi_g)
@@ -1384,6 +1627,8 @@ def main():
         for name, tr in extra_rate.items():
             print(f"extra rate {name}: mean {tr.mean():.1f} Hz, "
                   f"peak {tr.max():.0f} Hz")
+    if POP_RATE and not args.gpu:
+        np.savez(OUT / "_pop_rate.npz", **pr_cpu)
     print(f"biology loop: {_time.time() - _t1:.0f} s "
           f"({n_field} records)")
     np.save(OUT / "_debug_phi_scalp.npy", phi_scalp * 1.7)
