@@ -1,0 +1,24 @@
+{
+ "alk": 0.03,
+ "seed": 313,
+ "chem": "odor_da1_short",
+ "points": {
+  "0": {
+   "sub": 50.67,
+   "note": "none arm"
+  },
+  "0.01": {
+   "sub": 99.63,
+   "shunt": 99.53
+  },
+  "0.2": {
+   "sub": 946.12,
+   "shunt": 946.2
+  },
+  "1.0": {
+   "sub": 1000.0,
+   "shunt": 1000.0
+  }
+ },
+ "verdict": "sub vs shunt indistinguishable at all gains; effect channel = bistability tipping; per-KC inhibitory fan-in ~1 edge (w>=5 filter)"
+}

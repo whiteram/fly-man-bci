@@ -164,6 +164,15 @@ def main():
                     help="MBM synaptic time constant, ms (default: same "
                          "as CEN_C; fast-kinetics APL variant, "
                          "bci/condit3 follow-up)")
+    ap.add_argument("--mb-mod-erev", type=float, default=None,
+                    help="MBM inhibitory reversal potential, VOLTS "
+                         "(default: cal E_REV_INH -0.080 = subtractive-"
+                         "dominated).  Setting it to the resting "
+                         "potential (-0.060) turns the APL feedback into "
+                         "PURE SHUNTING: zero current at rest, "
+                         "conductance that divides KC excitation -- the "
+                         "divisive-normalization implementation the APL "
+                         "arc concluded was missing (bci/shunt)")
     ap.add_argument("--plastic-w0", type=float, default=None,
                     help="initial plastic w_scale (default 1.0 = the "
                          "depression form's ceiling; with a NEGATIVE "
@@ -209,6 +218,12 @@ def main():
                          "runtime factor (intensity sweeps with a "
                          "single entry, bci/pnrate dose-response; not "
                          "in any cache key)")
+    ap.add_argument("--pop-rate-neurons", action="store_true",
+                    help="with --pop-rate: also dump PER-NEURON spike "
+                         "counts over the whole trial "
+                         "(_pop_rate_neurons.npz) -- the sparse-code "
+                         "instrument (responsive fraction per class, "
+                         "bci/shunt)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -432,11 +447,17 @@ def main():
             "pre": ("CEN",), "post": "CEN", "table": _mbm,
             "tau_s": (float(args.mb_mod_tau) if args.mb_mod_tau
                       else circuit["extra_edges"]["CEN_C"]["tau_s"]),
-            "g_unit": float(args.mb_mod_gain), "forward": True}
+            "g_unit": float(args.mb_mod_gain), "forward": True,
+            "use_sign": True,
+            **({"e_rev_inh": float(args.mb_mod_erev)}
+               if args.mb_mod_erev is not None else {})}
         _pre_n = int(_mbm["body_pre"].isin(_apm).sum())
-        print(f"mb-mod-gain: MBM split {len(_mbm)} APL/DPM<->KC/MBON "
+        print(f"mb-mod-gain: MBM split {len(_mbm)} APL<->KC/MBON "
               f"pairs from CEN_C (gain={args.mb_mod_gain:g}; "
-              f"{_pre_n} modulator->, {len(_mbm) - _pre_n} <-principal)",
+              f"{_pre_n} modulator->, {len(_mbm) - _pre_n} <-principal; "
+              f"use_sign"
+              + (f", e_rev_inh={args.mb_mod_erev:g} V (PURE SHUNT)"
+                 if args.mb_mod_erev is not None else "") + ")",
               flush=True)
         ckey = (ckey + "+mbm") if ckey is not None else None
     if args.mbon_dan_gain is not None:
@@ -1350,6 +1371,9 @@ def main():
               flush=True)
     jbuf = 0
     pr_cpu = {g: np.zeros(n_field) for g in POP_RATE}
+    prn_vec = (None if not args.pop_rate_neurons else
+               {g: np.zeros(v[2], np.int32)
+                for g, v in POP_RATE.items()})
 
     def flush_scalp(j0, c):
         for name in gnames:
@@ -1373,6 +1397,11 @@ def main():
                 1000.0 * int(
                     (sp[_g] if _kind == "POP"
                      else sp["CEN"][_ix]).sum()) / _n_pr)
+        if prn_vec is not None:
+            for _g, (_kind, _ix, _n_pr) in POP_RATE.items():
+                prn_vec[_g] += (
+                    sp[_g] if _kind == "POP"
+                    else sp["CEN"][_ix]).astype(np.int32)
 
         def y_of(name):
             if name == "PHOTO":
@@ -1494,6 +1523,9 @@ def main():
         pr_idx_g = {g: (None if v[0] == "POP" else cp.asarray(v[1]))
                     for g, v in POP_RATE.items()}
         pr_cnt_g = {g: cp.zeros(n_field, cp.int64) for g in POP_RATE}
+        prn_vec_g = (None if not args.pop_rate_neurons else
+                     {g: cp.zeros(v[2], cp.int32) for g, v in
+                      POP_RATE.items()})
         mb = (sum(b.nbytes for b in ybuf_g.values())
               + sum(c.nbytes for c in coef_g.values())) / 1e6
         print(f"GPU forward buffers: {CHUNK} records, {mb:.0f} MB "
@@ -1544,6 +1576,8 @@ def main():
                 _mk = (trial._mask(_g) if _ix is None
                        else trial._mask("CEN")[_ix])
                 pr_cnt_g[_g][j] = _mk.sum()
+                if prn_vec_g is not None:
+                    prn_vec_g[_g] += _mk.astype(cp.int32)
             stim[j] = float(np.mean(luminance(t)))
 
         trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
@@ -1591,6 +1625,10 @@ def main():
             _pr = {g: cp.asnumpy(pr_cnt_g[g]) * (1000.0 / POP_RATE[g][2])
                    for g in POP_RATE}
             np.savez(OUT / "_pop_rate.npz", **_pr)
+            if prn_vec_g is not None:
+                np.savez(OUT / "_pop_rate_neurons.npz",
+                         **{g: cp.asnumpy(v) for g, v in
+                            prn_vec_g.items()})
             _win = slice(int(1000), int(2000))    # ms -> 1-ms bins
             print("pop-rate (1-2 s, Hz/neuron): "
                   + ", ".join(f"{g} {_pr[g][_win].mean():.2f}"
@@ -1629,6 +1667,8 @@ def main():
                   f"peak {tr.max():.0f} Hz")
     if POP_RATE and not args.gpu:
         np.savez(OUT / "_pop_rate.npz", **pr_cpu)
+        if prn_vec is not None:
+            np.savez(OUT / "_pop_rate_neurons.npz", **prn_vec)
     print(f"biology loop: {_time.time() - _t1:.0f} s "
           f"({n_field} records)")
     np.save(OUT / "_debug_phi_scalp.npy", phi_scalp * 1.7)
