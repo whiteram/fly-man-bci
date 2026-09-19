@@ -1,0 +1,27 @@
+{
+ "conditions": [
+  "blocked",
+  "control"
+ ],
+ "n_p1": 4,
+ "n_p2": 6,
+ "sessions": 2,
+ "fs": 1000.0,
+ "dur_ms": 5000.0,
+ "lr": "3e-6",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "odors": {
+  "A": "KCg-m",
+  "B": "KCab-m",
+  "C": "KCab-s"
+ },
+ "train_ms": [
+  500,
+  2500
+ ],
+ "probe_ms": [
+  4300,
+  4700
+ ],
+ "seed_map": "blocked 442+, control 492+ (+10r+k)"
+}

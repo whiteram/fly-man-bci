@@ -123,7 +123,11 @@ def main():
                     "salted kernel key -- one rebuild, then cached)")
     ap.add_argument("--plastic-window", type=str, default=None,
                     help="reinforcement gate window 'a,b' ms (mod=1 "
-                    "inside; the DAN-drive proxy)")
+                         "inside; the DAN-drive proxy)")
+    ap.add_argument("--plastic-mod-scale", type=float, default=1.0,
+                    help="reinforcement gate STRENGTH (mod amplitude; "
+                         "1.0 = full dopamine proxy -- the motivation/"
+                         "reward-strength axis, bci/motivate)")
     ap.add_argument("--plastic-lr", type=float, default=0.0015,
                     help="plasticity learning rate (per step, gated)")
     ap.add_argument("--plastic-tau-w", type=float, default=0.0,
@@ -143,6 +147,12 @@ def main():
                          "this ABSOLUTE gain, escaping the chem working "
                          "point's recurrence damping (true odor -> KC "
                          "transmission; bci/condit3)")
+    ap.add_argument("--mb-mod-gain", type=float, default=None,
+                    help="MB-modulator surgery: split APL/DPM<->KC/MBON "
+                         "feedback rows (9k+ pairs) out of CEN_C into "
+                         "group MBM at this ABSOLUTE gain -- restores "
+                         "divisive normalization of KC output, raises "
+                         "the stable KC->MBON readout-leg ceiling")
     ap.add_argument("--gain-scale", type=str, default=None,
                     help="runtime pathway-gain modulation, 'GRP=f[,"
                          "GRP=f...]': multiply the named extra edge "
@@ -219,11 +229,10 @@ def main():
     print(f"regions: OFF = {', '.join(_off) or '(none)'}"
           + ("   <-- pass --regions to enable" if _off else ""),
           flush=True)
-    if args.plastic_mb:
-        # runtime surgery (bci/condit): move KC->MBON pairs out of the
-        # CEN_C recurrence table into a dedicated PLASTIC group; the
-        # circuit cache stays untouched but the kernel key is salted so
-        # the forward kernels rebuild for the split topology
+    # ---- shared annotation preamble for the CEN_C runtime surgeries
+    # (plastic-mb / al-gain / mb-mod-gain) ----
+    if (args.plastic_mb or args.al_gain is not None
+            or args.mb_mod_gain is not None):
         from ffbm import data as _fdata
         _ann = _fdata.load_annotations()
         _cls = _ann["class"].fillna("")
@@ -242,6 +251,11 @@ def main():
         _mbon = set(_rmap[int(b)] for b in
                     _ann.loc[_cls == "MBON", "bodyId"]
                     if int(b) in _rmap)
+    if args.plastic_mb:
+        # runtime surgery (bci/condit): move KC->MBON pairs out of the
+        # CEN_C recurrence table into a dedicated PLASTIC group; the
+        # circuit cache stays untouched but the kernel key is salted so
+        # the forward kernels rebuild for the split topology
         _tab = circuit["extra_edges"]["CEN_C"]["table"]
         _m = _tab["body_pre"].isin(_kc) & _tab["body_post"].isin(_mbon)
         _kcm = _tab[_m].reset_index(drop=True)
@@ -262,6 +276,14 @@ def main():
         # ordering; a state file from an invocation with a different KCM
         # edge list is rejected
         import hashlib
+        _ord = np.lexsort((_kcm["body_pre"].to_numpy(np.int64),
+                           _kcm["body_post"].to_numpy(np.int64)))
+        KCM_PRE = _kcm["body_pre"].to_numpy(np.int64)[_ord]
+        _inv_rmap = {int(v): int(k) for k, v in _rmap.items()}
+        _typ = _ann.set_index("bodyId")["type"]
+        KCM_PRE_TYPE = np.array(
+            [str(_typ.get(_inv_rmap.get(int(p), -1), "?"))
+             for p in KCM_PRE], dtype="<U24")
         KCM_CHECKSUM = hashlib.md5(np.concatenate([
             _kcm["body_pre"].to_numpy(np.int64),
             _kcm["body_post"].to_numpy(np.int64)]).tobytes()).hexdigest()
@@ -278,24 +300,9 @@ def main():
         # gain.  AL local recurrence (PN<->LN) stays damped: the minimal
         # step is the feedforward ORN ->(ORN_C, full gain) PN ->(ALK) KC
         # pathway; stability must be calibrated (latch risk).
-        if "_rmap" not in locals():
-            from ffbm import data as _fdata
-            _ann = _fdata.load_annotations()
-            _sup = _ann["superclass"].fillna("")
-            _soma = _fdata.neuron_positions(_ann)
-            _cen_raw = np.array(sorted(
-                _ann.loc[(_sup.str.startswith("cb_")
-                          | (_sup == "descending_neuron"))
-                & _ann["bodyId"].isin(_soma), "bodyId"].astype(int)),
-                dtype=np.int64)
-            _cen_ids = circuit["extra_pops"]["CEN"]["ids"]
-            _rmap = dict(zip(_cen_raw.tolist(), _cen_ids.tolist()))
         _al = set(_rmap[int(b)] for b in
                   _ann.loc[_ann["class"].isin(
                       ("ALPN", "ALLN", "ALIN", "ALON")), "bodyId"]
-                  if int(b) in _rmap)
-        _kc = set(_rmap[int(b)] for b in
-                  _ann.loc[_ann["class"] == "Kenyon_Cell", "bodyId"]
                   if int(b) in _rmap)
         _tab = circuit["extra_edges"]["CEN_C"]["table"]
         _m = _tab["body_pre"].isin(_al) & _tab["body_post"].isin(_kc)
@@ -309,12 +316,44 @@ def main():
         print(f"al-gain: ALK split {len(_alk)} AL->KC pairs from CEN_C "
               f"(gain={args.al_gain:g})", flush=True)
         ckey = (ckey + "+alg") if ckey is not None else None
+    if args.mb_mod_gain is not None:
+        # MB-modulator surgery (bci/condit3 follow-up): APL (1 per side,
+        # GABAergic wide field) and DPM (amnesiac neuropeptide) carry a
+        # MASSIVE feedback loop with the KC compartment -- APL<->KC
+        # 9,326 pairs / 400k syn -- all inside the damped CEN_C table.
+        # Splitting both directions into MBM at an independent gain
+        # restores divisive normalization of KC output, which should
+        # raise the stable ceiling for the KC->MBON readout leg
+        # (true-odor conditioning visibility; the nolr control latched
+        # at KCM x250 without it).
+        _apm = set(_rmap[int(b)] for b in
+                   _ann.loc[_ann["type"].isin(("APL", "DPM")), "bodyId"]
+                   if int(b) in _rmap)
+        _kcmb = _kc | _mbon
+        _tab = circuit["extra_edges"]["CEN_C"]["table"]
+        _m = ((_tab["body_pre"].isin(_apm)
+               & _tab["body_post"].isin(_kcmb))
+              | (_tab["body_pre"].isin(_kcmb)
+                 & _tab["body_post"].isin(_apm)))
+        _mbm = _tab[_m].reset_index(drop=True)
+        circuit["extra_edges"]["CEN_C"]["table"] = \
+            _tab[~_m].reset_index(drop=True)
+        circuit["extra_edges"]["MBM"] = {
+            "pre": ("CEN",), "post": "CEN", "table": _mbm,
+            "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
+            "g_unit": float(args.mb_mod_gain), "forward": True}
+        _pre_n = int(_mbm["body_pre"].isin(_apm).sum())
+        print(f"mb-mod-gain: MBM split {len(_mbm)} APL/DPM<->KC/MBON "
+              f"pairs from CEN_C (gain={args.mb_mod_gain:g}; "
+              f"{_pre_n} modulator->, {len(_mbm) - _pre_n} <-principal)",
+              flush=True)
+        ckey = (ckey + "+mbm") if ckey is not None else None
     mod_fn = None
     if args.plastic_window:
         _wa, _wb = (float(v) for v in args.plastic_window.split(","))
 
-        def mod_fn(t, _a=_wa, _b=_wb):
-            return 1.0 if _a <= t < _b else 0.0
+        def mod_fn(t, _a=_wa, _b=_wb, _s=float(args.plastic_mod_scale)):
+            return _s if _a <= t < _b else 0.0
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]
@@ -1249,7 +1288,8 @@ def main():
             if args.plastic_state_out:
                 _w_out = cp.asnumpy(_ws).astype(np.float32)
                 np.savez(args.plastic_state_out, w=_w_out,
-                         n=_w_out.size, checksum=KCM_CHECKSUM)
+                         n=_w_out.size, checksum=KCM_CHECKSUM,
+                         pre=KCM_PRE, pre_type=KCM_PRE_TYPE)
         phi_scalp_g *= 1e-12
         phi_scalp = cp.asnumpy(phi_scalp_g)
         phi = cp.asnumpy(phi_g)

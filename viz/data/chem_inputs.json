@@ -2346,5 +2346,255 @@
         ]
       }
     ]
+  },
+  {
+    "id": "blockA",
+    "modality": "conditioning",
+    "label": "阻断检验 blockA: A(KCg-m)+奖励 → A 探针（阶段1）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "blockAB",
+    "modality": "conditioning",
+    "label": "阻断检验 blockAB: A+B(KCab-m)+奖励 → B 探针（阶段2）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "blockC",
+    "modality": "conditioning",
+    "label": "阻断检验 blockC: C(KCab-s)+奖励 → C 探针（对照阶段1）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCab-s@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@L",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM*@R",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
   }
 ]
