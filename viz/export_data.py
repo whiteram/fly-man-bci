@@ -160,6 +160,10 @@ def main():
                          "normalization of KC output, raises the stable "
                          "KC->MBON readout-leg ceiling (DPM excluded: "
                          "dopaminergic positive loop)")
+    ap.add_argument("--mb-mod-tau", type=float, default=None,
+                    help="MBM synaptic time constant, ms (default: same "
+                         "as CEN_C; fast-kinetics APL variant, "
+                         "bci/condit3 follow-up)")
     ap.add_argument("--gain-scale", type=str, default=None,
                     help="runtime pathway-gain modulation, 'GRP=f[,"
                          "GRP=f...]': multiply the named extra edge "
@@ -319,10 +323,11 @@ def main():
             _pw = f", tau_w={tau_w:g} ms" if tau_w is not None else ""
             print(f"plastic-mb: {gname} split {len(ktab)} KC->MBON "
                   f"pairs (lr={args.plastic_lr}{_pw})", flush=True)
-        # salt distinguishes the DUAL-group topology from single KCM
-        # (the kernel cache key has no other topology awareness)
+        # salts distinguish topologies AND namespaces: plmb1 = single
+        # KCM (fresh -- the pre-plmb2 dual pilot polluted "+plmb"),
+        # plmb2 = dual subtype split
         ckey = ((ckey + "+plmb2") if args.plastic_dual_tauw
-                else (ckey + "+plmb")) if ckey is not None else None
+                else (ckey + "+plmb1")) if ckey is not None else None
     if args.al_gain is not None:
         # AL-independence surgery (bci/condit3): the AL->KC (PN->Kenyon)
         # rows live in the CEN_C recurrence table, so the chem working
@@ -375,7 +380,8 @@ def main():
             _tab[~_m].reset_index(drop=True)
         circuit["extra_edges"]["MBM"] = {
             "pre": ("CEN",), "post": "CEN", "table": _mbm,
-            "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
+            "tau_s": (float(args.mb_mod_tau) if args.mb_mod_tau
+                      else circuit["extra_edges"]["CEN_C"]["tau_s"]),
             "g_unit": float(args.mb_mod_gain), "forward": True}
         _pre_n = int(_mbm["body_pre"].isin(_apm).sum())
         print(f"mb-mod-gain: MBM split {len(_mbm)} APL/DPM<->KC/MBON "
