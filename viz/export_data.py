@@ -126,11 +126,25 @@ def main():
                     "inside; the DAN-drive proxy)")
     ap.add_argument("--plastic-lr", type=float, default=0.0015,
                     help="plasticity learning rate (per step, gated)")
+    ap.add_argument("--plastic-tau-w", type=float, default=0.0,
+                    help="slow homeostatic recovery of plastic w_scale "
+                         "toward 1, ms (0 = frozen weights; extinction, "
+                         "bci/condit2)")
+    ap.add_argument("--plastic-state-in", type=str, default=None,
+                    help="npz written by --plastic-state-out: continue "
+                         "the session from these KCM weights (cross-"
+                         "trial memory; GPU only)")
+    ap.add_argument("--plastic-state-out", type=str, default=None,
+                    help="write KCM w_scale + edge-id checksum after the "
+                         "run (GPU only)")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
                     "noise; circuit/kernel caches are seed-independent")
     args = ap.parse_args()
+    if (args.plastic_state_in or args.plastic_state_out) and (
+            not args.plastic_mb or not args.gpu):
+        ap.error("--plastic-state-in/out requires --plastic-mb --gpu")
     global OUT
     if args.smoke:
         fparams.SECTIONS["stimulus"]["t_epochs"] = (
@@ -227,9 +241,22 @@ def main():
             "g_unit": circuit["extra_edges"]["CEN_C"]["g_unit"],
             "forward": True,
             "plast": {"lr": float(args.plastic_lr),
-                      "tau_ms": 400.0}}
+                      "tau_ms": 400.0,
+                      **({"tau_w_ms": float(args.plastic_tau_w)}
+                         if args.plastic_tau_w > 0 else {})}}
+        # edge-identity checksum: the synapse reorders rows with
+        # lexsort((pre, post)) -- a DETERMINISTIC function of the table
+        # content -- so hashing the table's id bytes pins the w_scale
+        # ordering; a state file from an invocation with a different KCM
+        # edge list is rejected
+        import hashlib
+        KCM_CHECKSUM = hashlib.md5(np.concatenate([
+            _kcm["body_pre"].to_numpy(np.int64),
+            _kcm["body_post"].to_numpy(np.int64)]).tobytes()).hexdigest()
         print(f"plastic-mb: KCM split {len(_kcm)} KC->MBON pairs "
-              f"from CEN_C (lr={args.plastic_lr})")
+              f"from CEN_C (lr={args.plastic_lr}"
+              + (f", tau_w={args.plastic_tau_w:g} ms"
+                 if args.plastic_tau_w > 0 else "") + ")")
         ckey = (ckey + "+plmb") if ckey is not None else None
     mod_fn = None
     if args.plastic_window:
@@ -1061,6 +1088,17 @@ def main():
         st_g = fp.build_stack(circuit, cal, rng_g)
         trial = fgpu.GPUTrial(st_g)
         Kg = trial.K
+        if args.plastic_state_in:
+            _si = np.load(args.plastic_state_in)
+            if str(_si["checksum"]) != KCM_CHECKSUM:
+                raise SystemExit(
+                    "plastic state mismatch: edge ids differ from this "
+                    "session's KCM split -- refusing to load")
+            _pw = trial.exp["KCM"].plast_w
+            assert _si["w"].shape == _pw.shape
+            _pw.set(np.ascontiguousarray(_si["w"]))
+            print(f"plastic state IN: w mean {float(_si['w'].mean()):.4f}"
+                  f" min {float(_si['w'].min()):.4f}", flush=True)
         ybuf_g = {name: cp.zeros((CHUNK, coef_f32[name].shape[1]),
                                  cp.float32) for name in gnames}
         coef_g = {name: cp.asarray(coef_f32[name]) for name in gnames}
@@ -1140,6 +1178,10 @@ def main():
                   f"floor-hit {int((_ws <= 0.0201).sum())}/{_ws.size} "
                   f"| elig max {float(_el.max()):.4f}",
                   flush=True)
+            if args.plastic_state_out:
+                _w_out = cp.asnumpy(_ws).astype(np.float32)
+                np.savez(args.plastic_state_out, w=_w_out,
+                         n=_w_out.size, checksum=KCM_CHECKSUM)
         phi_scalp_g *= 1e-12
         phi_scalp = cp.asnumpy(phi_scalp_g)
         phi = cp.asnumpy(phi_g)

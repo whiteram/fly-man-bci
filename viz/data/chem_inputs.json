@@ -2184,5 +2184,59 @@
         ]
       }
     ]
+  },
+  {
+    "id": "condtx",
+    "modality": "conditioning",
+    "label": "驱动条件化-消退试次：KC 表征训练（无奖励）→ KC 探针",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/condit2 消退/对照试次：与 condt2 相同的 KC 训练（0.5-2.5s 1600pA）+ KC 探针（4.2-4.7s），但无 PAM 奖励通道；配 --plastic-mb（不传 --plastic-window → mod 门关闭，无抑郁）+ --plastic-tau-w 30000 → w_scale 仅慢恢复 → 消退；也用作 never-rewarded 平坦对照",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KC*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KC*@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
   }
 ]

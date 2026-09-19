@@ -196,7 +196,8 @@ def build_stack(circuit, cal, rng):
             std_u=(_std[0] if _std else None),
             std_tau_rec=(_std[1] if _std else None),
             plast_lr=(_pl["lr"] if _pl else None),
-            plast_tau_ms=(_pl["tau_ms"] if _pl else None))
+            plast_tau_ms=(_pl["tau_ms"] if _pl else None),
+            plast_tau_w_ms=(_pl.get("tau_w_ms") if _pl else None))
 
     pops = {"R": LIFPopulation(n_r, DT_MS, tau_m=cal["LIF"]["R"][0],
                                t_refrac=(1e9 if mech

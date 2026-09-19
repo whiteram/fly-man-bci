@@ -437,6 +437,7 @@ class ExponentialSynapses:
         std_tau_rec: float | None = None,
         plast_lr: float | None = None,
         plast_tau_ms: float | None = None,
+        plast_tau_w_ms: float | None = None,
     ):
         """post_index remaps edge post ids to contiguous [0, n_post) rows.
 
@@ -521,6 +522,10 @@ class ExponentialSynapses:
         # lr * mod(t) * e  (mod = reinforcement/dopamine proxy passed
         # per step).  Three-factor learning without post activity --
         # the documented KC x DAN form of mushroom-body conditioning.
+        # plast_tau_w_ms adds a SLOW homeostatic recovery of w toward 1
+        # (per step: w += (1-w) dt/tau_w) -- always on, not gated; with
+        # the gate closed (no reinforcement) it alone produces
+        # extinction (bci/condit2).  0/None = frozen weights.
         self.plast = plast_lr is not None
         if self.plast:
             self.plast_lr = np.float32(plast_lr)
@@ -528,6 +533,8 @@ class ExponentialSynapses:
             self.elig_decay = np.float32(np.exp(-dt / plast_tau_ms))
             self.w_scale = np.ones(self.n_edges, dtype=np.float32)
             self.w_floor = np.float32(0.02)
+            self.w_rec = (np.float32(dt / plast_tau_w_ms)
+                          if plast_tau_w_ms else np.float32(0.0))
         # numba step-kernel scratch (delivery spans; sized for the worst
         # case of every presynaptic neuron spiking in one step)
         self._tmp_t = np.empty(self.n_edges, dtype=np.int64)
@@ -620,6 +627,8 @@ class ExponentialSynapses:
                 self.w_scale = np.maximum(
                     self.w_scale * (1.0 - self.plast_lr * mod
                                     * self.elig), self.w_floor)
+            if self.w_rec:
+                self.w_scale += (1.0 - self.w_scale) * self.w_rec
         if self.delayed:
             self.y += self.buffer[self.ptr]
             self.buffer[self.ptr].fill(0.0)

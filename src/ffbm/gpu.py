@@ -280,10 +280,11 @@ void k_deliver_std(float* y, float* buf, int ptr, int nE, int buf_len,
 }
 
 // DAN-gated plasticity advance: eligibility decay + gated weight
-// depression (mod = reinforcement proxy, scalar this step)
+// depression (mod = reinforcement proxy, scalar this step) + optional
+// slow homeostatic recovery of w toward 1 (rec = dt/tau_w, 0 = off)
 extern "C" __global__
 void k_plast_adv(float* elig, float* w, float decay, float lr,
-                 float mod, float floor, int nE) {
+                 float mod, float floor, float rec, int nE) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= nE) return;
     float e = elig[i] * decay;
@@ -291,6 +292,9 @@ void k_plast_adv(float* elig, float* w, float decay, float lr,
     if (mod > 0.0f) {
         float wv = w[i] * (1.0f - lr * mod * e);
         w[i] = wv < floor ? floor : wv;
+    }
+    if (rec > 0.0f) {
+        w[i] += (1.0f - w[i]) * rec;
     }
 }
 
@@ -474,6 +478,7 @@ class _ExpPoolG:
             self.plast_decay = np.float32(pool.elig_decay)
             self.plast_lr = np.float32(pool.plast_lr)
             self.plast_floor = np.float32(pool.w_floor)
+            self.plast_rec = np.float32(getattr(pool, "w_rec", 0.0))
 
     def ecur_row(self, K, v_post, out_row, keep=None):
         """edge_currents(v_post) cast f32 into a ybuf row (bitwise the
@@ -516,7 +521,7 @@ class _ExpPoolG:
             _go(K["k_plast_adv"], self.n_edges,
                 (self.plast_elig, self.plast_w, self.plast_decay,
                  self.plast_lr, np.float32(mod), self.plast_floor,
-                 np.int32(self.n_edges)))
+                 self.plast_rec, np.int32(self.n_edges)))
             _go(K["k_deliver_plast"], self.n_rows,
                 (self.y, self.buffer, np.int32(self.ptr),
                  np.int32(self.n_edges), np.int32(self.buf_len),
