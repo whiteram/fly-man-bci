@@ -73,3 +73,5 @@ bci/gainstate/outputs/*.npy
 bci/gainstate/outputs/_trial_*/
 bci/condit/outputs/*.npy
 bci/condit/outputs/_trial_*/
+bci/mmdev2/outputs/*.npy
+bci/mmdev2/outputs/_trial_*/

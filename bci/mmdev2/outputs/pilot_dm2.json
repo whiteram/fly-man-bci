@@ -31,5 +31,73 @@
   "da1_150pa": 0.1972724199295044,
   "dm2_492pa_ratio": 1.253,
   "note": "DM2 threshold cliff 466-492 pA; 466 bimodal across seeds (0.027/0.090); 492 on stable plateau -> chosen for mmn_matchr, calibrated ratio 1.25"
+ },
+ "mmdev2_arm_summary": {
+  "std_off_mr": {
+   "dark_mean": -1.3892,
+   "a1_dc_step": -0.4347,
+   "a1_dc_step_sd": 0.0014,
+   "a5_dc_step": 0.0005,
+   "devB_dc_step": 0.0037,
+   "dark_std": 0.1004,
+   "plateau_std": 0.1789
+  },
+  "std_on_u0.05_mr": {
+   "dark_mean": -1.3897,
+   "a1_dc_step": -0.4346,
+   "a1_dc_step_sd": 0.0009,
+   "a5_dc_step": 0.0016,
+   "devB_dc_step": 0.0012,
+   "dark_std": 0.1004,
+   "plateau_std": 0.179
+  },
+  "std_off_match": {
+   "dark_mean": -1.3892,
+   "a1_dc_step": -0.4347,
+   "a1_dc_step_sd": 0.0014,
+   "a5_dc_step": 0.0005,
+   "devB_dc_step": 0.0036,
+   "dark_std": 0.1004,
+   "plateau_std": 0.1789
+  },
+  "std_on_u0.05_match": {
+   "dark_mean": -1.3897,
+   "a1_dc_step": -0.4346,
+   "a1_dc_step_sd": 0.0009,
+   "a5_dc_step": 0.0016,
+   "devB_dc_step": 0.0013,
+   "dark_std": 0.1004,
+   "plateau_std": 0.179
+  },
+  "std_on_u0.1_match": {
+   "dark_mean": -1.3902,
+   "a1_dc_step": -0.1074,
+   "a1_dc_step_sd": 0.1875,
+   "a5_dc_step": -0.0005,
+   "devB_dc_step": 0.0004,
+   "dark_std": 0.1003,
+   "plateau_std": 0.12
+  },
+  "solo_dc_step[da1@150]": -0.4319,
+  "solo_dc_step[dm2@492]": -0.4311,
+  "solo_dc_step[dm2@466]": -0.4286,
+  "dc8_seed130_means_1s..8s": [
+   -1.8184,
+   -1.8199,
+   -1.8229,
+   -1.8201,
+   -1.8198,
+   -1.822,
+   -1.8206
+  ],
+  "dc8_seed131_means_1s..8s": [
+   -1.8211,
+   -1.8223,
+   -1.8203,
+   -1.821,
+   -1.8214,
+   -1.8205,
+   -1.8211
+  ]
  }
 }

@@ -1,0 +1,52 @@
+{
+ "conditions": [
+  "std_off",
+  "std_on_u0.05"
+ ],
+ "runs": 4,
+ "fs": 1000.0,
+ "dur_ms": 3600.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "mmn_matchr",
+ "suffix": "_mr",
+ "events_ms": [
+  [
+   300,
+   600
+  ],
+  [
+   700,
+   1000
+  ],
+  [
+   1100,
+   1400
+  ],
+  [
+   1500,
+   1800
+  ],
+  [
+   1900,
+   2200
+  ],
+  [
+   2300,
+   2600
+  ],
+  [
+   2700,
+   3000
+  ]
+ ],
+ "labels": [
+  "A1",
+  "A2",
+  "A3",
+  "A4",
+  "A5",
+  "devB",
+  "recA"
+ ],
+ "seed_map": "seed = 62 + i*runs + r"
+}

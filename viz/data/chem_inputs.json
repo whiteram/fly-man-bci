@@ -3423,5 +3423,26 @@
         ]
       }
     ]
+  },
+  {
+    "id": "da1_dc8",
+    "modality": "olfactory",
+    "label": "DA1 单脉冲 8s 直流探针（bci/mmdev2 DC 漂移衰减时间测量）",
+    "t_end_ms": 8000.0,
+    "edge_ms": 30.0,
+    "note": "bci/mmdev2：oddball 语境发现脉冲列车驱动持续 -0.43 uV DC 台阶（一个脉冲即饱和、身份/幅度盲、U=0.05 不影响、U=0.1 摧毁）；本条目单 DA1@150 脉冲 300-600 ms + 8 s 试验，测台阶的衰减时间常数",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            600
+          ]
+        ]
+      }
+    ]
   }
 ]
