@@ -3207,5 +3207,92 @@
         ]
       }
     ]
+  },
+  {
+    "id": "mmn_match",
+    "modality": "olfactory",
+    "label": "MMN 等强度列车：DA1×5 标准脉冲 + DM2 偏差（同 150 pA，仅身份偏差）+ DA1 恢复",
+    "t_end_ms": 3600.0,
+    "edge_ms": 30.0,
+    "note": "bci/mmdev2：mmdev 重审发现 STD=强度依赖增益控制，旧 mmn_train 的 DM2 偏差（600 pA=4×标准）自耗竭更深而反转偏差比；本条目把偏差脉冲降到 150 pA 与标准等强度，隔离纯身份偏差（时序与 mmn_train 完全一致）",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            600
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            700,
+            1000
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            1100,
+            1400
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            1500,
+            1800
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            1900,
+            2200
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            2300,
+            2600
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            2700,
+            3000
+          ]
+        ]
+      }
+    ]
   }
 ]
