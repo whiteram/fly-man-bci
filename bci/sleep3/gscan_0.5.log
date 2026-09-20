@@ -1,0 +1,14 @@
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-b00add889a9492c797e9.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: CEN_C g_unit x0.5 -> 0.002
+simulating 6.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+biology loop: 78 s (6000 records)
+phi_scalp checksum: L2=2.614782e-04 (baseline A/B file: bci\sleep3\outputs\_gscan_0.5\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 10.72 uV at 149 deg -> d'=2 needs ~2325351 trials (band 2-20 Hz: ~32349033)
+stim view frames: bci\sleep3\outputs\_gscan_0.5\stim_frames.bin (0.0 MB)
+wrote bci\sleep3\outputs\_gscan_0.5\viz_data.json (5.7 MB)

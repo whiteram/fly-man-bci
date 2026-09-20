@@ -1,0 +1,69 @@
+[acquire] ctl60: exists, skip
+[acquire] u0.0003_t5000: std=CEN_C:0.0003,5000
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.0 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-b00add889a9492c797e9.npz (2.7 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+std gate: CEN_C U=0.0003 tau_rec=5000 ms
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 2 pulses
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+std debug CEN_C: d mean 0.9791 min 0.2500 frac<0.5 0.003
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 46.40, MBON 248.04, ALPN 142.77, DAN 19.42
+biology loop: 819 s (60000 records)
+phi_scalp checksum: L2=1.551101e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep3\outputs\_trial_u0.0003_t5000\_debug_phi_scalp.npy)
+background EEG: fly signal 1.19 uV vs bg 11.22 uV at 156 deg -> d'=2 needs ~354 trials (band 2-20 Hz: ~2517)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep3\outputs\_trial_u0.0003_t5000\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep3\outputs\_trial_u0.0003_t5000\viz_data.json (32.2 MB)
+[acquire] u0.0005_t5000: std=CEN_C:0.0005,5000
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (2.0 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-b00add889a9492c797e9.npz (1.4 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+std gate: CEN_C U=0.0005 tau_rec=5000 ms
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 2 pulses
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+std debug CEN_C: d mean 0.9793 min 0.4998 frac<0.5 0.004
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 37.37, MBON 193.95, ALPN 124.09, DAN 14.10
+biology loop: 832 s (60000 records)
+phi_scalp checksum: L2=1.320064e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep3\outputs\_trial_u0.0005_t5000\_debug_phi_scalp.npy)
+background EEG: fly signal 1.04 uV vs bg 11.22 uV at 156 deg -> d'=2 needs ~464 trials (band 2-20 Hz: ~3921)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep3\outputs\_trial_u0.0005_t5000\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\sleep3\outputs\_trial_u0.0005_t5000\viz_data.json (32.3 MB)
+[acquire] u0.001_t5000: std=CEN_C:0.001,5000
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-b00add889a9492c797e9.npz (2.2 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+std gate: CEN_C U=0.001 tau_rec=5000 ms
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 2 pulses
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+Traceback (most recent call last):
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py", line 1928, in <module>
+    main()
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py", line 1607, in main
+    trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\src\ffbm\gpu.py", line 808, in run
+    on_record(k, k // 2, t, inc_f)
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py", line 1597, in record_gpu
+    sum_g["T4"][j] = m45[is_t4_g].sum()
+                     ~~~^^^^^^^^^
+  File "cupy/_core/core.pyx", line 1853, in cupy._core.core._ndarray_base.__getitem__
+  File "cupy/_core/_routines_indexing.pyx", line 52, in cupy._core._routines_indexing._ndarray_getitem
+  File "cupy/_core/_routines_indexing.pyx", line 835, in cupy._core._routines_indexing._getitem_mask_single
+  File "cupy/_core/_routines_indexing.pyx", line 802, in cupy._core._routines_indexing._prepare_mask_indexing_single
+  File "cupy/_core/core.pyx", line 2049, in cupy._core.core._ndarray_base.__int__
+  File "cupy/_core/core.pyx", line 2203, in cupy._core.core._ndarray_base.get
+  File "cupy/cuda/memory.pyx", line 722, in cupy.cuda.memory.MemoryPointer.copy_to_host_async
+  File "cupy_backends/cuda/api/runtime.pyx", line 627, in cupy_backends.cuda.api.runtime.memcpyAsync
+  File "cupy_backends/cuda/api/runtime.pyx", line 146, in cupy_backends.cuda.api.runtime.check_status
+cupy_backends.cuda.api.runtime.CUDARuntimeError: cudaErrorLaunchFailure: unspecified launch failure
+export failed for u0.001_t5000

@@ -38,12 +38,9 @@ def episode_stats(st):
 
 
 def main():
-    meta = json.loads((OUT / "meta.json").read_text())
     res = {}
-    for tag in meta["arms"]:
-        f = OUT / f"{tag}_scalp.npy"
-        if not f.exists():
-            continue
+    for f in sorted(OUT.glob("*_scalp.npy")):
+        tag = f.name[:-10]
         e = np.load(f)
         e = e.mean(axis=1) if e.ndim == 2 else e
         rms = np.array([np.sqrt((e[a:a + 1000] ** 2).mean())
@@ -63,20 +60,19 @@ def main():
             coll.append(s0 + run - w0)          # s the up-state survived
         res[tag] = {"rms_uv": [round(float(v), 3) for v in rms],
                     "frac_up": float((st == 1).mean()),
+                    "level_10_30s_uv": round(float(rms[10:30].mean()), 2),
                     "episodes": [(k, s, L) for k, s, L in eps],
                     "collapse_s_after_pulse": coll}
         pop = OUT / f"{tag}_pop.npz"
         if pop.exists():
             z = np.load(pop)
-            res[tag]["rate_up_hz"] = {
-                k: round(float(z[k][3000:30000].mean()), 2)
+            res[tag]["rate_hz_10_30s"] = {
+                k: round(float(z[k][10000:30000].mean()), 2)
                 for k in z.files}
         print(f"\n-- {tag} --  frac_up {res[tag]['frac_up']:.2f}  "
-              f"collapse after pulses {coll}")
-        print("   rms(uV, 1s): " + " ".join(
-            f"{v:.1f}" for v in rms[::4]))
-        for k, s, L in eps:
-            print(f"   {'UP ' if k == 1 else 'DN '} @ {s:2d}s x {L:2d}s")
+              f"level(10-30s) {res[tag]['level_10_30s_uv']:.2f} uV  "
+              f"collapse {coll}")
+        print("   rms(uV, 1s): " + " ".join(f"{v:.1f}" for v in rms[::4]))
     (OUT / "summary.json").write_text(json.dumps(res, indent=1))
     print(f"\n[sleep3] summary -> {OUT / 'summary.json'}")
 

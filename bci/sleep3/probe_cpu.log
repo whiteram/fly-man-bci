@@ -1,0 +1,17 @@
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-9eac2bb8de379e7da722.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+std gate: CEN_C U=0.9 tau_rec=20000 ms
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+forward buffers: 256 records x 1218062 dipoles (1247 MB)
+simulating 6.0 s ...
+extra rate OLR: mean 0.5 Hz, peak 1 Hz
+extra rate CEN: mean 66.9 Hz, peak 87 Hz
+extra rate ORN: mean 0.0 Hz, peak 0 Hz
+biology loop: 636 s (6000 records)
+phi_scalp checksum: L2=1.752829e-03 (baseline A/B file: bci\sleep3\outputs\_probe_cpu_u09\_debug_phi_scalp.npy)
+background EEG: fly signal 0.05 uV vs bg 11.60 uV at 156 deg -> d'=2 needs ~233179 trials (band 2-20 Hz: ~1221966)
+stim view frames: bci\sleep3\outputs\_probe_cpu_u09\stim_frames.bin (0.0 MB)
+wrote bci\sleep3\outputs\_probe_cpu_u09\viz_data.json (4.4 MB)
