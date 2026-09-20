@@ -1,0 +1,61 @@
+{
+ "points": [
+  {
+   "delay_s": 10,
+   "p1_peak_uv": 8.35,
+   "p2_peak_uv": 2.34,
+   "R_scalp": 0.281,
+   "p1_mbon_hz": 156.7,
+   "p2_mbon_hz": 6.9,
+   "R_mbon": 0.044,
+   "single_tau_pred": 0.181
+  },
+  {
+   "delay_s": 20,
+   "p1_peak_uv": 8.35,
+   "p2_peak_uv": 3.02,
+   "R_scalp": 0.361,
+   "p1_mbon_hz": 156.7,
+   "p2_mbon_hz": 33.0,
+   "R_mbon": 0.211,
+   "single_tau_pred": 0.699
+  },
+  {
+   "delay_s": 35,
+   "p1_peak_uv": 8.35,
+   "p2_peak_uv": 3.62,
+   "R_scalp": 0.433,
+   "p1_mbon_hz": 156.7,
+   "p2_mbon_hz": 65.0,
+   "R_mbon": 0.414,
+   "single_tau_pred": 0.933
+  },
+  {
+   "delay_s": 50,
+   "p1_peak_uv": 8.35,
+   "p2_peak_uv": 3.7,
+   "R_scalp": 0.443,
+   "p1_mbon_hz": 156.7,
+   "p2_mbon_hz": 67.2,
+   "R_mbon": 0.429,
+   "single_tau_pred": 0.985
+  },
+  {
+   "delay_s": 80,
+   "p1_peak_uv": 8.35,
+   "p2_peak_uv": 3.72,
+   "R_scalp": 0.445,
+   "p1_mbon_hz": 156.7,
+   "p2_mbon_hz": 64.4,
+   "R_mbon": 0.411,
+   "single_tau_pred": 0.999
+  }
+ ],
+ "fit": {
+  "a_fast": 0.45,
+  "tau2_slow_s": null,
+  "sse": 0.0421
+ },
+ "tau_fast_s": 10.0,
+ "t_coll_s": 8.0
+}
