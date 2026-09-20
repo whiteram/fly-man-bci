@@ -3444,5 +3444,53 @@
         ]
       }
     ]
+  },
+  {
+    "id": "sz_l1",
+    "modality": "seizure",
+    "label": "癫痫灶-L 单脉冲 90s（bci/sleep4 内源性再点火检验）",
+    "t_end_ms": 90000.0,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/sleep4：同 sz_l 但只保留 800-2800 ms 一次点火、试验拉长到 90 s——U=1.5e-4/tau=10s 下塌缩 ~8s、再武装 3tau ~30s，[40,90]s 为无外脉冲的自发再点火观察窗；观察到=内源慢振荡，观察不到=外部驱动边界",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sz_l3",
+    "modality": "seizure",
+    "label": "癫痫灶-L 双脉冲 120s（第二次点火 80s，tau>=15s 再武装网格）",
+    "t_end_ms": 120000.0,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/sleep4：同 sz_l2 但第二次点火挪到 80000-82300 ms——tau=15/20s 时 3tau=45/60s（从 ~8s 塌缩起算 ~55-70s 完成再武装），旧 35s 脉冲会打在未武装完的资源上；80s 保证全武装后点火，读第二次塌缩延迟 vs tau 的标度",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ],
+          [
+            80000,
+            82300
+          ]
+        ]
+      }
+    ]
   }
 ]
