@@ -39,9 +39,9 @@ def episodes(st):
     return out
 
 
-def collapse_after(eps, p1_ms):
-    w0 = int(p1_ms // 1000) + 1
-    ups = [e for e in eps if e[0] == 1 and e[1] >= w0 - 1]
+def collapse_after(eps, onset_ms):
+    w0 = max(1, int(onset_ms // 1000))
+    ups = [e for e in eps if e[0] == 1 and e[1] >= w0]
     if not ups:
         return None
     s0 = min(e[1] for e in ups)
@@ -64,15 +64,17 @@ def main():
         eps = episodes(st)
         tau_s = info["tau_ms"] / 1000.0
         two_pulse = info["chem"] == "sz_l3"
-        p2_onset = 80000.0 if two_pulse else None
-        coll = [collapse_after(eps, 2800.0)]
-        if two_pulse:
-            coll.append(collapse_after(eps, p2_onset))
+        onsets = [800.0] + ([80000.0] if two_pulse else [])
+        coll = [collapse_after(eps, on) for on in onsets]
+        peaks = [round(float(rms[int(on // 1000):int(on // 1000) + 5].max()), 2)
+                 for on in onsets]
         rec = {"chem": info["chem"], "tau_ms": info["tau_ms"],
                "std": info["std"], "seed": info["seed"],
                "rms_uv": [round(float(v), 3) for v in rms],
                "episodes": [(k, s, L) for k, s, L in eps],
-               "collapse_s_after_pulse": coll}
+               "collapse_s_after_pulse": coll,
+               "pulse_transient_peak_uv": peaks,
+               "plateau_10_30s_uv": round(float(rms[10:30].mean()), 2)}
         c1 = coll[0]
         if not two_pulse:
             horizon = (c1 + 3 * tau_s) if c1 is not None else 3 * tau_s
@@ -86,17 +88,19 @@ def main():
             rec["late_up_episodes"] = late
             rec["flares_gt2uv_post"] = int((w > 2.0).sum()) if len(w) else 0
             verdict = "ENDOGENOUS" if late else "externally driven"
-            print(f"-- {tag} -- collapse {c1}s, horizon {horizon:.0f}s, "
-                  f"post max {rec['post_rearm_max_uv']} uV, "
-                  f"flares>2uV {rec['flares_gt2uv_post']} -> {verdict}")
+            print(f"-- {tag} -- pulse1 peak {peaks[0]} uV, plateau "
+                  f"{rec['plateau_10_30s_uv']} uV, horizon {horizon:.0f}s, "
+                  f"post max {rec['post_rearm_max_uv']} uV -> {verdict}")
         else:
-            i2 = int(p2_onset // 1000)
+            i2 = int(onsets[1] // 1000)
             pre2 = rms[max(0, i2 - 10):i2]
             rec["pre_pulse2_level_uv"] = round(float(pre2.mean()), 2)
             c2 = coll[1]
-            period = (p2_onset / 1000.0 + c2) if c2 is not None else None
+            period = (onsets[1] / 1000.0 + c2) if c2 is not None else None
             rec["cycle_period_s"] = round(period, 1) if period else None
-            print(f"-- {tag} -- collapse1 {c1}s, pre-pulse2 level "
+            print(f"-- {tag} -- p1 peak {peaks[0]} uV, plateau "
+                  f"{rec['plateau_10_30s_uv']} uV, p2 peak {peaks[1]} uV "
+                  f"(re-arm test vs 6.6), pre-p2 level "
                   f"{rec['pre_pulse2_level_uv']} uV, collapse2 {c2}s, "
                   f"period {rec['cycle_period_s']}s")
         pop = OUT / f"{tag}_pop.npz"
