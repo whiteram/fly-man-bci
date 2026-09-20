@@ -47,6 +47,12 @@ def main():
     ap.add_argument("--runs", type=int, default=4)
     ap.add_argument("--only", default=None,
                     help="comma-separated subset of conditions to run")
+    ap.add_argument("--chem", default="mmn_match",
+                    help="chem entry id (mmn_match = matched intensity, "
+                         "mmn_matchr = matched response)")
+    ap.add_argument("--suffix", default="",
+                    help="output stem suffix (e.g. _mr); seeds stay "
+                         "paired across suffixes by condition index")
     args = ap.parse_args()
     conds = CONDS
     if args.only:
@@ -55,9 +61,9 @@ def main():
     out = HERE / "outputs"
     out.mkdir(exist_ok=True)
     for cond, extra in conds.items():
-        i = list(CONDS).index(cond)  # seed index is stable under --only
+        i = list(CONDS).index(cond)  # seed index stable under --only
         for r in range(args.runs):
-            stem = f"{cond}_r{r}"
+            stem = f"{cond}{args.suffix}_r{r}"
             dst = out / f"{stem}.npy"
             if dst.exists():
                 continue
@@ -65,7 +71,7 @@ def main():
             trial = out / f"_trial_{stem}"
             cmd = [sys.executable, str(ROOT / "viz" / "export_data.py"),
                    "--regions", REGIONS, "--visual-input", "dark",
-                   "--chem-input", "mmn_match", "--t-end", str(T_END),
+                   "--chem-input", args.chem, "--t-end", str(T_END),
                    "--seed", str(seed), "--out", str(trial), "--gpu"]
             cmd = cmd[:2] + extra + cmd[2:]
             print("[acquire] " + " ".join(cmd[1:]), flush=True)
@@ -74,9 +80,10 @@ def main():
                 raise SystemExit(f"export failed for {stem}")
             shutil.copy(trial / "_debug_phi_scalp.npy", dst)
             shutil.rmtree(trial)
-    (out / "meta.json").write_text(json.dumps(
-        {"conditions": list(CONDS), "runs": args.runs, "fs": 1000.0,
-         "dur_ms": T_END, "regions": REGIONS, "chem": "mmn_match",
+    (out / f"meta{args.suffix}.json").write_text(json.dumps(
+        {"conditions": list(conds), "runs": args.runs, "fs": 1000.0,
+         "dur_ms": T_END, "regions": REGIONS, "chem": args.chem,
+         "suffix": args.suffix,
          "events_ms": [[300, 600], [700, 1000], [1100, 1400],
                        [1500, 1800], [1900, 2200], [2300, 2600],
                        [2700, 3000]],

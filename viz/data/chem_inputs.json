@@ -3294,5 +3294,47 @@
         ]
       }
     ]
+  },
+  {
+    "id": "da1_solo",
+    "modality": "olfactory",
+    "label": "DA1 单脉冲标定（bci/mmdev2 等响应对照的剂量寻找）",
+    "t_end_ms": 1200.0,
+    "edge_ms": 30.0,
+    "note": "bci/mmdev2 pilot：单通道单脉冲 300-600 ms @150 pA；DM2 侧配合 --chem-amp-scale 做剂量扫描（solo 入口只有一条通道，全局 scale 即 DM2 scale），找与 DA1@150 等净响应的 DM2 强度",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            600
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dm2_solo",
+    "modality": "olfactory",
+    "label": "DM2 单脉冲标定（bci/mmdev2 等响应对照的剂量寻找）",
+    "t_end_ms": 1200.0,
+    "edge_ms": 30.0,
+    "note": "bci/mmdev2 pilot：单通道单脉冲 300-600 ms @150 pA；DM2 侧配合 --chem-amp-scale 做剂量扫描（solo 入口只有一条通道，全局 scale 即 DM2 scale），找与 DA1@150 等净响应的 DM2 强度",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            600
+          ]
+        ]
+      }
+    ]
   }
 ]

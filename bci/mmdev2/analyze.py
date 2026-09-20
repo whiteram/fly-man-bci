@@ -21,14 +21,19 @@ OUT = HERE / "outputs"
 
 
 def main():
-    meta = json.loads((OUT / "meta.json").read_text(encoding="utf-8"))
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--meta", default="meta.json")
+    args = ap.parse_args()
+    meta = json.loads((OUT / args.meta).read_text(encoding="utf-8"))
     ev = meta["events_ms"]
     labels = meta["labels"]
+    sfx = meta.get("suffix", "")
     dev_ratios = {}
     for cond in meta["conditions"]:
         curves = []
         for r in range(meta["runs"]):
-            p = OUT / f"{cond}_r{r}.npy"
+            p = OUT / f"{cond}{sfx}_r{r}.npy"
             if not p.exists():
                 continue
             phi = np.load(p) * 1e6 * 1.7
