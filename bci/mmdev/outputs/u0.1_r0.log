@@ -1,0 +1,21 @@
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+kernel cache: HIT kernels-b00add889a9492c797e9.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+std gate: ORN_C U=0.1 tau_rec=600 ms
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem: ORN[ORN_DM2] -> 54 neurons (ORN_DM2), 600 pA x 1 pulses
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 3.6 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+std debug ORN_C: d mean 0.9796 min 0.7712 frac<0.5 0.000
+biology loop: 33 s (3600 records)
+phi_scalp checksum: L2=2.583988e-04 (baseline A/B file: bci\mmdev\outputs\_trial_u0.1_r0\_debug_phi_scalp.npy)
+stim view frames: bci\mmdev\outputs\_trial_u0.1_r0\stim_frames.bin (0.0 MB)
+wrote bci\mmdev\outputs\_trial_u0.1_r0\viz_data.json (4.5 MB)
