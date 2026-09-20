@@ -3492,5 +3492,83 @@
         ]
       }
     ]
+  },
+  {
+    "id": "sz_l5",
+    "modality": "seizure",
+    "label": "癫痫灶-L 双脉冲（第二次 10s，bci/sleep5 再武装恢复曲线）",
+    "t_end_ms": 35000,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/sleep5：同 sz_l 但第二次点火 10000-12300 ms、试验 35s——再武装恢复曲线的第 10s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ],
+          [
+            10000,
+            12300
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sz_l6",
+    "modality": "seizure",
+    "label": "癫痫灶-L 双脉冲（第二次 20s，bci/sleep5 再武装恢复曲线）",
+    "t_end_ms": 45000,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/sleep5：同 sz_l 但第二次点火 20000-22300 ms、试验 45s——再武装恢复曲线的第 20s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ],
+          [
+            20000,
+            22300
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sz_l7",
+    "modality": "seizure",
+    "label": "癫痫灶-L 双脉冲（第二次 50s，bci/sleep5 再武装恢复曲线）",
+    "t_end_ms": 75000,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/sleep5：同 sz_l 但第二次点火 50000-52300 ms、试验 75s——再武装恢复曲线的第 50s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ],
+          [
+            50000,
+            52300
+          ]
+        ]
+      }
+    ]
   }
 ]

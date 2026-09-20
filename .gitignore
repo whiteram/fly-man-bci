@@ -77,3 +77,5 @@ bci/mmdev2/outputs/*.npy
 bci/mmdev2/outputs/_trial_*/
 bci/sleep4/outputs/*.npy
 bci/sleep4/outputs/_trial_*/
+bci/sleep5/outputs/*.npy
+bci/sleep5/outputs/_trial_*/
