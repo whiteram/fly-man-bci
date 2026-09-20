@@ -218,6 +218,15 @@ def main():
                          "runtime factor (intensity sweeps with a "
                          "single entry, bci/pnrate dose-response; not "
                          "in any cache key)")
+    ap.add_argument("--mbon-bias", type=float, default=None,
+                    help="tonic bias current (pA, pass NEGATIVE to "
+                         "hyperpolarize) on all CEN MBON cells for the "
+                         "whole run, appended as an extra chem channel "
+                         "(group MBON*, pulses spanning the trial): "
+                         "moves MBONs off their binary operating point "
+                         "so KC->MBON weights read out as graded V "
+                         "(bci/dangate2). Runtime amplitude like "
+                         "--chem-amp-scale, never in a cache key")
     ap.add_argument("--pop-rate-neurons", action="store_true",
                     help="with --pop-rate: also dump PER-NEURON spike "
                          "counts over the whole trial "
@@ -1211,6 +1220,10 @@ def main():
     # through the circuit's chem_groups tables (annotation type ->
     # compact index, built by the region builders)
     chem_fn, chem_meta = None, None
+    if args.mbon_bias is not None and not args.chem_input:
+        ap.error("--mbon-bias rides the chem channel machinery -- "
+                 "requires --chem-input (any entry; the bias channel "
+                 "spans the whole trial)")
     if args.chem_input:
         import fnmatch
         chems = json.loads((ROOT / "viz" / "data" / "chem_inputs.json")
@@ -1223,6 +1236,17 @@ def main():
         pops_x = circuit.get("extra_pops") or {}
         groups_x = circuit.get("chem_groups") or {}
         edge_ms = float(cspec.get("edge_ms", 150.0))
+        if args.mbon_bias is not None:
+            # bci/dangate2: tonic MBON hyperpolarization as an extra
+            # channel -- the chem machinery (fnmatch groups, GPU path,
+            # chem_meta provenance) is reused wholesale.  "MBON*" hits
+            # every MBONnn[@-like]@side type key (~97 cells); amp sign
+            # passes straight through, so a negative value biases.
+            cspec = dict(cspec)
+            cspec["channels"] = list(cspec["channels"]) + [
+                {"pop": "CEN", "group": "MBON*",
+                 "amp_pa": float(args.mbon_bias),
+                 "pulses": [[0.0, float(args.t_end)]]}]
         chans = []                       # (pop, index array, amp, pulses)
         for ch in cspec["channels"]:
             pop = ch["pop"]

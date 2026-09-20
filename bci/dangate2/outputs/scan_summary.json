@@ -1,0 +1,169 @@
+{
+ "protocol": "dangateA chem, lr=0 (static w), seed 1011, kcm 0.015, mbmd 178, gate 150,0.05,400; bias via --mbon-bias, w via --plastic-w0",
+ "dose": {
+  "0": {
+   "mbon_hz": 43.28,
+   "kc_hz": 57.89,
+   "r_dan_train": 15.54,
+   "mod_ms": 1398
+  },
+  "100": {
+   "mbon_hz": 29.9,
+   "kc_hz": null,
+   "r_dan_train": 38.72,
+   "mod_ms": 1800
+  },
+  "125": {
+   "mbon_hz": 31.73,
+   "kc_hz": 57.82,
+   "r_dan_train": 45.24,
+   "mod_ms": 1800
+  },
+  "150": {
+   "mbon_hz": 29.73,
+   "kc_hz": 57.25,
+   "r_dan_train": 48.79,
+   "mod_ms": 1800
+  },
+  "200": {
+   "mbon_hz": 26.14,
+   "kc_hz": 57.75,
+   "r_dan_train": 50.44,
+   "mod_ms": 1800
+  },
+  "25": {
+   "mbon_hz": 36.99,
+   "kc_hz": 58.22,
+   "r_dan_train": 19.64,
+   "mod_ms": 1744
+  },
+  "300": {
+   "mbon_hz": 19.57,
+   "kc_hz": 57.83,
+   "r_dan_train": 51.18,
+   "mod_ms": 1800
+  },
+  "400": {
+   "mbon_hz": 23.74,
+   "kc_hz": 57.9,
+   "r_dan_train": 56.52,
+   "mod_ms": 1800
+  },
+  "50": {
+   "mbon_hz": 31.6,
+   "kc_hz": 58.56,
+   "r_dan_train": 24.24,
+   "mod_ms": 1799
+  },
+  "600": {
+   "mbon_hz": 18.81,
+   "kc_hz": 58.14,
+   "r_dan_train": 61.27,
+   "mod_ms": 1800
+  },
+  "75": {
+   "mbon_hz": 28.4,
+   "kc_hz": 57.81,
+   "r_dan_train": 29.99,
+   "mod_ms": 1800
+  }
+ },
+ "gradedness": {
+  "w0.01_b0": {
+   "mbon_hz": 31.83,
+   "kc_hz": 58.79,
+   "r_dan_train": 18.21,
+   "mod_ms": 1639
+  },
+  "w0.01_b300": {
+   "mbon_hz": 22.55,
+   "kc_hz": 57.82,
+   "r_dan_train": 51.89,
+   "mod_ms": 1800
+  },
+  "w0.03_b0": {
+   "mbon_hz": 43.28,
+   "kc_hz": 57.89,
+   "r_dan_train": 15.54,
+   "mod_ms": 1398
+  },
+  "w0.03_b300": {
+   "mbon_hz": 19.57,
+   "kc_hz": 57.83,
+   "r_dan_train": 51.18,
+   "mod_ms": 1800
+  },
+  "w0.06_b0": {
+   "mbon_hz": 55.8,
+   "kc_hz": 59.37,
+   "r_dan_train": 12.92,
+   "mod_ms": 1163
+  },
+  "w0.06_b300": {
+   "mbon_hz": 33.48,
+   "kc_hz": 57.41,
+   "r_dan_train": 49.44,
+   "mod_ms": 1800
+  },
+  "w0.1_b0": {
+   "mbon_hz": 101.14,
+   "kc_hz": 57.4,
+   "r_dan_train": 9.59,
+   "mod_ms": 863
+  },
+  "w0.1_b300": {
+   "mbon_hz": 55.34,
+   "kc_hz": 58.16,
+   "r_dan_train": 42.87,
+   "mod_ms": 1800
+  },
+  "w0.2_b0": {
+   "mbon_hz": 160.74,
+   "kc_hz": 58.26,
+   "r_dan_train": 9.4,
+   "mod_ms": 846
+  },
+  "w0.2_b300": {
+   "mbon_hz": 120.61,
+   "kc_hz": 57.74,
+   "r_dan_train": 18.36,
+   "mod_ms": 1652
+  },
+  "w0.3_b300": {
+   "mbon_hz": 161.43,
+   "kc_hz": null,
+   "r_dan_train": 11.46,
+   "mod_ms": 1031
+  },
+  "w0.3_b600": {
+   "mbon_hz": 146.53,
+   "kc_hz": null,
+   "r_dan_train": 24.45,
+   "mod_ms": 1795
+  },
+  "w0.5_b300": {
+   "mbon_hz": 195.7,
+   "kc_hz": null,
+   "r_dan_train": 10.14,
+   "mod_ms": 913
+  },
+  "w0.5_b600": {
+   "mbon_hz": 173.78,
+   "kc_hz": null,
+   "r_dan_train": 17.2,
+   "mod_ms": 1548
+  },
+  "w1.0_b300": {
+   "mbon_hz": 248.05,
+   "kc_hz": null,
+   "r_dan_train": 10.04,
+   "mod_ms": 903
+  },
+  "w1.0_b600": {
+   "mbon_hz": 229.16,
+   "kc_hz": null,
+   "r_dan_train": 10.16,
+   "mod_ms": 914
+  }
+ }
+}
