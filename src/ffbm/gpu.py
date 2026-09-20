@@ -247,11 +247,17 @@ void k_deliver(float* y, float* buf, int ptr, int nE, int buf_len,
     }
 }
 
-// short-term depression: per-edge recovery toward 1 (each step)
+// short-term depression: per-edge recovery toward 1 (each step).
+// rec = exp(-dt/tau) so the gap (1-d) DECAYS by rec per step, i.e.
+// the step moves d a fraction (1-rec) ~ dt/tau toward 1 -- time
+// constant tau.  (bci/sleep3: the previous "* rec" form multiplied
+// the GAP by ~1 per step = instant refill; STD was a no-op at every
+// U -- the latent bug behind "the STD gate never bit the maintaining
+// current" in the mechanism-14 probes.)
 extern "C" __global__
 void k_std_rec(float* d, float rec, int nE) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < nE) d[i] += (1.0f - d[i]) * rec;
+    if (i < nE) d[i] += (1.0f - d[i]) * (1.0f - rec);
 }
 
 // delivery with a depression gate (depletion at RELEASE time; the

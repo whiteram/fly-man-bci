@@ -631,7 +631,11 @@ class ExponentialSynapses:
             return self.y
         self.y *= self.decay
         if self.std:
-            self.std_d += (1.0 - self.std_d) * self.std_rec
+            # gap (1-d) decays by std_rec = exp(-dt/tau) per step --
+            # the step moves d a fraction (1-std_rec) ~ dt/tau toward
+            # 1 (time constant tau).  The earlier "* std_rec" form was
+            # an instant refill (STD no-op; bci/sleep3 bug hunt).
+            self.std_d += (1.0 - self.std_d) * (1.0 - self.std_rec)
         if self.plast:
             self.elig *= self.elig_decay
             if self.plast_lr >= 0:        # depression toward floor

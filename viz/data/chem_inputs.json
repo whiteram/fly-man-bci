@@ -3181,5 +3181,31 @@
         ]
       }
     ]
+  },
+  {
+    "id": "sz_l2",
+    "modality": "seizure",
+    "label": "癫痫灶-L 双脉冲：0.8-2.8s 与 35-37.3s 两次点火（bci/sleep3 迟滞循环探针）",
+    "t_end_ms": 60000.0,
+    "edge_ms": 100.0,
+    "no_cen_damp": true,
+    "note": "bci/sleep3：同 sz_l 但 60s 试验 + 第二次点火 35000-37300 ms——STD 慢资源门下测上行态塌缩后的再点火（迟滞/循环能力）；no_cen_damp 保持",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "LAL*@L",
+        "amp_pa": 600.0,
+        "pulses": [
+          [
+            800,
+            2800
+          ],
+          [
+            35000,
+            37300
+          ]
+        ]
+      }
+    ]
   }
 ]

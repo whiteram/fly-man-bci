@@ -1607,6 +1607,22 @@ def main():
         trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
                   int(T_END / fp.DT_MS), on_record=record_gpu,
                   chem_fn=chem_fn, mod_fn=mod_fn)
+        if args.std_gates:
+            # bci/sleep3 diagnostics: the post-run depletion state of
+            # every std-gated pool (d distribution + gated-current
+            # weights) -- settles whether the gate actually bit
+            for _gn in args.std_gates.split(";"):
+                _pg = trial.exp.get(_gn.split(":")[0])
+                if _pg is None or not _pg.std:
+                    continue
+                np.savez(OUT / f"_std_debug_{_gn.split(':')[0]}.npz",
+                         d=cp.asnumpy(_pg.std_d), y=cp.asnumpy(_pg.y),
+                         kick=cp.asnumpy(_pg.kick))
+                print(f"std debug {_gn.split(':')[0]}: d mean "
+                      f"{float(_pg.std_d.mean()):.4f} min "
+                      f"{float(_pg.std_d.min()):.4f} frac<0.5 "
+                      f"{float((_pg.std_d < 0.5).mean()):.3f}",
+                      flush=True)
         if jbuf:
             flush_scalp_gpu(n_field - jbuf, jbuf)
         cp.cuda.runtime.deviceSynchronize()
