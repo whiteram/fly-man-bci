@@ -3336,5 +3336,92 @@
         ]
       }
     ]
+  },
+  {
+    "id": "mmn_matchr",
+    "modality": "olfactory",
+    "label": "MMN 等响应列车：DA1×5 标准（150 pA）+ DM2 偏差（492 pA，单脉冲标定等净响应）+ DA1 恢复",
+    "t_end_ms": 3600.0,
+    "edge_ms": 30.0,
+    "note": "bci/mmdev2：等强度版（mmn_match）证明 DM2@150 头皮不可见（强度与响应混杂）；solo 剂量标定（da1_solo/dm2_solo + --chem-amp-scale）测得 DM2 阈值崖 466-492 pA，492 pA 落稳定平台（净响应 +0.247 vs DA1@150 的 +0.197，校准比 1.25），此为等响应偏差：oddball 中 devB/A1 相对 1.25 的偏离 = 身份新颖性的真实贡献",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            600
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            700,
+            1000
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            1100,
+            1400
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            1500,
+            1800
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            1900,
+            2200
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DM2",
+        "amp_pa": 492.0,
+        "pulses": [
+          [
+            2300,
+            2600
+          ]
+        ]
+      },
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            2700,
+            3000
+          ]
+        ]
+      }
+    ]
   }
 ]
