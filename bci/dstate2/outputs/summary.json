@@ -1,0 +1,41 @@
+{
+ "g025": {
+  "alpn_lock": 0.0,
+  "alpn_dark": 0.0,
+  "ORN": 0.0,
+  "MBON": 0.0,
+  "Kenyon_Cell": 0.0,
+  "DAN": 0.0,
+  "ALLN": 0.0,
+  "ALIN": 0.0,
+  "ALON": 0.0,
+  "mean_uv": 1.3895,
+  "std_uv": 0.005
+ },
+ "g050": {
+  "alpn_lock": 0.0,
+  "alpn_dark": 0.0,
+  "ORN": 0.0,
+  "MBON": 0.0,
+  "Kenyon_Cell": 0.0,
+  "DAN": 0.0,
+  "ALLN": 0.0,
+  "ALIN": 0.0,
+  "ALON": 0.0,
+  "mean_uv": 1.3895,
+  "std_uv": 0.0051
+ },
+ "g150": {
+  "alpn_lock": 148.8,
+  "alpn_dark": 0.0,
+  "ORN": 0.0,
+  "MBON": 167.32,
+  "Kenyon_Cell": 47.46,
+  "DAN": 9.51,
+  "ALLN": 337.51,
+  "ALIN": 73.1,
+  "ALON": 365.13,
+  "mean_uv": 6.4606,
+  "std_uv": 0.0611
+ }
+}

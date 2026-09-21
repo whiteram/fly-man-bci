@@ -1,0 +1,14 @@
+{
+ "arms": {
+  "g025": 0.025,
+  "g050": 0.5,
+  "g150": 1.5
+ },
+ "seed": 62,
+ "dur_ms": 60000.0,
+ "chem": "da1_dc60",
+ "groups": "ORN,MBON,ALPN,Kenyon_Cell,DAN,ALLN,ALIN,ALON",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "reference_x1": "dstate1 da1_dc60_s62 (ALPN plateau ~19.9 Hz)",
+ "working_point": "chem CEN_C gain 0.002 x scale"
+}
