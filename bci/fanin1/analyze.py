@@ -14,8 +14,8 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "outputs"
 W0 = 0.03
-TRAIN = (500.0, 2500.0)
-PROBE = (4200.0, 4700.0)
+TRAIN = (500, 2500)
+PROBE = (4200, 4700)
 
 
 def main():

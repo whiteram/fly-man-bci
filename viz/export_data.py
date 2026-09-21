@@ -382,10 +382,10 @@ def main():
         if args.kcm_fanin is not None:
             # readout-leg fan-in density (bci/fanin1): the w>=5 cut
             # keeps 33,496 KC->MBON pairs; the weak tail (w in [W,5))
-            # adds +83% pairs at W=1 -- pull those rows from the raw
-            # connectome into the plastic pool (KC output is ACh ->
-            # sign +1).  New rows get soma-position delays like
-            # every other edge; the salt pins the new topology.
+            # adds up to +83% pairs at W=1 -- pull those rows from the
+            # RAW connectome (raw body-id space) and map them through
+            # _rmap into the CEN table's id space; KC output is ACh
+            # (sign +1).  The salt pins the new topology.
             import pyarrow.feather as _pfk
             _tw = _pfk.read_table(_fdata.RAW /
                                   "connectome-weights.feather")
@@ -395,16 +395,23 @@ def main():
                 zero_copy_only=False)
             _ww = _tw.column("weight").combine_chunks().to_numpy(
                 zero_copy_only=False)
-            _kraw = {_inv_rmap[int(c)] for c in _kc}
-            _mraw = {_inv_rmap[int(c)] for c in _mbon}
+            _kcR = set(int(b) for b in
+                       _ann.loc[_cls == "Kenyon_Cell", "bodyId"]
+                       if int(b) in _rmap)
+            _mbR = set(int(b) for b in
+                       _ann.loc[_cls == "MBON", "bodyId"]
+                       if int(b) in _rmap)
             _mw = ((_ww >= args.kcm_fanin) & (_ww < 5)
-                   & np.isin(_wp, list(_kraw))
-                   & np.isin(_wq, list(_mraw)))
+                   & np.isin(_wp, list(_kcR))
+                   & np.isin(_wq, list(_mbR)))
             _have = set(zip(_kcm_all["body_pre"].to_numpy(np.int64),
                             _kcm_all["body_post"].to_numpy(np.int64)))
-            _keep = [(int(p), int(q), float(w))
-                     for p, q, w in zip(_wp[_mw], _wq[_mw], _ww[_mw])
-                     if (p, q) not in _have]
+            _pp, _qq = circuit["pre_pos"], circuit["post_pos"]
+            _keep = []
+            for p, q, w in zip(_wp[_mw], _wq[_mw], _ww[_mw]):
+                p2, q2 = int(_rmap[int(p)]), int(_rmap[int(q)])
+                if (p2, q2) not in _have and p2 in _pp and q2 in _qq:
+                    _keep.append((p2, q2, float(w)))
             if _keep:
                 _wk = pd.DataFrame(_keep, columns=["body_pre",
                                                    "body_post",

@@ -1,0 +1,19 @@
+[acquire] f2_t0: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory --visual-input dark --chem-input dangateA --plastic-mb --plastic-lr=-2e-7 --plastic-w0 0.03 --plastic-kcm-gain 0.015 --mbon-dan-gain 178 --plastic-dan-gate 150,0.02,400 --mbon-bias=-300 --t-end 5000.0 --seed 3042 --out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\fanin1\outputs\_trial_f2_t0 --gpu --plastic-state-out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\fanin1\outputs\states\f2_t0.npz --kcm-fanin 2
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+kcm-fanin: +17381 weak rows (w in [2,5)) -> KCM pool 50779 edges
+plastic-mb: KCM split 50779 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+Traceback (most recent call last):
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py", line 2044, in <module>
+    main()
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py", line 871, in main
+    pr, po = pairs(espec["table"])
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py", line 854, in pairs
+    return (np.array([pp[b] for b in pre[order]]),
+                      ~~^^^
+KeyError: np.int64(18031)
+export failed for f2_t0

@@ -1,0 +1,41 @@
+[acquire] f1_t1: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory --visual-input dark --chem-input dangateA --plastic-mb --plastic-lr=-2e-7 --plastic-w0 0.03 --plastic-kcm-gain 0.015 --mbon-dan-gain 178 --plastic-dan-gate 150,0.02,400 --mbon-bias=-300 --t-end 5000.0 --seed 3043 --out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\fanin1\outputs\_trial_f1_t1 --gpu --plastic-state-out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\fanin1\outputs\states\f1_t1.npz --kcm-fanin 1 --plastic-state-in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\fanin1\outputs\states\f1_t0.npz
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+kcm-fanin: +27286 weak rows (w in [1,5)) -> KCM pool 60684 edges
+plastic-mb: KCM split 60684 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+thought-experiment scale x202 (nominal x400), junction pinned at the occipital pole (shift 0.0 mm, brain-margin -0 um)
+scalp kernel RL: 9636 dipoles (0 s)
+scalp kernel LM: 49425 dipoles (1 s)
+scalp kernel MT_Mi1: 46038 dipoles (2 s)
+scalp kernel MT_Tm3: 39254 dipoles (2 s)
+scalp kernel MT_Mi4: 23036 dipoles (2 s)
+scalp kernel MT_Mi9: 31092 dipoles (3 s)
+scalp kernel MT_Tm1: 35518 dipoles (3 s)
+scalp kernel MT_Tm2: 35446 dipoles (3 s)
+scalp kernel MT_Tm4: 32161 dipoles (3 s)
+scalp kernel MT_Tm9: 47365 dipoles (4 s)
+scalp kernel OLR_V: 300000 dipoles (12 s)
+scalp kernel CEN_V: 152 dipoles (12 s)
+scalp kernel CEN_R: 208073 dipoles (16 s)
+scalp kernel CEN_C: 300000 dipoles (22 s)
+scalp kernel ORN_C: 57489 dipoles (23 s)
+scalp kernel KCM: 60684 dipoles (24 s)
+scalp kernel MBMD: 349 dipoles (24 s)
+scalp kernel PHOTO: 3377 dipoles (24 s)
+scalp kernels built (S=400, 4-sphere, 17 electrodes, 24 s)
+kernel rows per group: RL=9636, LM=49425, MT_Mi1=46038, MT_Tm3=39254, MT_Mi4=23036, MT_Mi9=31092, MT_Tm1=35518, MT_Tm2=35446, MT_Tm4=32161, MT_Tm9=47365, OLR_V=300000, CEN_V=152, CEN_R=208073, CEN_C=300000, ORN_C=57489, KCM=60684, MBMD=349, PHOTO=3377
+kernel cache: saved kernels-8c44ad6dd9959636984e.npz (0.4 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[DAN_err] -> 154 neurons (DAN_err), 800 pA x 1 pulses
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[MBON*] -> 96 neurons (MBON01@R, MBON02@R, MBON03@R, MBON04@R...), -300 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 5.0 s ...
+plastic state mismatch: edge ids differ from this session's split -- refusing to load
+export failed for f1_t1
