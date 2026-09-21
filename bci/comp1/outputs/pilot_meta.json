@@ -1,0 +1,32 @@
+{
+ "arms": [
+  "comp"
+ ],
+ "conditions": [
+  "blocked",
+  "control"
+ ],
+ "n_p1": 2,
+ "n_p2": 3,
+ "sessions": 1,
+ "fs": 1000.0,
+ "dur_ms": 5000.0,
+ "lr": "-2e-7",
+ "w0": "0.03",
+ "kcm_gain": "0.015",
+ "mbmd_gain": "178",
+ "dan_gate": {
+  "comp": "150,0.16,400"
+ },
+ "mbon_bias": -300.0,
+ "comp_type": "PAM07*",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chems": {
+  "comp": {
+   "A": "compA",
+   "AB": "compAB",
+   "C": "compC"
+  }
+ },
+ "seed_map": "blocked 1042+, control 1092+ (+10r+k)"
+}

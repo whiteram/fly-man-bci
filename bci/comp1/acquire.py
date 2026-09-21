@@ -52,9 +52,15 @@ COMP_TYPE = "PAM07*"
 ARMS = {
     "global": {"chems": {"A": "dangateA", "AB": "dangateAB",
                          "C": "dangateC"},
-               "comp": None},
+               "comp": None,
+               "gate": DAN_GATE},
+    # PAM07 cells sit at r0 ~ 0 and reach only ~6.3 Hz under the
+    # per-cell-matched US (the mixed DAN_err pool reaches ~51 Hz), so
+    # the gate gain is retuned 0.02 -> 0.16 to give the same mod
+    # dynamic range (untrained ~1.0); measured on the pilot trace
     "comp": {"chems": {"A": "compA", "AB": "compAB", "C": "compC"},
-             "comp": COMP_TYPE},
+             "comp": COMP_TYPE,
+             "gate": "150,0.16,400"},
 }
 
 
@@ -68,7 +74,7 @@ def run_trial(arm, chem, seed, state_in, state_out, dst, tag):
            "--plastic-w0", W0,
            "--plastic-kcm-gain", KCM_GAIN,
            "--mbon-dan-gain", MBMD_GAIN,
-           "--plastic-dan-gate", DAN_GATE,
+           "--plastic-dan-gate", ARMS[arm]["gate"],
            f"--mbon-bias={MBON_BIAS:g}",
            "--t-end", str(T_END), "--seed", str(seed),
            "--out", str(trial), "--gpu",
@@ -131,7 +137,8 @@ def main():
          "sessions": 1 if args.pilot else 2, "fs": 1000.0,
          "dur_ms": T_END, "lr": LR, "w0": W0,
          "kcm_gain": KCM_GAIN, "mbmd_gain": MBMD_GAIN,
-         "dan_gate": DAN_GATE, "mbon_bias": MBON_BIAS,
+         "dan_gate": {a: ARMS[a]["gate"] for a in arms},
+         "mbon_bias": MBON_BIAS,
          "comp_type": COMP_TYPE, "regions": REGIONS,
          "chems": {a: ARMS[a]["chems"] for a in arms},
          "seed_map": "blocked 1042+, control 1092+ (+10r+k)"}, indent=1))

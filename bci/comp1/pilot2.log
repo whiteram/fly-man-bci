@@ -1,0 +1,146 @@
+[acquire] pilot_comp_blocked_r0_p10: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory --visual-input dark --chem-input compA --plastic-mb --plastic-lr=-2e-7 --plastic-w0 0.03 --plastic-kcm-gain 0.015 --mbon-dan-gain 178 --plastic-dan-gate 150,0.16,400 --mbon-bias=-300 --t-end 5000.0 --seed 1042 --out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p10 --gpu --plastic-state-out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p10.npz --plastic-comp-reward PAM07*
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+comp-reward: PAM07* -> 14 DAN cells, 14 feedback MBONs
+dan-gate: monitoring compartment PAM07* (14 cells) -> 14 neurons, tau=150 ms, gain=0.16, t_ref=400 ms; comp gate 4582/33398 edges
+kernel cache: HIT kernels-03f7b25805ae69ff754e.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[PAM07*] -> 14 neurons (PAM07@L, PAM07@R), 800 pA x 1 pulses
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[MBON*] -> 96 neurons (MBON01@R, MBON02@R, MBON03@R, MBON04@R...), -300 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 5.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0302 min 0.0300 floor-hit 0/33398 | elig max 39.6483
+dan-gate: trace 10000 steps -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p10\_dan_trace.npy | r max 6.3 Hz, r0 0.00 Hz, mod max 1.000, mod integral 160.0 ms
+biology loop: 56 s (5000 records)
+phi_scalp checksum: L2=3.006069e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p10\_debug_phi_scalp.npy)
+background EEG: fly signal 0.27 uV vs bg 11.33 uV at 156 deg -> d'=2 needs ~6935 trials (band 2-20 Hz: ~89237)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p10\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p10\viz_data.json (5.2 MB)
+[acquire] pilot_comp_blocked_r0_p11: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory --visual-input dark --chem-input compA --plastic-mb --plastic-lr=-2e-7 --plastic-w0 0.03 --plastic-kcm-gain 0.015 --mbon-dan-gain 178 --plastic-dan-gate 150,0.16,400 --mbon-bias=-300 --t-end 5000.0 --seed 1043 --out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p11 --gpu --plastic-state-out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p11.npz --plastic-comp-reward PAM07* --plastic-state-in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p10.npz
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+comp-reward: PAM07* -> 14 DAN cells, 14 feedback MBONs
+dan-gate: monitoring compartment PAM07* (14 cells) -> 14 neurons, tau=150 ms, gain=0.16, t_ref=400 ms; comp gate 4582/33398 edges
+kernel cache: HIT kernels-03f7b25805ae69ff754e.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[PAM07*] -> 14 neurons (PAM07@L, PAM07@R), 800 pA x 1 pulses
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[MBON*] -> 96 neurons (MBON01@R, MBON02@R, MBON03@R, MBON04@R...), -300 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 5.0 s ...
+plastic state IN KCM: w mean 0.0302 min 0.0300
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0305 min 0.0300 floor-hit 0/33398 | elig max 39.5834
+dan-gate: trace 10000 steps -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p11\_dan_trace.npy | r max 7.7 Hz, r0 0.00 Hz, mod max 1.000, mod integral 190.6 ms
+biology loop: 56 s (5000 records)
+phi_scalp checksum: L2=3.007221e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p11\_debug_phi_scalp.npy)
+background EEG: fly signal 0.27 uV vs bg 11.33 uV at 156 deg -> d'=2 needs ~6933 trials (band 2-20 Hz: ~90277)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p11\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p11\viz_data.json (5.2 MB)
+[acquire] pilot_comp_blocked_r0_p20: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory --visual-input dark --chem-input compAB --plastic-mb --plastic-lr=-2e-7 --plastic-w0 0.03 --plastic-kcm-gain 0.015 --mbon-dan-gain 178 --plastic-dan-gate 150,0.16,400 --mbon-bias=-300 --t-end 5000.0 --seed 1042 --out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p20 --gpu --plastic-state-out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p20.npz --plastic-comp-reward PAM07* --plastic-state-in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p11.npz
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+comp-reward: PAM07* -> 14 DAN cells, 14 feedback MBONs
+dan-gate: monitoring compartment PAM07* (14 cells) -> 14 neurons, tau=150 ms, gain=0.16, t_ref=400 ms; comp gate 4582/33398 edges
+kernel cache: HIT kernels-03f7b25805ae69ff754e.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[PAM07*] -> 14 neurons (PAM07@L, PAM07@R), 800 pA x 1 pulses
+chem: CEN[KCab-m@L] -> 307 neurons (KCab-m@L), 1600 pA x 1 pulses
+chem: CEN[KCab-m@R] -> 223 neurons (KCab-m@R), 1600 pA x 1 pulses
+chem: CEN[KCab-m@L] -> 307 neurons (KCab-m@L), 1600 pA x 1 pulses
+chem: CEN[KCab-m@R] -> 223 neurons (KCab-m@R), 1600 pA x 1 pulses
+chem: CEN[MBON*] -> 96 neurons (MBON01@R, MBON02@R, MBON03@R, MBON04@R...), -300 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 5.0 s ...
+plastic state IN KCM: w mean 0.0305 min 0.0300
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0307 min 0.0300 floor-hit 0/33398 | elig max 38.2698
+dan-gate: trace 10000 steps -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p20\_dan_trace.npy | r max 5.9 Hz, r0 0.00 Hz, mod max 0.940, mod integral 148.6 ms
+biology loop: 56 s (5000 records)
+phi_scalp checksum: L2=2.926617e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p20\_debug_phi_scalp.npy)
+background EEG: fly signal 0.25 uV vs bg 11.33 uV at 156 deg -> d'=2 needs ~8339 trials (band 2-20 Hz: ~167255)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p20\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p20\viz_data.json (5.2 MB)
+[acquire] pilot_comp_blocked_r0_p21: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory --visual-input dark --chem-input compAB --plastic-mb --plastic-lr=-2e-7 --plastic-w0 0.03 --plastic-kcm-gain 0.015 --mbon-dan-gain 178 --plastic-dan-gate 150,0.16,400 --mbon-bias=-300 --t-end 5000.0 --seed 1043 --out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p21 --gpu --plastic-state-out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p21.npz --plastic-comp-reward PAM07* --plastic-state-in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p20.npz
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+comp-reward: PAM07* -> 14 DAN cells, 14 feedback MBONs
+dan-gate: monitoring compartment PAM07* (14 cells) -> 14 neurons, tau=150 ms, gain=0.16, t_ref=400 ms; comp gate 4582/33398 edges
+kernel cache: HIT kernels-03f7b25805ae69ff754e.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[PAM07*] -> 14 neurons (PAM07@L, PAM07@R), 800 pA x 1 pulses
+chem: CEN[KCab-m@L] -> 307 neurons (KCab-m@L), 1600 pA x 1 pulses
+chem: CEN[KCab-m@R] -> 223 neurons (KCab-m@R), 1600 pA x 1 pulses
+chem: CEN[KCab-m@L] -> 307 neurons (KCab-m@L), 1600 pA x 1 pulses
+chem: CEN[KCab-m@R] -> 223 neurons (KCab-m@R), 1600 pA x 1 pulses
+chem: CEN[MBON*] -> 96 neurons (MBON01@R, MBON02@R, MBON03@R, MBON04@R...), -300 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 5.0 s ...
+plastic state IN KCM: w mean 0.0307 min 0.0300
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0310 min 0.0300 floor-hit 0/33398 | elig max 38.3236
+dan-gate: trace 10000 steps -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p21\_dan_trace.npy | r max 6.8 Hz, r0 0.00 Hz, mod max 1.000, mod integral 170.8 ms
+biology loop: 56 s (5000 records)
+phi_scalp checksum: L2=2.928263e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p21\_debug_phi_scalp.npy)
+background EEG: fly signal 0.25 uV vs bg 11.33 uV at 156 deg -> d'=2 needs ~8315 trials (band 2-20 Hz: ~166884)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p21\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p21\viz_data.json (5.2 MB)
+[acquire] pilot_comp_blocked_r0_p22: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\viz\export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory --visual-input dark --chem-input compAB --plastic-mb --plastic-lr=-2e-7 --plastic-w0 0.03 --plastic-kcm-gain 0.015 --mbon-dan-gain 178 --plastic-dan-gate 150,0.16,400 --mbon-bias=-300 --t-end 5000.0 --seed 1044 --out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p22 --gpu --plastic-state-out D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p22.npz --plastic-comp-reward PAM07* --plastic-state-in D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\states\pilot_comp_blocked_r0_p21.npz
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+comp-reward: PAM07* -> 14 DAN cells, 14 feedback MBONs
+dan-gate: monitoring compartment PAM07* (14 cells) -> 14 neurons, tau=150 ms, gain=0.16, t_ref=400 ms; comp gate 4582/33398 edges
+kernel cache: HIT kernels-03f7b25805ae69ff754e.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[KCg-m@L] -> 687 neurons (KCg-m@L), 1600 pA x 1 pulses
+chem: CEN[KCg-m@R] -> 652 neurons (KCg-m@R), 1600 pA x 1 pulses
+chem: CEN[PAM07*] -> 14 neurons (PAM07@L, PAM07@R), 800 pA x 1 pulses
+chem: CEN[KCab-m@L] -> 307 neurons (KCab-m@L), 1600 pA x 1 pulses
+chem: CEN[KCab-m@R] -> 223 neurons (KCab-m@R), 1600 pA x 1 pulses
+chem: CEN[KCab-m@L] -> 307 neurons (KCab-m@L), 1600 pA x 1 pulses
+chem: CEN[KCab-m@R] -> 223 neurons (KCab-m@R), 1600 pA x 1 pulses
+chem: CEN[MBON*] -> 96 neurons (MBON01@R, MBON02@R, MBON03@R, MBON04@R...), -300 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 5.0 s ...
+plastic state IN KCM: w mean 0.0310 min 0.0300
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0312 min 0.0300 floor-hit 0/33398 | elig max 38.3233
+dan-gate: trace 10000 steps -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p22\_dan_trace.npy | r max 6.0 Hz, r0 0.00 Hz, mod max 0.961, mod integral 148.6 ms
+biology loop: 56 s (5000 records)
+phi_scalp checksum: L2=2.918651e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p22\_debug_phi_scalp.npy)
+background EEG: fly signal 0.25 uV vs bg 11.33 uV at 156 deg -> d'=2 needs ~8483 trials (band 2-20 Hz: ~164758)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p22\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs\_trial_pilot_comp_blocked_r0_p22\viz_data.json (5.2 MB)
+[acquire] done -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\comp1\outputs
