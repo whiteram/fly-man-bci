@@ -3787,5 +3787,179 @@
         ]
       }
     ]
+  },
+  {
+    "id": "dangateB",
+    "modality": "conditioning",
+    "label": "dangateB：B 气味（KCab-m）+ DAN_err 全池 US（bci/comp2 全局门对照相）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/comp2 全局臂的 B+ 相：KCab-m 配 DAN_err(154 细胞) US，训练窗与探针同 dangateA",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "DAN_err",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compBp",
+    "modality": "conditioning",
+    "label": "compBp：B 气味（KCab-m）+ PPL103 小室 US（bci/comp2 双小室第二相）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "bci/comp2：B+ 相——KCab-m 气味脉冲配 PPL103* US（800 pA 逐细胞），配合 --plastic-comp-reward 'PAM07*:0.16,PPL103*:<gain>' 的第二小室；训练窗 500-2500 ms + B 探针 4200-4700 ms",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PPL103*",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
   }
 ]

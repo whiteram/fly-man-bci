@@ -201,17 +201,20 @@ def main():
                          "(t, r, mod) is written next to the output "
                          "(GPU only, bci/dangate)")
     ap.add_argument("--plastic-comp-reward", type=str, default=None,
-                    help="DAN type pattern (e.g. 'PAM07*'): restrict "
-                         "the error loop to ONE compartment -- the "
-                         "reward channel and the dan-gate monitor see "
-                         "only the matching cells, and mod is applied "
-                         "ONLY to the plastic KC->MBON edges whose "
-                         "postsynaptic MBON feeds back to them (the "
-                         "MBMD GABA rows define the map; mod becomes "
-                         "a per-edge vector, scalar elsewhere).  "
-                         "Requires --plastic-mb + --mbon-dan-gain + "
-                         "--plastic-dan-gate on the single-KCM split "
-                         "(bci/comp1)")
+                    help="comma list of 'TYPE[:GAIN]' DAN type "
+                         "patterns (e.g. 'PAM07*:0.16,PPL103*'): "
+                         "restrict the error loop to per-compartment "
+                         "private gates -- each compartment's reward "
+                         "channel and monitor see only the matching "
+                         "cells (GAIN overrides the dan-gate gain for "
+                         "that pool; pools differ in rate response), "
+                         "and mod reaches ONLY the plastic KC->MBON "
+                         "edges whose postsynaptic MBON feeds back to "
+                         "that compartment (the MBMD GABA rows define "
+                         "the map; mod = sum of per-compartment "
+                         "vectors).  Requires --plastic-mb + "
+                         "--mbon-dan-gain + --plastic-dan-gate on the "
+                         "single-KCM split (bci/comp1, bci/comp2)")
     ap.add_argument("--kcm-fanin", type=float, default=None,
                     help="weight threshold W in [1,5): pull the raw "
                          "connectome's WEAK KC->MBON rows (W <= wt < 5) "
@@ -591,31 +594,40 @@ def main():
         print(f"mbon-dan-gain: MBMD split {len(_mbmd)} GABA MBON->DAN "
               f"pairs from CEN_C (gain={args.mbon_dan_gain:g}; "
               f"{len(_tg)} DAN_err cells)", flush=True)
-        # compartment restriction (bci/comp1): a compartment is the
-        # MBON set feeding back to ONE DAN type -- the reward channel
-        # and the gate monitor will address only those cells, and mod
-        # only reaches the plastic edges onto those MBONs
+        # compartment restriction (bci/comp1, generalized in comp2):
+        # a compartment is the MBON set feeding back to ONE DAN type --
+        # the reward channel and the gate monitor address only those
+        # cells, and mod only reaches the plastic edges onto those
+        # MBONs.  Spec: comma list of "TYPE[:GAIN]" (GAIN overrides the
+        # dan-gate gain for that compartment's monitor; pools differ in
+        # per-cell rate response, e.g. PAM07 ~6 Hz vs DAN_err ~51 Hz
+        # under the same per-cell US).
         COMP_CTX = None
         if args.plastic_comp_reward:
             import fnmatch as _fmcr
             _dpost_t = _mbmd["body_post"].map(
                 lambda b: str(_typ.get(_inv_rmap.get(int(b), -1), "?")))
-            _keep = _dpost_t.map(
-                lambda t: _fmcr.fnmatch(t, args.plastic_comp_reward))
-            if not _keep.any():
-                raise SystemExit(
-                    f"comp-reward: no MBMD DAN matches "
-                    f"'{args.plastic_comp_reward}' (types: "
-                    f"{sorted(set(_dpost_t))[:8]}...)")
-            COMP_CTX = {
-                "d_ids": np.unique(_mbmd.loc[_keep, "body_post"]
-                                   .to_numpy(np.int64)),
-                "mbons": set(_mbmd.loc[_keep, "body_pre"]
-                             .to_numpy(np.int64).tolist())}
-            print(f"comp-reward: {args.plastic_comp_reward} -> "
-                  f"{len(COMP_CTX['d_ids'])} DAN cells, "
-                  f"{len(COMP_CTX['mbons'])} feedback MBONs",
-                  flush=True)
+            COMP_CTX = []
+            for _spec in args.plastic_comp_reward.split(","):
+                _tp, _, _gn = _spec.partition(":")
+                _keep = _dpost_t.map(
+                    lambda t, _t=_tp: _fmcr.fnmatch(t, _t))
+                if not _keep.any():
+                    raise SystemExit(
+                        f"comp-reward: no MBMD DAN matches "
+                        f"'{_tp}' (types: "
+                        f"{sorted(set(_dpost_t))[:8]}...)")
+                COMP_CTX.append({
+                    "type": _tp,
+                    "gain": float(_gn) if _gn else None,
+                    "d_ids": np.unique(_mbmd.loc[_keep, "body_post"]
+                                       .to_numpy(np.int64)),
+                    "mbons": set(_mbmd.loc[_keep, "body_pre"]
+                                 .to_numpy(np.int64).tolist())})
+                print(f"comp-reward: {_spec} -> "
+                      f"{len(COMP_CTX[-1]['d_ids'])} DAN cells, "
+                      f"{len(COMP_CTX[-1]['mbons'])} feedback MBONs",
+                      flush=True)
         ckey = (ckey + "+mdg") if ckey is not None else None
     # ---- population-rate instrumentation (VALIDATION #5) -----------
     # groups resolve AFTER the surgeries so DAN_err etc. could be added
@@ -695,14 +707,16 @@ def main():
             _didx = np.flatnonzero(_sel)
             _src = f"{len(_hits)} types ({', '.join(_hits[:4])}" \
                    f"{'...' if len(_hits) > 4 else ''})"
-        _cmask = None
+        _COMP_MON = None
+        _d_dt_s = float(fp.DT_MS) * 1e-3
+        _d_alpha = 1.0 - np.exp(-_d_dt_s * 1e3 / _dtau)
         if args.plastic_comp_reward:
-            # monitor ONLY the compartment's cells; mod becomes a
-            # per-edge vector zero outside the compartment
+            # per-compartment private monitors (comp2 generalization):
+            # each sees ONLY its cells, gates ONLY its edges, and may
+            # carry its own gain; mod = sum of the masked per-comp
+            # mods (at most one compartment is rewarded per phase, so
+            # the sum is the active compartment's vector)
             _ids = circuit["extra_pops"]["CEN"]["ids"]
-            _didx = np.flatnonzero(np.isin(_ids, COMP_CTX["d_ids"]))
-            _src = f"compartment {args.plastic_comp_reward} " \
-                   f"({len(_didx)} cells)"
             if "KCM" not in circuit["extra_edges"]:
                 raise SystemExit("comp-reward needs the single-pool "
                                  "--plastic-mb split (no dual-tauw)")
@@ -710,18 +724,68 @@ def main():
             _ord = np.lexsort((_kt["body_pre"].to_numpy(np.int64),
                                _kt["body_post"].to_numpy(np.int64)))
             _posts = _kt["body_post"].to_numpy(np.int64)[_ord]
-            _cmask = np.isin(_posts, list(COMP_CTX["mbons"])
-                             ).astype(np.float32)
-        print(f"dan-gate: monitoring {_src} -> {len(_didx)} neurons, "
-              f"tau={_dtau:g} ms, gain={_dgain:g}, t_ref={_dtref:g} ms"
-              + (f"; comp gate {int(_cmask.sum())}/{len(_cmask)} "
-                 f"edges" if _cmask is not None else ""), flush=True)
-        _d_dt_s = float(fp.DT_MS) * 1e-3
-        _d_alpha = 1.0 - np.exp(-_d_dt_s * 1e3 / _dtau)
+            _COMP_MON = []
+            for _c in COMP_CTX:
+                _didx_c = np.flatnonzero(np.isin(_ids, _c["d_ids"]))
+                _cmask_c = np.isin(_posts, list(_c["mbons"])
+                                   ).astype(np.float32)
+                _gn_c = _c["gain"] if _c["gain"] is not None else _dgain
+                _COMP_MON.append({"type": _c["type"], "idx": _didx_c,
+                                  "mask": _cmask_c, "gain": _gn_c,
+                                  "hz": 1.0 / (len(_didx_c) * _d_dt_s),
+                                  "ctx": {}})
+                print(f"comp-gate: {_c['type']} gain {_gn_c:g} -> "
+                      f"{len(_didx_c)} cells, {int(_cmask_c.sum())} "
+                      f"edges", flush=True)
+            _src = f"{len(COMP_CTX)} compartments (" \
+                   f"{', '.join(c['type'] for c in COMP_CTX)})"
+        print(f"dan-gate: monitoring {_src} -> "
+              f"{sum(len(m['idx']) for m in _COMP_MON) if _COMP_MON else len(_didx)} "
+              f"neurons, tau={_dtau:g} ms, gain={_dgain:g}, "
+              f"t_ref={_dtref:g} ms"
+              + (f"; comp total {sum(int(m['mask'].sum()) for m in _COMP_MON)}"
+                 f"/{len(_COMP_MON[0]['mask'])} gated edges (max "
+                 f"{max(int(m['mask'].sum()) for m in _COMP_MON)})"
+                 if _COMP_MON else ""), flush=True)
+        _COMP_TRACE = [] if _COMP_MON else None
 
         def mod_fn(t, _ctx=_DAN_CTX, _idx=_didx,
                    _a=_d_alpha, _g=_dgain, _tr=_dtref, _hz=1.0
-                   / (len(_didx) * _d_dt_s), _cm=_cmask):
+                   / (len(_didx) * _d_dt_s)):
+            if _COMP_MON is not None:
+                # multi-compartment private gates (comp2)
+                _tot, _r1 = None, 0.0
+                for _mo in _COMP_MON:
+                    _mc = _mo["ctx"]
+                    _m = _mc.get("mask")
+                    _s = int(_m[_mo["idx"]].sum()) if _m is not None \
+                        else 0
+                    _r = _mc.get("r", 0.0) \
+                        + (_s * _mo["hz"] - _mc.get("r", 0.0)) * _a
+                    _mc["r"] = _r
+                    if t < _tr:
+                        _mc.setdefault("r0s", []).append(_r)
+                        _mc.setdefault("log", []).append((t, _r, 0.0))
+                        _COMP_TRACE.append((t, _r, 0.0))
+                        continue
+                    if "r0" not in _mc:
+                        _r0s = _mc["r0s"]
+                        _mc["r0"] = (float(np.mean(_r0s[len(_r0s) // 2:]))
+                                     if _r0s else 0.0)
+                        print(f"dan-gate[{_mo['type']}]: baseline r0 = "
+                              f"{_mc['r0']:.2f} Hz", flush=True)
+                    _v = (_r - _mc["r0"]) * _mo["gain"]
+                    _mod = _v if _v > 0.0 else 0.0
+                    if _mod > 1.0:
+                        _mod = 1.0
+                    _mc["log"].append((t, _r, _mod))
+                    _part = _mod * _mo["mask"]
+                    _tot = _part if _tot is None else _tot + _part
+                    # trace column = per-edge MAX (comparable to the
+                    # scalar gate); a sum over edges would scale with
+                    # the gated-edge count and mean nothing
+                    _COMP_TRACE.append((t, _r, float(_tot.max())))
+                return 0.0 if _tot is None else _tot
             _m = _ctx.get("mask")
             _s = int(_m[_idx].sum()) if _m is not None else 0
             _r = _ctx.get("r", 0.0) + (_s * _hz - _ctx.get("r", 0.0)) * _a
@@ -1644,8 +1708,13 @@ def main():
                       f"{float(_wv.mean()):.4f} min "
                       f"{float(_wv.min()):.4f}", flush=True)
         if args.plastic_dan_gate:
-            _DAN_CTX["mask"] = trial._mask("CEN")   # late-bound device
-            # view; mod_fn reads the previous step's spikes
+            _mv = trial._mask("CEN")   # device spike-mask view
+            if _COMP_MON is not None:
+                for _mo in _COMP_MON:
+                    _mo["ctx"]["mask"] = _mv
+            else:
+                _DAN_CTX["mask"] = _mv
+            # mod_fn reads the previous step's spikes (causal)
         ybuf_g = {name: cp.zeros((CHUNK, coef_f32[name].shape[1]),
                                  cp.float32) for name in gnames}
         coef_g = {name: cp.asarray(coef_f32[name]) for name in gnames}
@@ -1801,6 +1870,17 @@ def main():
                   f"{OUT / '_dan_trace.npy'} | r max "
                   f"{max(r for _, r, _ in _lg):.1f} Hz, r0 "
                   f"{_DAN_CTX.get('r0', float('nan')):.2f} Hz, "
+                  f"mod max {_mmax:.3f}, mod integral "
+                  f"{sum(m for _, _, m in _lg) * float(fp.DT_MS):.1f} ms",
+                  flush=True)
+        elif args.plastic_dan_gate and _COMP_TRACE:
+            np.save(OUT / "_dan_trace.npy",
+                    np.asarray(_COMP_TRACE, dtype=np.float64))
+            _lg = _COMP_TRACE
+            _mmax = max(m for _, _, m in _lg)
+            print(f"dan-gate[comp]: trace {len(_lg)} steps -> "
+                  f"{OUT / '_dan_trace.npy'} | r(max-comp) max "
+                  f"{max(r for _, r, _ in _lg):.1f} Hz, "
                   f"mod max {_mmax:.3f}, mod integral "
                   f"{sum(m for _, _, m in _lg) * float(fp.DT_MS):.1f} ms",
                   flush=True)

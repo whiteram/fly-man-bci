@@ -83,3 +83,5 @@ bci/comp1/outputs/*.npy
 bci/comp1/outputs/_trial_*/
 bci/fanin1/outputs/*.npy
 bci/fanin1/outputs/_trial_*/
+bci/comp2/outputs/*.npy
+bci/comp2/outputs/_trial_*/
