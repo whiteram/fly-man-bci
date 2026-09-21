@@ -81,3 +81,5 @@ bci/sleep5/outputs/*.npy
 bci/sleep5/outputs/_trial_*/
 bci/comp1/outputs/*.npy
 bci/comp1/outputs/_trial_*/
+bci/fanin1/outputs/*.npy
+bci/fanin1/outputs/_trial_*/

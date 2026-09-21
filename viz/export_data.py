@@ -23,6 +23,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -211,6 +212,15 @@ def main():
                          "Requires --plastic-mb + --mbon-dan-gain + "
                          "--plastic-dan-gate on the single-KCM split "
                          "(bci/comp1)")
+    ap.add_argument("--kcm-fanin", type=float, default=None,
+                    help="weight threshold W in [1,5): pull the raw "
+                         "connectome's WEAK KC->MBON rows (W <= wt < 5) "
+                         "into the KCM plastic pool on top of the "
+                         "w>=5 split (bci/fanin1: the readout leg's "
+                         "fan-in density -- the weak tail is +83%% "
+                         "pairs / 33,496 -> 61,210 at W=1).  KC rows "
+                         "are excitatory (sign +1).  Requires "
+                         "--plastic-mb; salts the cache key")
     ap.add_argument("--gain-scale", type=str, default=None,
                     help="runtime pathway-gain modulation, 'GRP=f[,"
                          "GRP=f...]': multiply the named extra edge "
@@ -261,6 +271,9 @@ def main():
             and args.plastic_dan_gate):
         ap.error("--plastic-comp-reward requires --plastic-mb + "
                  "--mbon-dan-gain + --plastic-dan-gate")
+    if args.kcm_fanin is not None and (
+            not args.plastic_mb or not (1.0 <= args.kcm_fanin < 5.0)):
+        ap.error("--kcm-fanin needs --plastic-mb and W in [1,5)")
     global OUT
     if args.smoke:
         fparams.SECTIONS["stimulus"]["t_epochs"] = (
@@ -366,6 +379,45 @@ def main():
             _tab[~_m].reset_index(drop=True)
         _inv_rmap = {int(v): int(k) for k, v in _rmap.items()}
         _typ = _ann.set_index("bodyId")["type"]
+        if args.kcm_fanin is not None:
+            # readout-leg fan-in density (bci/fanin1): the w>=5 cut
+            # keeps 33,496 KC->MBON pairs; the weak tail (w in [W,5))
+            # adds +83% pairs at W=1 -- pull those rows from the raw
+            # connectome into the plastic pool (KC output is ACh ->
+            # sign +1).  New rows get soma-position delays like
+            # every other edge; the salt pins the new topology.
+            import pyarrow.feather as _pfk
+            _tw = _pfk.read_table(_fdata.RAW /
+                                  "connectome-weights.feather")
+            _wp = _tw.column("body_pre").combine_chunks().to_numpy(
+                zero_copy_only=False)
+            _wq = _tw.column("body_post").combine_chunks().to_numpy(
+                zero_copy_only=False)
+            _ww = _tw.column("weight").combine_chunks().to_numpy(
+                zero_copy_only=False)
+            _kraw = {_inv_rmap[int(c)] for c in _kc}
+            _mraw = {_inv_rmap[int(c)] for c in _mbon}
+            _mw = ((_ww >= args.kcm_fanin) & (_ww < 5)
+                   & np.isin(_wp, list(_kraw))
+                   & np.isin(_wq, list(_mraw)))
+            _have = set(zip(_kcm_all["body_pre"].to_numpy(np.int64),
+                            _kcm_all["body_post"].to_numpy(np.int64)))
+            _keep = [(int(p), int(q), float(w))
+                     for p, q, w in zip(_wp[_mw], _wq[_mw], _ww[_mw])
+                     if (p, q) not in _have]
+            if _keep:
+                _wk = pd.DataFrame(_keep, columns=["body_pre",
+                                                   "body_post",
+                                                   "weight"])
+                _wk["sign"] = 1.0        # KC output is ACh (excitatory)
+                if "sign" not in _kcm_all.columns:
+                    _kcm_all["sign"] = 1.0
+                _kcm_all = pd.concat([_kcm_all, _wk], ignore_index=True)
+            print(f"kcm-fanin: +{len(_keep)} weak rows (w in "
+                  f"[{args.kcm_fanin:g},5)) -> KCM pool "
+                  f"{len(_kcm_all)} edges", flush=True)
+            ckey = (ckey + f"+kcf{args.kcm_fanin:g}"
+                    ) if ckey is not None else None
         if args.plastic_dual_tauw:
             _tg, _tab_tau = (float(v) for v in
                              args.plastic_dual_tauw.split(","))
