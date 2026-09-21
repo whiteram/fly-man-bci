@@ -148,6 +148,15 @@ def main():
     ap.add_argument("--plastic-state-out", type=str, default=None,
                     help="write KCM w_scale + edge-id checksum after the "
                          "run (GPU only)")
+    ap.add_argument("--al-local-gain", type=float, default=None,
+                    help="ABSOLUTE g_unit for the AL-internal edge "
+                         "group (ALPN/ALLN/ALIN/ALON -> same set: the "
+                         "PN<->LN loops), split out of CEN_C -- "
+                         "perturbs the AL-local loop independently of "
+                         "the central recurrence (bci/dstate3: the "
+                         "loop is the engine of the quiescence lock "
+                         "and the 0.003 attractor).  Salts the cache "
+                         "key")
     ap.add_argument("--al-gain", type=float, default=None,
                     help="AL-independence surgery: split AL->KC (PN->"
                          "Kenyon) rows out of CEN_C into group ALK at "
@@ -350,7 +359,8 @@ def main():
     # (plastic-mb / al-gain / mb-mod-gain) ----
     if (args.plastic_mb or args.al_gain is not None
             or args.mb_mod_gain is not None
-            or args.mbon_dan_gain is not None):
+            or args.mbon_dan_gain is not None
+            or args.al_local_gain is not None):
         from ffbm import data as _fdata
         _ann = _fdata.load_annotations()
         _cls = _ann["class"].fillna("")
@@ -512,6 +522,31 @@ def main():
         print(f"al-gain: ALK split {len(_alk)} AL->KC pairs from CEN_C "
               f"(gain={args.al_gain:g})", flush=True)
         ckey = (ckey + "+alg") if ckey is not None else None
+    if args.al_local_gain is not None:
+        # AL-local loop surgery (bci/dstate3): the AL's INTERNAL rows
+        # (ALPN/ALLN/ALIN/ALON -> same set: PN<->LN loops) stay inside
+        # CEN_C and are the engine of the quiescence lock and the
+        # 0.003 multi-population attractor (dstate2).  Split them into
+        # a group of their own at an ABSOLUTE gain so the AL-local
+        # loop can be perturbed independently of the central
+        # recurrence.  (Sign stays latent, matching CEN_C's regime.)
+        _alset = set(_rmap[int(b)] for b in
+                     _ann.loc[_ann["class"].isin(
+                         ("ALPN", "ALLN", "ALIN", "ALON")), "bodyId"]
+                     if int(b) in _rmap)
+        _tab = circuit["extra_edges"]["CEN_C"]["table"]
+        _m = _tab["body_pre"].isin(_alset) & _tab["body_post"].isin(_alset)
+        _allrows = _tab[_m].reset_index(drop=True)
+        circuit["extra_edges"]["CEN_C"]["table"] = \
+            _tab[~_m].reset_index(drop=True)
+        circuit["extra_edges"]["ALL"] = {
+            "pre": ("CEN",), "post": "CEN", "table": _allrows,
+            "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
+            "g_unit": float(args.al_local_gain), "forward": True}
+        print(f"al-local-gain: ALL split {len(_allrows)} AL-internal "
+              f"rows (absolute gain={args.al_local_gain:g})", flush=True)
+        ckey = (ckey + f"+allg{args.al_local_gain:g}"
+                ) if ckey is not None else None
     if args.mb_mod_gain is not None:
         # MB-modulator surgery (bci/condit3 follow-up): APL (1 per side,
         # GABAergic wide field) carries a MASSIVE negative-feedback loop
