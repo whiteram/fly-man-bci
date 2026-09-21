@@ -1,0 +1,16 @@
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: ORN[2639], MBON[96], ALPN[680]
+kernel cache: HIT kernels-64ea8b63f4fb52a2fb5c.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): ORN 0.00, MBON 0.00, ALPN 19.10
+biology loop: 575 s (60000 records)
+phi_scalp checksum: L2=1.084784e-03 (baseline A/B file: bci\dstate1\outputs\_trial_orn_probe\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 11.22 uV at 156 deg -> d'=2 needs ~4273657 trials (band 2-20 Hz: ~56619643)
+stim view frames: bci\dstate1\outputs\_trial_orn_probe\stim_frames.bin (0.0 MB)
+wrote bci\dstate1\outputs\_trial_orn_probe\viz_data.json (32.3 MB)
