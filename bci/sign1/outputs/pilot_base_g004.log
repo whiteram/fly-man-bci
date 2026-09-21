@@ -1,0 +1,33 @@
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.7 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+thought-experiment scale x202 (nominal x400), junction pinned at the occipital pole (shift 0.0 mm, brain-margin -0 um)
+scalp kernel RL: 9636 dipoles (0 s)
+scalp kernel LM: 49425 dipoles (1 s)
+scalp kernel MT_Mi1: 46038 dipoles (1 s)
+scalp kernel MT_Tm3: 39254 dipoles (2 s)
+scalp kernel MT_Mi4: 23036 dipoles (2 s)
+scalp kernel MT_Mi9: 31092 dipoles (3 s)
+scalp kernel MT_Tm1: 35518 dipoles (3 s)
+scalp kernel MT_Tm2: 35446 dipoles (4 s)
+scalp kernel MT_Tm4: 32161 dipoles (4 s)
+scalp kernel MT_Tm9: 47365 dipoles (5 s)
+scalp kernel OLR_V: 300000 dipoles (13 s)
+scalp kernel CEN_V: 152 dipoles (13 s)
+scalp kernel CEN_R: 208073 dipoles (18 s)
+scalp kernel CEN_C: 300000 dipoles (26 s)
+scalp kernel ORN_C: 57489 dipoles (27 s)
+scalp kernel PHOTO: 3377 dipoles (27 s)
+scalp kernels built (S=400, 4-sphere, 17 electrodes, 27 s)
+kernel rows per group: RL=9636, LM=49425, MT_Mi1=46038, MT_Tm3=39254, MT_Mi4=23036, MT_Mi9=31092, MT_Tm1=35518, MT_Tm2=35446, MT_Tm4=32161, MT_Tm9=47365, OLR_V=300000, CEN_V=152, CEN_R=208073, CEN_C=300000, ORN_C=57489, PHOTO=3377
+kernel cache: saved kernels-64ea8b63f4fb52a2fb5c.npz (0.2 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+simulating 3.6 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 63.11, MBON 324.24, ALPN 186.60, DAN 35.62
+biology loop: 60 s (3600 records)
+phi_scalp checksum: L2=1.258438e-03 (baseline A/B file: bci\sign1\outputs\_trial_base_g004\_debug_phi_scalp.npy)
+stim view frames: bci\sign1\outputs\_trial_base_g004\stim_frames.bin (0.0 MB)
+wrote bci\sign1\outputs\_trial_base_g004\viz_data.json (4.5 MB)

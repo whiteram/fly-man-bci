@@ -215,9 +215,16 @@ def main():
                          "vectors).  Requires --plastic-mb + "
                          "--mbon-dan-gain + --plastic-dan-gate on the "
                          "single-KCM split (bci/comp1, bci/comp2)")
+    ap.add_argument("--use-sign-all", action="store_true",
+                    help="run EVERY extra-edge group with its "
+                         "inhibitory rows actually inhibitory (per-edge "
+                         "E_rev) instead of all-excitatory.  Impact "
+                         "audit: CEN_C 40% of weight is inhibitory and "
+                         "currently excitatory (bci/sign1); groups "
+                         "without inhibitory rows are no-ops.  Salts "
+                         "the circuit cache key")
     ap.add_argument("--kcm-fanin", type=float, default=None,
                     help="weight threshold W in [1,5): pull the raw "
-                         "connectome's WEAK KC->MBON rows (W <= wt < 5) "
                          "into the KCM plastic pool on top of the "
                          "w>=5 split (bci/fanin1: the readout leg's "
                          "fan-in density -- the weak tail is +83%% "
@@ -629,6 +636,21 @@ def main():
                       f"{len(COMP_CTX[-1]['mbons'])} feedback MBONs",
                       flush=True)
         ckey = (ckey + "+mdg") if ckey is not None else None
+    if args.use_sign_all:
+        # global sign enablement (bci/sign1): every extra-edge group
+        # runs its inhibitory rows as inhibitory (E_rev per edge)
+        # instead of all-excitatory.  Impact audit (base circuit):
+        # CEN_C 38.4% rows / 40.0% weight inhibitory (running EXCITATORY
+        # since exp017 -- the likely reason the recurrence latches so
+        # easily and the chem working point needed g=0.002), CEN_R
+        # 11%, OLR_V 10%; ORN_C/CEN_V/KCM are all-excitatory (no-op).
+        _n = 0
+        for _g, _spec in (circuit.get("extra_edges") or {}).items():
+            if not _spec.get("use_sign", False):
+                _spec["use_sign"] = True
+                _n += 1
+        print(f"use-sign-all: enabled on {_n} edge groups", flush=True)
+        ckey = (ckey + "+usa") if ckey is not None else None
     # ---- population-rate instrumentation (VALIDATION #5) -----------
     # groups resolve AFTER the surgeries so DAN_err etc. could be added
     # later; class subsets index into the CEN pop, bare pop names cover

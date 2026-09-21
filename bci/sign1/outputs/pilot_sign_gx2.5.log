@@ -1,0 +1,16 @@
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.7 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+use-sign-all: enabled on 6 edge groups
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-5efcc11ba3da125536fd.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: CEN_C g_unit x2.5 -> 0.01
+simulating 3.6 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 0.00, MBON 5.99, ALPN 0.06, DAN 0.82
+biology loop: 56 s (3600 records)
+phi_scalp checksum: L2=1.607211e-04 (baseline A/B file: bci\sign1\outputs\_trial_sign_gx2.5\_debug_phi_scalp.npy)
+stim view frames: bci\sign1\outputs\_trial_sign_gx2.5\stim_frames.bin (0.0 MB)
+wrote bci\sign1\outputs\_trial_sign_gx2.5\viz_data.json (4.5 MB)
