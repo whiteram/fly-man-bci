@@ -1,0 +1,44 @@
+{
+ "arms": {
+  "comp_tr": {
+   "p1": "compA",
+   "p2": "compBp",
+   "comp": "PAM07*:0.16,PPL103*:0.02"
+  },
+  "comp_ctl": {
+   "p1": "compC",
+   "p2": "compBp",
+   "comp": "PAM07*:0.16,PPL103*:0.02"
+  },
+  "glob_tr": {
+   "p1": "dangateA",
+   "p2": "dangateB",
+   "comp": null
+  },
+  "glob_ctl": {
+   "p1": "dangateC",
+   "p2": "dangateB",
+   "comp": null
+  }
+ },
+ "n_p1": 3,
+ "n_p2": 4,
+ "dur_ms": 5000.0,
+ "seed0": 5042,
+ "fs": 1000.0,
+ "lr": "-2e-7",
+ "w0": "0.03",
+ "kcm_gain": "0.015",
+ "mbmd_gain": "178",
+ "dan_gate": "150,0.02,400",
+ "mbon_bias": -300.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "train_ms": [
+  500,
+  2500
+ ],
+ "probe_ms": [
+  4200,
+  4700
+ ]
+}

@@ -107,13 +107,18 @@ def main():
                 continue
             run_trial(arm, chem, SEED0 + i, state, nxt, dst, tag)
             state = nxt
-    (out / "meta.json").write_text(json.dumps(
-        {"arms": {a: ARMS[a] for a in arms}, "n_p1": N_P1,
-         "n_p2": N_P2, "dur_ms": T_END, "seed0": SEED0, "fs": 1000.0,
-         "lr": LR, "w0": W0, "kcm_gain": KCM_GAIN,
-         "mbmd_gain": MBMD_GAIN, "dan_gate": DAN_GATE,
-         "mbon_bias": MBON_BIAS, "regions": REGIONS,
-         "train_ms": [500, 2500], "probe_ms": [4200, 4700]}, indent=1))
+    meta_p = out / "meta.json"
+    meta = json.loads(meta_p.read_text(encoding="utf-8")) \
+        if meta_p.exists() else {}
+    meta.update({"arms": {**meta.get("arms", {}),
+                          **{a: ARMS[a] for a in arms}},
+                 "n_p1": N_P1, "n_p2": N_P2, "dur_ms": T_END,
+                 "seed0": SEED0, "fs": 1000.0,
+                 "lr": LR, "w0": W0, "kcm_gain": KCM_GAIN,
+                 "mbmd_gain": MBMD_GAIN, "dan_gate": DAN_GATE,
+                 "mbon_bias": MBON_BIAS, "regions": REGIONS,
+                 "train_ms": [500, 2500], "probe_ms": [4200, 4700]})
+    meta_p.write_text(json.dumps(meta, indent=1))
     print(f"[acquire] done -> {out}")
 
 

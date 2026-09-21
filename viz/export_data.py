@@ -805,7 +805,7 @@ def main():
             if _mod > 1.0:
                 _mod = 1.0
             _ctx["log"].append((t, _r, _mod))
-            return _mod if _cm is None else _mod * _cm
+            return _mod
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]
