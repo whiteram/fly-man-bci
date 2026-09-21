@@ -1,0 +1,53 @@
+{
+ "szl1_e10s_s616": {
+  "t_end_s": 10.0,
+  "pool": 1715321,
+  "depleted_frac": 0.8470921769161573,
+  "mean_d_depleted": 0.9260348081588745,
+  "min_d": 0.2714553773403168,
+  "pred_d": 0.181,
+  "R_mbon": 0.044,
+  "R_scalp": 0.281
+ },
+ "szl1_e20s_s616": {
+  "t_end_s": 20.0,
+  "pool": 1715321,
+  "depleted_frac": 0.8471242408855252,
+  "mean_d_depleted": 0.9591702818870544,
+  "min_d": 0.250373899936676,
+  "pred_d": 0.699,
+  "R_mbon": 0.211,
+  "R_scalp": 0.361
+ },
+ "szl1_e35s_s616": {
+  "t_end_s": 35.0,
+  "pool": 1715321,
+  "depleted_frac": 0.8471242408855252,
+  "mean_d_depleted": 0.9724730849266052,
+  "min_d": 0.2500000298023224,
+  "pred_d": 0.933,
+  "R_mbon": 0.414,
+  "R_scalp": 0.433
+ },
+ "szl1_e50s_s616": {
+  "t_end_s": 50.0,
+  "pool": 1715321,
+  "depleted_frac": 0.8471458111921909,
+  "mean_d_depleted": 0.9752129316329956,
+  "min_d": 0.2500000298023224,
+  "pred_d": 0.985,
+  "R_mbon": 0.429,
+  "R_scalp": 0.443
+ },
+ "szl1_e80s_s616": {
+  "t_end_s": 80.0,
+  "pool": 1715321,
+  "depleted_frac": 0.8472006114307468,
+  "mean_d_depleted": 0.9757380485534668,
+  "min_d": 0.2500000298023224,
+  "pred_d": 0.999,
+  "R_mbon": 0.411,
+  "R_scalp": 0.445
+ },
+ "_verdict": "STATE ceiling (d recovered, R capped)"
+}

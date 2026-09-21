@@ -68,7 +68,7 @@ def main():
         r_ = subprocess.run(cmd, cwd=str(ROOT))
         if r_.returncode != 0:
             raise SystemExit(f"export failed for {tag}")
-        shutil.copy(trial / "_std_debug_CEN.npz", dst_d)
+        shutil.copy(trial / "_std_debug_CEN_C.npz", dst_d)
         shutil.copy(trial / "_debug_phi_scalp.npy", dst_s)
         shutil.copy(trial / "_pop_rate.npz", out / f"{tag}_pop.npz")
         shutil.rmtree(trial)

@@ -1,0 +1,14 @@
+{
+ "chem": "sz_l1",
+ "std": "CEN_C:0.00015,10000",
+ "seed": 616,
+ "t_ends_ms": [
+  10000.0,
+  20000.0,
+  35000.0,
+  50000.0,
+  80000.0
+ ],
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "note": "final d = resource state at the sleep5 R(t) measurement moments (deterministic prefix)"
+}
