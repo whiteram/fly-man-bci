@@ -199,6 +199,18 @@ def main():
                          "--plastic-window gate; a _dan_trace.npy "
                          "(t, r, mod) is written next to the output "
                          "(GPU only, bci/dangate)")
+    ap.add_argument("--plastic-comp-reward", type=str, default=None,
+                    help="DAN type pattern (e.g. 'PAM07*'): restrict "
+                         "the error loop to ONE compartment -- the "
+                         "reward channel and the dan-gate monitor see "
+                         "only the matching cells, and mod is applied "
+                         "ONLY to the plastic KC->MBON edges whose "
+                         "postsynaptic MBON feeds back to them (the "
+                         "MBMD GABA rows define the map; mod becomes "
+                         "a per-edge vector, scalar elsewhere).  "
+                         "Requires --plastic-mb + --mbon-dan-gain + "
+                         "--plastic-dan-gate on the single-KCM split "
+                         "(bci/comp1)")
     ap.add_argument("--gain-scale", type=str, default=None,
                     help="runtime pathway-gain modulation, 'GRP=f[,"
                          "GRP=f...]': multiply the named extra edge "
@@ -244,6 +256,11 @@ def main():
     if args.plastic_dan_gate and not args.gpu:
         ap.error("--plastic-dan-gate requires --gpu (device spike "
                  "readback)")
+    if args.plastic_comp_reward and not (
+            args.plastic_mb and args.mbon_dan_gain is not None
+            and args.plastic_dan_gate):
+        ap.error("--plastic-comp-reward requires --plastic-mb + "
+                 "--mbon-dan-gain + --plastic-dan-gate")
     global OUT
     if args.smoke:
         fparams.SECTIONS["stimulus"]["t_epochs"] = (
@@ -515,6 +532,31 @@ def main():
         print(f"mbon-dan-gain: MBMD split {len(_mbmd)} GABA MBON->DAN "
               f"pairs from CEN_C (gain={args.mbon_dan_gain:g}; "
               f"{len(_tg)} DAN_err cells)", flush=True)
+        # compartment restriction (bci/comp1): a compartment is the
+        # MBON set feeding back to ONE DAN type -- the reward channel
+        # and the gate monitor will address only those cells, and mod
+        # only reaches the plastic edges onto those MBONs
+        COMP_CTX = None
+        if args.plastic_comp_reward:
+            import fnmatch as _fmcr
+            _dpost_t = _mbmd["body_post"].map(
+                lambda b: str(_typ.get(_inv_rmap.get(int(b), -1), "?")))
+            _keep = _dpost_t.map(
+                lambda t: _fmcr.fnmatch(t, args.plastic_comp_reward))
+            if not _keep.any():
+                raise SystemExit(
+                    f"comp-reward: no MBMD DAN matches "
+                    f"'{args.plastic_comp_reward}' (types: "
+                    f"{sorted(set(_dpost_t))[:8]}...)")
+            COMP_CTX = {
+                "d_ids": np.unique(_mbmd.loc[_keep, "body_post"]
+                                   .to_numpy(np.int64)),
+                "mbons": set(_mbmd.loc[_keep, "body_pre"]
+                             .to_numpy(np.int64).tolist())}
+            print(f"comp-reward: {args.plastic_comp_reward} -> "
+                  f"{len(COMP_CTX['d_ids'])} DAN cells, "
+                  f"{len(COMP_CTX['mbons'])} feedback MBONs",
+                  flush=True)
         ckey = (ckey + "+mdg") if ckey is not None else None
     # ---- population-rate instrumentation (VALIDATION #5) -----------
     # groups resolve AFTER the surgeries so DAN_err etc. could be added
@@ -594,15 +636,33 @@ def main():
             _didx = np.flatnonzero(_sel)
             _src = f"{len(_hits)} types ({', '.join(_hits[:4])}" \
                    f"{'...' if len(_hits) > 4 else ''})"
+        _cmask = None
+        if args.plastic_comp_reward:
+            # monitor ONLY the compartment's cells; mod becomes a
+            # per-edge vector zero outside the compartment
+            _ids = circuit["extra_pops"]["CEN"]["ids"]
+            _didx = np.flatnonzero(np.isin(_ids, COMP_CTX["d_ids"]))
+            _src = f"compartment {args.plastic_comp_reward} " \
+                   f"({len(_didx)} cells)"
+            if "KCM" not in circuit["extra_edges"]:
+                raise SystemExit("comp-reward needs the single-pool "
+                                 "--plastic-mb split (no dual-tauw)")
+            _kt = circuit["extra_edges"]["KCM"]["table"]
+            _ord = np.lexsort((_kt["body_pre"].to_numpy(np.int64),
+                               _kt["body_post"].to_numpy(np.int64)))
+            _posts = _kt["body_post"].to_numpy(np.int64)[_ord]
+            _cmask = np.isin(_posts, list(COMP_CTX["mbons"])
+                             ).astype(np.float32)
         print(f"dan-gate: monitoring {_src} -> {len(_didx)} neurons, "
-              f"tau={_dtau:g} ms, gain={_dgain:g}, t_ref={_dtref:g} ms",
-              flush=True)
+              f"tau={_dtau:g} ms, gain={_dgain:g}, t_ref={_dtref:g} ms"
+              + (f"; comp gate {int(_cmask.sum())}/{len(_cmask)} "
+                 f"edges" if _cmask is not None else ""), flush=True)
         _d_dt_s = float(fp.DT_MS) * 1e-3
         _d_alpha = 1.0 - np.exp(-_d_dt_s * 1e3 / _dtau)
 
         def mod_fn(t, _ctx=_DAN_CTX, _idx=_didx,
                    _a=_d_alpha, _g=_dgain, _tr=_dtref, _hz=1.0
-                   / (len(_didx) * _d_dt_s)):
+                   / (len(_didx) * _d_dt_s), _cm=_cmask):
             _m = _ctx.get("mask")
             _s = int(_m[_idx].sum()) if _m is not None else 0
             _r = _ctx.get("r", 0.0) + (_s * _hz - _ctx.get("r", 0.0)) * _a
@@ -622,7 +682,7 @@ def main():
             if _mod > 1.0:
                 _mod = 1.0
             _ctx["log"].append((t, _r, _mod))
-            return _mod
+            return _mod if _cm is None else _mod * _cm
     pp, qq = circuit["pre_pos"], circuit["post_pos"]
     r_ids = circuit["r_ids"]
     l_ids = circuit["l_ids"]

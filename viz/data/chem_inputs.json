@@ -3570,5 +3570,222 @@
         ]
       }
     ]
+  },
+  {
+    "id": "compA",
+    "modality": "conditioning",
+    "label": "compA：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "同 dangateA 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM07*",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compAB",
+    "modality": "conditioning",
+    "label": "compAB：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "同 dangateAB 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCg-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCg-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM07*",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-m@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compC",
+    "modality": "conditioning",
+    "label": "compC：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
+    "t_end_ms": 5000.0,
+    "edge_ms": 100.0,
+    "note": "同 dangateC 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
+    "channels": [
+      {
+        "pop": "CEN",
+        "group": "KCab-s@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "PAM07*",
+        "amp_pa": 800.0,
+        "pulses": [
+          [
+            500,
+            2500
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@L",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      },
+      {
+        "pop": "CEN",
+        "group": "KCab-s@R",
+        "amp_pa": 1600.0,
+        "pulses": [
+          [
+            4200,
+            4700
+          ]
+        ]
+      }
+    ]
   }
 ]

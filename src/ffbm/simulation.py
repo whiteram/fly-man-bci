@@ -612,7 +612,8 @@ class ExponentialSynapses:
     def step(self, spiked_pre: np.ndarray, mod: float = 0.0
              ) -> np.ndarray:
         """One dt advance; returns per-edge current state (pA).  mod =
-        reinforcement gate for plastic synapses (ignored elsewhere)."""
+        reinforcement gate for plastic synapses -- scalar, or a
+        per-edge vector for compartment gates (ignored elsewhere)."""
         if _HAVE_NUMBA and self.n_edges and not self.std \
                 and not self.plast:
             sel = (self._sel_rows(spiked_pre) if len(spiked_pre)
@@ -638,15 +639,18 @@ class ExponentialSynapses:
             self.std_d += (1.0 - self.std_d) * (1.0 - self.std_rec)
         if self.plast:
             self.elig *= self.elig_decay
+            # mod: scalar (global gate) or per-edge vector (compartment
+            # gate, bci/comp1) -- broadcasting makes both forms share
+            # the same arithmetic, and 0-valued edges stay untouched
             if self.plast_lr >= 0:        # depression toward floor
-                if mod > 0.0:
+                if np.any(mod > 0.0):
                     self.w_scale = np.maximum(
                         self.w_scale * (1.0 - self.plast_lr * mod
                                         * self.elig), self.w_floor)
                 if self.w_rec:
                     self.w_scale += (1.0 - self.w_scale) * self.w_rec
             else:                          # potentiation toward 1 (w0 =
-                if mod > 0.0:              # floor slot = recovery target)
+                if np.any(mod > 0.0):      # floor slot = recovery target)
                     self.w_scale = np.minimum(
                         self.w_scale + (-self.plast_lr) * mod
                         * self.elig, 1.0)

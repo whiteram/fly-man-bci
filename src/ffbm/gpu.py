@@ -287,28 +287,31 @@ void k_deliver_std(float* y, float* buf, int ptr, int nE, int buf_len,
 
 // DAN-gated plasticity advance: eligibility decay + gated weight
 // update + optional slow homeostatic recovery.  lr >= 0: DEPRESSION
-// toward floor, recovery toward 1 (mod = reinforcement proxy, scalar
-// this step; rec = dt/tau_w, 0 = off).  lr < 0: POTENTIATION toward 1
-// with the floor slot carrying baseline w0 (also the recovery target,
+// toward floor, recovery toward 1 (mod = PER-EDGE reinforcement
+// vector -- bci/comp1 compartment gates pass mod[i]=0 for out-of-
+// compartment edges, the scalar case broadcasts one value to all;
+// rec = dt/tau_w, 0 = off).  lr < 0: POTENTIATION toward 1 with the
+// floor slot carrying baseline w0 (also the recovery target,
 // bci/dangate appetitive form).
 extern "C" __global__
 void k_plast_adv(float* elig, float* w, float decay, float lr,
-                 float mod, float floor, float rec, int nE) {
+                 const float* mod, float floor, float rec, int nE) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= nE) return;
     float e = elig[i] * decay;
     elig[i] = e;
+    float m = mod[i];
     if (lr >= 0.0f) {
-        if (mod > 0.0f) {
-            float wv = w[i] * (1.0f - lr * mod * e);
+        if (m > 0.0f) {
+            float wv = w[i] * (1.0f - lr * m * e);
             w[i] = wv < floor ? floor : wv;
         }
         if (rec > 0.0f) {
             w[i] += (1.0f - w[i]) * rec;
         }
     } else {
-        if (mod > 0.0f) {
-            float wv = w[i] + (-lr) * mod * e;
+        if (m > 0.0f) {
+            float wv = w[i] + (-lr) * m * e;
             w[i] = wv > 1.0f ? 1.0f : wv;
         }
         if (rec > 0.0f) {
@@ -498,6 +501,8 @@ class _ExpPoolG:
             self.plast_lr = np.float32(pool.plast_lr)
             self.plast_floor = np.float32(pool.w_floor)
             self.plast_rec = np.float32(getattr(pool, "w_rec", 0.0))
+            # per-edge reinforcement vector (scalar broadcasts into it)
+            self.plast_modv = cp.zeros(self.n_edges, cp.float32)
 
     def ecur_row(self, K, v_post, out_row, keep=None):
         """edge_currents(v_post) cast f32 into a ybuf row (bitwise the
@@ -537,9 +542,17 @@ class _ExpPoolG:
             (self.spike_row, self.src_off, self.local, self.mask_all,
              np.int32(self.n_rows)))
         if self.plast:
+            if isinstance(mod, np.ndarray):
+                if mod.shape[0] != self.n_edges:
+                    raise ValueError(
+                        f"per-edge mod vector length {mod.shape[0]} != "
+                        f"plastic pool n_edges {self.n_edges}")
+                self.plast_modv[:] = cp.asarray(mod, dtype=cp.float32)
+            else:
+                self.plast_modv.fill(np.float32(mod))
             _go(K["k_plast_adv"], self.n_edges,
                 (self.plast_elig, self.plast_w, self.plast_decay,
-                 self.plast_lr, np.float32(mod), self.plast_floor,
+                 self.plast_lr, self.plast_modv, self.plast_floor,
                  self.plast_rec, np.int32(self.n_edges)))
             _go(K["k_deliver_plast"], self.n_rows,
                 (self.y, self.buffer, np.int32(self.ptr),
