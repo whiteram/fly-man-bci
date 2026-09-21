@@ -1,0 +1,33 @@
+[acquire] da1_dc60_s62
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-64ea8b63f4fb52a2fb5c.npz (1.5 s)
+usage: export_data.py [-h] [--regions REGIONS] [--elec-layout ELEC_LAYOUT]
+                      [--visual-input VISUAL_INPUT] [--chem-input CHEM_INPUT]
+                      [--pool] [--gpu] [--smoke] [--t-end T_END] [--no-cache]
+                      [--out OUT] [--noise-scale NOISE_SCALE]
+                      [--std-gates STD_GATES] [--base-scale BASE_SCALE]
+                      [--plastic-mb] [--plastic-window PLASTIC_WINDOW]
+                      [--plastic-mod-scale PLASTIC_MOD_SCALE]
+                      [--plastic-lr PLASTIC_LR]
+                      [--plastic-tau-w PLASTIC_TAU_W]
+                      [--plastic-dual-tauw PLASTIC_DUAL_TAUW]
+                      [--plastic-state-in PLASTIC_STATE_IN]
+                      [--plastic-state-out PLASTIC_STATE_OUT]
+                      [--al-gain AL_GAIN] [--mb-mod-gain MB_MOD_GAIN]
+                      [--mb-mod-tau MB_MOD_TAU] [--mb-mod-erev MB_MOD_EREV]
+                      [--plastic-w0 PLASTIC_W0]
+                      [--plastic-kcm-gain PLASTIC_KCM_GAIN]
+                      [--mbon-dan-gain MBON_DAN_GAIN]
+                      [--plastic-dan-gate PLASTIC_DAN_GATE]
+                      [--plastic-comp-reward PLASTIC_COMP_REWARD]
+                      [--use-sign-all] [--kcm-fanin KCM_FANIN]
+                      [--gain-scale GAIN_SCALE] [--pop-rate POP_RATE]
+                      [--chem-amp-scale CHEM_AMP_SCALE]
+                      [--mbon-bias MBON_BIAS] [--pop-rate-neurons]
+                      [--seed SEED]
+export_data.py: error: chem input 'da1_dc60' not found in viz/data/chem_inputs.json
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+export failed for da1_dc60_s62

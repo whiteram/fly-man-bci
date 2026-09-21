@@ -1,0 +1,24 @@
+{
+ "chem": "da1_dc60",
+ "seeds": [
+  62,
+  63
+ ],
+ "dur_ms": 60000.0,
+ "groups": "Kenyon_Cell,MBON,ALPN,DAN",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "pulse_ms": [
+  300,
+  600
+ ],
+ "fs": 1000.0,
+ "sz_plateau_reference": {
+  "mean_uv": -1.825,
+  "std_uv": 0.18,
+  "MBON_hz": [
+   3,
+   5
+  ],
+  "ALPN_hz": 38
+ }
+}

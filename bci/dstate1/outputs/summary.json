@@ -1,0 +1,128 @@
+{
+ "da1_dc60_s62": {
+  "dark_mean": -1.3091,
+  "dark_std": 0.244,
+  "post_mean": -1.8204,
+  "post_std": 0.0145,
+  "dc_step": -0.5113,
+  "blocks": {
+   "0-10s": {
+    "mean_uv": -1.7983,
+    "std_uv": 0.1094,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 18.91,
+    "DAN": 0.0
+   },
+   "10-20s": {
+    "mean_uv": -1.8206,
+    "std_uv": 0.0147,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.0,
+    "ALPN": 19.47,
+    "DAN": 0.0
+   },
+   "20-30s": {
+    "mean_uv": -1.82,
+    "std_uv": 0.0143,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 19.88,
+    "DAN": 0.0
+   },
+   "30-40s": {
+    "mean_uv": -1.8205,
+    "std_uv": 0.0144,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 19.73,
+    "DAN": 0.0
+   },
+   "40-50s": {
+    "mean_uv": -1.8205,
+    "std_uv": 0.0147,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 20.32,
+    "DAN": 0.0
+   },
+   "50-60s": {
+    "mean_uv": -1.8202,
+    "std_uv": 0.0145,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 19.94,
+    "DAN": 0.0
+   }
+  },
+  "match_sz_plateau": {
+   "mean_within_0.01": true,
+   "std_within_0.02": false,
+   "MBON_low": true,
+   "ALPN_elevated": false
+  }
+ },
+ "da1_dc60_s63": {
+  "dark_mean": -1.3106,
+  "dark_std": 0.2442,
+  "post_mean": -1.822,
+  "post_std": 0.0146,
+  "dc_step": -0.5114,
+  "blocks": {
+   "0-10s": {
+    "mean_uv": -1.7967,
+    "std_uv": 0.1138,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 19.22,
+    "DAN": 0.0
+   },
+   "10-20s": {
+    "mean_uv": -1.8227,
+    "std_uv": 0.0146,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.02,
+    "ALPN": 19.35,
+    "DAN": 0.0
+   },
+   "20-30s": {
+    "mean_uv": -1.8219,
+    "std_uv": 0.0147,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.02,
+    "ALPN": 19.71,
+    "DAN": 0.0
+   },
+   "30-40s": {
+    "mean_uv": -1.8219,
+    "std_uv": 0.0147,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 19.65,
+    "DAN": 0.0
+   },
+   "40-50s": {
+    "mean_uv": -1.8216,
+    "std_uv": 0.0148,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.02,
+    "ALPN": 19.91,
+    "DAN": 0.0
+   },
+   "50-60s": {
+    "mean_uv": -1.8218,
+    "std_uv": 0.0143,
+    "Kenyon_Cell": 0.0,
+    "MBON": 0.01,
+    "ALPN": 20.01,
+    "DAN": 0.0
+   }
+  },
+  "match_sz_plateau": {
+   "mean_within_0.01": true,
+   "std_within_0.02": false,
+   "MBON_low": true,
+   "ALPN_elevated": false
+  }
+ }
+}

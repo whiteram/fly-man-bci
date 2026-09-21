@@ -3961,5 +3961,26 @@
         ]
       }
     ]
+  },
+  {
+    "id": "da1_dc60",
+    "modality": "olfactory",
+    "label": "DA1 单脉冲 60s 直流探针（dstate1 被压制态的持续时长与速率画像）",
+    "t_end_ms": 60000.0,
+    "edge_ms": 30.0,
+    "note": "dstate1：mmdev2 的 DC 开关目标态（mean -1.825/std 0.179）与 sleep 系癫痫平台态（-1.825/0.18）三位小数一致——假设同一被压制状态；本条目 60s 单 DA1@150 脉冲测状态持续时长 + 状态内群体速率画像，与 sz_l1 平台 (MBON 3-5 Hz, ALPN 38 Hz) 对齐检验",
+    "channels": [
+      {
+        "pop": "ORN",
+        "group": "ORN_DA1",
+        "amp_pa": 150.0,
+        "pulses": [
+          [
+            300,
+            600
+          ]
+        ]
+      }
+    ]
   }
 ]
