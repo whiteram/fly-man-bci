@@ -93,3 +93,5 @@ bci/sign1/outputs/*.npz
 bci/sign1/outputs/_trial_*/
 bci/dstate1/outputs/*.npy
 bci/dstate1/outputs/_trial_*/
+bci/dstate2/outputs/*.npy
+bci/dstate2/outputs/_trial_*/
