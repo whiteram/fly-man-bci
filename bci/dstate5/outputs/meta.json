@@ -1,0 +1,43 @@
+{
+ "arms": {
+  "exit_ctl": "da1_exit150",
+  "exit_600": "da1_exit600",
+  "exit_1600": "da1_exit1600",
+  "exit_szl": "da1_exitszl"
+ },
+ "seeds": [
+  62,
+  63
+ ],
+ "groups": "Kenyon_Cell,MBON,ALPN,DAN",
+ "dur_ms": 60000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "probe_ms": [
+  30000,
+  30600
+ ],
+ "windows_ms": {
+  "pre": [
+   10000,
+   29000
+  ],
+  "post": [
+   31000,
+   50000
+  ]
+ },
+ "state_refs": {
+  "dark": {
+   "alpn_hz": 0,
+   "std_uv": 0.1
+  },
+  "lock": {
+   "alpn_hz": 19.8,
+   "std_uv": 0.0145
+  },
+  "plateau": {
+   "alpn_hz": 38,
+   "std_uv": 0.18
+  }
+ }
+}

@@ -1,0 +1,162 @@
+{
+ "exit_ctl_s62": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.821,
+   "alpn_hz": 20.1,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0147,
+   "mean_uv": -1.8211,
+   "alpn_hz": 20.34,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ },
+ "exit_ctl_s63": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.8221,
+   "alpn_hz": 20.04,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.8216,
+   "alpn_hz": 19.71,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ },
+ "exit_600_s62": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.821,
+   "alpn_hz": 20.1,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0146,
+   "mean_uv": -1.821,
+   "alpn_hz": 20.32,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ },
+ "exit_600_s63": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.8221,
+   "alpn_hz": 20.04,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0144,
+   "mean_uv": -1.8217,
+   "alpn_hz": 19.99,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ },
+ "exit_1600_s62": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.821,
+   "alpn_hz": 20.1,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0156,
+   "mean_uv": -3.4318,
+   "alpn_hz": 100.58,
+   "Kenyon_Cell": 3.97,
+   "MBON": 11.81,
+   "DAN": 0.6
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ },
+ "exit_1600_s63": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.8221,
+   "alpn_hz": 20.04,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0196,
+   "mean_uv": -3.4308,
+   "alpn_hz": 99.41,
+   "Kenyon_Cell": 3.98,
+   "MBON": 11.78,
+   "DAN": 0.62
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ },
+ "exit_szl_s62": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.821,
+   "alpn_hz": 20.1,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0148,
+   "mean_uv": -1.8214,
+   "alpn_hz": 20.27,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.13,
+   "DAN": 0.0
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ },
+ "exit_szl_s63": {
+  "pre": {
+   "std_uv": 0.0145,
+   "mean_uv": -1.8221,
+   "alpn_hz": 20.04,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.01,
+   "DAN": 0.0
+  },
+  "post": {
+   "std_uv": 0.0148,
+   "mean_uv": -1.822,
+   "alpn_hz": 19.87,
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.13,
+   "DAN": 0.0
+  },
+  "pre_state": "lock",
+  "post_state": "lock"
+ }
+}
