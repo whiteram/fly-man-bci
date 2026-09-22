@@ -157,6 +157,16 @@ def main():
                          "loop is the engine of the quiescence lock "
                          "and the 0.003 attractor).  Salts the cache "
                          "key")
+    ap.add_argument("--al-leg-balance", type=str, default=None,
+                    help="'E,I' weight scale factors applied to the "
+                         "ALL group's rows BY SIGN -- excitatory "
+                         "(sign=+1) rows x E, inhibitory (sign=-1) "
+                         "rows x I (e.g. '1.0,0.3' weakens the live "
+                         "inhibitory leg to rebalance the PN<->LN "
+                         "loop under --use-sign-all, bci/sign4: "
+                         "whole-group gain is dead-or-latched there). "
+                         "Requires --al-local-gain.  Salts the cache "
+                         "key")
     ap.add_argument("--al-gain", type=float, default=None,
                     help="AL-independence surgery: split AL->KC (PN->"
                          "Kenyon) rows out of CEN_C into group ALK at "
@@ -553,10 +563,29 @@ def main():
             "pre": ("CEN",), "post": "CEN", "table": _allrows,
             "tau_s": circuit["extra_edges"]["CEN_C"]["tau_s"],
             "g_unit": float(args.al_local_gain), "forward": True}
+        if args.al_leg_balance:
+            # per-leg rebalance (bci/sign4): the sign-on PN<->LN loop
+            # is dead-or-latched under whole-group gain -- scaling the
+            # two legs independently lets the E:I ratio be tuned
+            if args.al_local_gain is None:
+                raise SystemExit("--al-leg-balance requires "
+                                 "--al-local-gain (the ALL group)")
+            _ep, _ip = (float(v) for v in
+                        args.al_leg_balance.split(","))
+            _sg = _allrows["sign"].to_numpy()
+            _allrows["weight"] = (_allrows["weight"].to_numpy(
+                dtype=float) * np.where(_sg > 0, _ep, _ip))
+            _ne = int((_sg > 0).sum())
+            print(f"al-leg-balance: ALL rows E x{_ep:g} ({_ne}), "
+                  f"I x{_ip:g} ({len(_sg) - _ne})", flush=True)
         print(f"al-local-gain: ALL split {len(_allrows)} AL-internal "
               f"rows (absolute gain={args.al_local_gain:g})", flush=True)
         ckey = (ckey + f"+allg{args.al_local_gain:g}"
                 ) if ckey is not None else None
+        if args.al_leg_balance:
+            ckey = (ckey + "+alb"
+                    + args.al_leg_balance.replace(",", "-")
+                    ) if ckey is not None else None
     if args.mb_mod_gain is not None:
         # MB-modulator surgery (bci/condit3 follow-up): APL (1 per side,
         # GABAergic wide field) carries a MASSIVE negative-feedback loop

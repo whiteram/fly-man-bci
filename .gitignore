@@ -115,3 +115,5 @@ bci/sign3/outputs/*.npy
 bci/sign3/outputs/_trial_*/
 bci/dstate6/outputs/*.npy
 bci/dstate6/outputs/_trial_*/
+bci/sign4/outputs/*.npy
+bci/sign4/outputs/_trial_*/

@@ -1,0 +1,47 @@
+{
+ "arms": {
+  "i050": "1.0,0.5",
+  "i030": "1.0,0.3",
+  "i070": "1.0,0.7",
+  "e150": "1.5,1.0",
+  "g003i050": {
+   "gain": "0.003",
+   "balance": "1.0,0.5"
+  },
+  "g004i050": {
+   "gain": "0.004",
+   "balance": "1.0,0.5"
+  },
+  "g005i050": {
+   "gain": "0.005",
+   "balance": "1.0,0.5"
+  },
+  "g003i030": {
+   "gain": "0.003",
+   "balance": "1.0,0.3"
+  },
+  "g004i030": {
+   "gain": "0.004",
+   "balance": "1.0,0.3"
+  },
+  "g005i030": {
+   "gain": "0.005",
+   "balance": "1.0,0.3"
+  }
+ },
+ "sign": true,
+ "all_gain": 0.002,
+ "chem": "mmn_match",
+ "groups": "ORN,ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 3600.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "ref_base": {
+  "ALPN_A1": 11.27,
+  "ALON_A1": 27.62
+ },
+ "ref_sign3_g002": {
+  "ALPN_A1": 0.17,
+  "tail": 0.0
+ }
+}
