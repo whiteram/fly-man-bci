@@ -1,0 +1,25 @@
+{
+ "arms": [
+  "us_ppl103_x4",
+  "us_ppl103_x16"
+ ],
+ "groups": "Kenyon_Cell,MBON,ALPN,DAN",
+ "dur_ms": 5000.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "windows_ms": {
+  "baseline": [
+   0,
+   400
+  ],
+  "us": [
+   600,
+   2400
+  ],
+  "after": [
+   2600,
+   4900
+  ]
+ },
+ "us_pa": 800.0
+}

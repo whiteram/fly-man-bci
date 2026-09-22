@@ -1,0 +1,42 @@
+{
+ "us_ppl103_x4": {
+  "baseline": {
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.0,
+   "ALPN": 0.0,
+   "DAN": 0.0
+  },
+  "us": {
+   "Kenyon_Cell": 0.0001,
+   "MBON": 0.7292,
+   "ALPN": 0.0,
+   "DAN": 1.1765
+  },
+  "after": {
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.0,
+   "ALPN": 0.0,
+   "DAN": 0.0
+  }
+ },
+ "us_ppl103_x16": {
+  "baseline": {
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.0,
+   "ALPN": 0.0,
+   "DAN": 0.0
+  },
+  "us": {
+   "Kenyon_Cell": 0.0114,
+   "MBON": 12.3322,
+   "ALPN": 0.0,
+   "DAN": 5.8824
+  },
+  "after": {
+   "Kenyon_Cell": 0.0,
+   "MBON": 0.0,
+   "ALPN": 0.0,
+   "DAN": 0.0
+  }
+ }
+}
