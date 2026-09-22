@@ -104,3 +104,6 @@ bci/comp3/outputs/_trial_*/
 bci/comp3/outputs/states/
 bci/comp3/outputs/*.log
 bci/kcdrv1/outputs/*.npy
+bci/sign2/outputs/*.npy
+bci/sign2/outputs/_trial_*/
+bci/sign2/outputs/*.log

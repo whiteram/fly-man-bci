@@ -228,10 +228,20 @@ def main():
                     help="run EVERY extra-edge group with its "
                          "inhibitory rows actually inhibitory (per-edge "
                          "E_rev) instead of all-excitatory.  Impact "
-                         "audit: CEN_C 40% of weight is inhibitory and "
+                         "audit: CEN_C 40%% of weight is inhibitory and "
                          "currently excitatory (bci/sign1); groups "
                          "without inhibitory rows are no-ops.  Salts "
                          "the circuit cache key")
+    ap.add_argument("--use-sign-groups", type=str, default=None,
+                    help="comma list of extra-edge group names to run "
+                         "with inhibitory rows actually inhibitory "
+                         "(per-edge E_rev) -- per-group variant of "
+                         "--use-sign-all for intermediate-fidelity "
+                         "variants, e.g. 'CEN_R,OLR_V' keeps the "
+                         "all-excitatory CEN_C amplifier while giving "
+                         "the peripheral recurrence true inhibition "
+                         "(bci/sign2 Phase C).  Salts the circuit "
+                         "cache key with the group set")
     ap.add_argument("--kcm-fanin", type=float, default=None,
                     help="weight threshold W in [1,5): pull the raw "
                          "into the KCM plastic pool on top of the "
@@ -686,6 +696,28 @@ def main():
                 _n += 1
         print(f"use-sign-all: enabled on {_n} edge groups", flush=True)
         ckey = (ckey + "+usa") if ckey is not None else None
+    if args.use_sign_groups:
+        # per-group sign enablement (bci/sign2 Phase C): named groups
+        # run inhibitory rows as inhibitory, everything else keeps the
+        # all-excitatory runtime -- intermediate fidelity, e.g.
+        # CEN_R,OLR_V peripheral fidelity with the CEN_C amplifier
+        # (which carries the AL-internal rows) intact
+        _want = [s.strip() for s in args.use_sign_groups.split(",")
+                 if s.strip()]
+        _have = circuit.get("extra_edges") or {}
+        _bad = [g for g in _want if g not in _have]
+        if _bad:
+            raise SystemExit(f"use-sign-groups: unknown groups {_bad} "
+                             f"(have {sorted(_have)})")
+        _n = 0
+        for _g in _want:
+            if not _have[_g].get("use_sign", False):
+                _have[_g]["use_sign"] = True
+                _n += 1
+        print(f"use-sign-groups: enabled on {_n}/{len(_want)} "
+              f"({_want})", flush=True)
+        ckey = (ckey + "+usg-" + "+".join(sorted(_want))) \
+            if ckey is not None else None
     # ---- population-rate instrumentation (VALIDATION #5) -----------
     # groups resolve AFTER the surgeries so DAN_err etc. could be added
     # later; class subsets index into the CEN pop, bare pop names cover

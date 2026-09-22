@@ -1,0 +1,17 @@
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+use-sign-groups: enabled on 2/2 (['CEN_R', 'OLR_V'])
+pop-rate: Kenyon_Cell[4050], MBON[96], ALPN[680], DAN[340]
+kernel cache: HIT kernels-42b2fd085dfe35fad021.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 2 pulses
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): Kenyon_Cell 63.26, MBON 335.73, ALPN 186.05, DAN 36.07
+biology loop: 644 s (60000 records)
+phi_scalp checksum: L2=6.151405e-03 (baseline A/B file: bci\sign2\outputs\_trial_periph_szl2\_debug_phi_scalp.npy)
+background EEG: fly signal 0.04 uV vs bg 11.22 uV at 156 deg -> d'=2 needs ~313307 trials (band 2-20 Hz: ~1327880)
+stim view frames: bci\sign2\outputs\_trial_periph_szl2\stim_frames.bin (0.0 MB)
+wrote bci\sign2\outputs\_trial_periph_szl2\viz_data.json (31.5 MB)
+done

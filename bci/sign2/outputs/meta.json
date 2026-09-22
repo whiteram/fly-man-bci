@@ -1,0 +1,63 @@
+{
+ "arms": {
+  "base": {
+   "sign": false,
+   "amp": 1.0,
+   "gain": null
+  },
+  "sign": {
+   "sign": true,
+   "amp": 1.0,
+   "gain": null
+  },
+  "periph": {
+   "sign": false,
+   "amp": 1.0,
+   "gain": null,
+   "groups": "CEN_R,OLR_V"
+  },
+  "ampsign_4": {
+   "sign": true,
+   "amp": 4.0,
+   "gain": null
+  },
+  "ampsign_16": {
+   "sign": true,
+   "amp": 16.0,
+   "gain": null
+  },
+  "halfbase": {
+   "sign": false,
+   "amp": 1.0,
+   "gain": "CEN_C=0.5"
+  },
+  "halfsign": {
+   "sign": true,
+   "amp": 1.0,
+   "gain": "CEN_C=0.5"
+  }
+ },
+ "chem": "mmn_match",
+ "groups": "ORN,ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 3600.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "windows_ms": {
+  "A1": [
+   300,
+   600
+  ],
+  "dev_DM2": [
+   2300,
+   2600
+  ],
+  "return": [
+   2700,
+   3000
+  ],
+  "baseline": [
+   0,
+   250
+  ]
+ }
+}
