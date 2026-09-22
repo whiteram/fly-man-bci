@@ -1,0 +1,20 @@
+{
+ "scan_abs": {
+  "f0015": 0.0015,
+  "f0018": 0.0018,
+  "f0022": 0.0022,
+  "f0025": 0.0025,
+  "f0028": 0.0028
+ },
+ "splits": {
+  "all_g0002": 0.002,
+  "all_g0001": 0.0001,
+  "all_g0004": 0.004
+ },
+ "working_point": 0.002,
+ "seed": 62,
+ "dur_ms": 60000.0,
+ "chem": "da1_dc60",
+ "groups": "ORN,MBON,ALPN,Kenyon_Cell,DAN,ALLN,ALIN,ALON",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory"
+}
