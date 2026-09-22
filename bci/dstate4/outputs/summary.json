@@ -1,0 +1,35 @@
+{
+ "odor_g004": {
+  "ALPN": 219.52,
+  "ALLN": 365.95,
+  "ALON": 391.38,
+  "ALIN": 177.38,
+  "MBON": 394.98,
+  "Kenyon_Cell": 74.21,
+  "mean_abs": 10.2844,
+  "std": 0.0793,
+  "state": "latch"
+ },
+ "ign_g002": {
+  "ALPN": 0.0,
+  "ALLN": 0.0,
+  "ALON": 0.0,
+  "ALIN": 0.0,
+  "MBON": 0.0,
+  "Kenyon_Cell": 0.0,
+  "mean_abs": 1.3896,
+  "std": 0.005,
+  "state": "dark"
+ },
+ "odor_g002_std": {
+  "ALPN": 7.67,
+  "ALLN": 32.12,
+  "ALON": 15.32,
+  "ALIN": 0.81,
+  "MBON": 0.0,
+  "Kenyon_Cell": 0.0,
+  "mean_abs": 1.5655,
+  "std": 0.0163,
+  "state": "quiet lock"
+ }
+}

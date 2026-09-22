@@ -1,0 +1,36 @@
+{
+ "arms": {
+  "odor_g004": {
+   "chem": "da1_dc60",
+   "seed": 62,
+   "gain": 2.0,
+   "std": false
+  },
+  "ign_g002": {
+   "chem": "sz_l1",
+   "seed": 616,
+   "gain": 0.5,
+   "std": false
+  },
+  "odor_g002_std": {
+   "chem": "da1_dc60",
+   "seed": 62,
+   "gain": 1.0,
+   "std": true
+  },
+  "odor_g002": {
+   "reuse": true
+  },
+  "ign_g004_std": {
+   "reuse": true
+  }
+ },
+ "std_gate": "CEN_C:0.00015,10000",
+ "t_end_ms": 60000.0,
+ "groups": "ORN,MBON,ALPN,Kenyon_Cell,DAN,ALLN,ALIN,ALON",
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "references": {
+  "quiet_lock": "dstate1: ALPN 19.9, std 0.0145, MBON 0",
+  "sz_plateau": "sleep4: ALPN 38, std 0.18, MBON 3-5 (the 38 Hz figure is post-collapse)"
+ }
+}

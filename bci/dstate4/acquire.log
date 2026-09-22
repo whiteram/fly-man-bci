@@ -1,0 +1,57 @@
+[acquire] odor_g004
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: ORN[2639], MBON[96], ALPN[680], Kenyon_Cell[4050], DAN[340], ALLN[416], ALIN[24], ALON[14]
+kernel cache: HIT kernels-8aece0701e0f89fe85a6.npz (1.8 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+gain-scale: CEN_C g_unit x2 -> 0.004
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): ORN 0.00, MBON 383.82, ALPN 218.96, Kenyon_Cell 74.55, DAN 39.93, ALLN 363.61, ALIN 180.21, ALON 396.50
+biology loop: 834 s (60000 records)
+phi_scalp checksum: L2=6.154288e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_odor_g004\_debug_phi_scalp.npy)
+background EEG: fly signal 0.04 uV vs bg 11.22 uV at 156 deg -> d'=2 needs ~260353 trials (band 2-20 Hz: ~1812518)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_odor_g004\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_odor_g004\viz_data.json (31.5 MB)
+[acquire] ign_g002
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: ORN[2639], MBON[96], ALPN[680], Kenyon_Cell[4050], DAN[340], ALLN[416], ALIN[24], ALON[14]
+kernel cache: HIT kernels-8aece0701e0f89fe85a6.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+gain-scale: CEN_C g_unit x0.5 -> 0.002
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): ORN 0.00, MBON 1.67, ALPN 0.00, Kenyon_Cell 0.00, DAN 0.01, ALLN 0.00, ALIN 0.00, ALON 0.00
+biology loop: 951 s (60000 records)
+phi_scalp checksum: L2=8.276497e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_ign_g002\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 10.79 uV at 149 deg -> d'=2 needs ~2355470 trials (band 2-20 Hz: ~32439458)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_ign_g002\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_ign_g002\viz_data.json (32.4 MB)
+[acquire] odor_g002_std
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: ORN[2639], MBON[96], ALPN[680], Kenyon_Cell[4050], DAN[340], ALLN[416], ALIN[24], ALON[14]
+kernel cache: HIT kernels-8aece0701e0f89fe85a6.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+std gate: CEN_C U=0.00015 tau_rec=10000 ms
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 150 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 60.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+std debug CEN_C: d mean 0.9933 min 0.6668 frac<0.5 0.000
+pop-rate (1-2 s, Hz/neuron): ORN 0.00, MBON 0.01, ALPN 18.00, Kenyon_Cell 0.00, DAN 0.00, ALLN 47.40, ALIN 4.92, ALON 37.86
+biology loop: 934 s (60000 records)
+phi_scalp checksum: L2=9.445444e-04 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_odor_g002_std\_debug_phi_scalp.npy)
+background EEG: fly signal 0.03 uV vs bg 11.22 uV at 156 deg -> d'=2 needs ~787659 trials (band 2-20 Hz: ~9688796)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_odor_g002_std\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs\_trial_odor_g002_std\viz_data.json (32.4 MB)
+[acquire] odor_g002: reused prefix
+[acquire] ign_g004_std: reused prefix
+[acquire] done -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\dstate4\outputs
