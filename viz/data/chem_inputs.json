@@ -4250,5 +4250,26 @@
     ]
    }
   ]
+ },
+ {
+  "id": "da1_dc300",
+  "modality": "olfactory",
+  "label": "da1_dc300：bci/dstate6 长时标自然退出试探——单 DA1@150 脉冲，300 s trial",
+  "t_end_ms": 300000.0,
+  "edge_ms": 100.0,
+  "note": "dstate6：与 da1_dc60 同通道（300-600 ms 单脉冲），t_end 拉长到 300 s——静默锁在 5× 时标内是否自然衰减（dstate1 已示 60 s 零衰减）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]

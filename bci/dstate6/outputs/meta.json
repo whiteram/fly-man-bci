@@ -1,0 +1,39 @@
+{
+ "arms": {
+  "hi_comp": {
+   "chem": "da1_exit1600",
+   "t_end": 60000.0
+  },
+  "dc300": {
+   "chem": "da1_dc300",
+   "t_end": 300000.0
+  }
+ },
+ "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "windows_ms": {
+  "lock20": [
+   10000,
+   29000
+  ],
+  "hilock": [
+   31000,
+   50000
+  ],
+  "dc300_blocks": [
+   [
+    10,
+    29
+   ],
+   [
+    100,
+    190
+   ],
+   [
+    200,
+    290
+   ]
+  ]
+ }
+}

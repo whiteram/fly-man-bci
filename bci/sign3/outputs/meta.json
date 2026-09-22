@@ -1,0 +1,21 @@
+{
+ "arms": {
+  "g002": 0.002,
+  "g004": 0.004,
+  "g005": 0.005,
+  "g006": 0.006,
+  "g007": 0.007,
+  "g008": 0.008,
+  "g016": 0.016
+ },
+ "sign": true,
+ "chem": "mmn_match",
+ "groups": "ORN,ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 3600.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "ref_base": {
+  "ALPN_A1": 11.27,
+  "ALON_A1": 27.62
+ }
+}
