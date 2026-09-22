@@ -1,3986 +1,4084 @@
 [
-  {
-    "id": "odor3_block",
-    "modality": "olfactory",
-    "label": "三气味顺序块：cVA→DA1 / 果醋酯→DM2 / 脂肪酸→VA1v",
-    "t_end_ms": 10500.0,
-    "edge_ms": 150.0,
-    "note": "气味→受体→肾小球映射依据 Vosshall 2000 / Fishilevich & Vosshall 2005 / Hallem & Carlson 2006 / Kurtovic 2007（详见 docs/SENSORY_INPUTS.md）；脉冲幅度 = 满量程（与视觉 i_lum=150 pA 同标定），150 ms 平滑沿",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            2500,
-            4500
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            5500,
-            7500
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_VA1v",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            8500,
-            10500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "taste3_block",
-    "modality": "gustatory",
-    "label": "三器官糖脉冲：唇瓣 LgLG* / 翅 WG* / 跗节 claw_tpGRN",
-    "t_end_ms": 10500.0,
-    "edge_ms": 150.0,
-    "note": "MaleCNS 标注携带味觉器官而非品质（甜/苦未标注），故按器官分通道：唇瓣/翅/跗节味觉毛糖脉冲，幅度=满量程（文档化为假设）；幅度 400 pA=ORN 的 2.7 倍，补偿 GRN_C 突触量只有 ORN_C 的 1/6（exp019 标定）",
-    "channels": [
-      {
-        "pop": "GRN",
-        "group": "LgLG*",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            2500,
-            4500
-          ]
-        ]
-      },
-      {
-        "pop": "GRN",
-        "group": "WG*",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            5500,
-            7500
-          ]
-        ]
-      },
-      {
-        "pop": "GRN",
-        "group": "claw_tpGRN",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            8500,
-            10500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "odor3_short",
-    "modality": "olfactory",
-    "label": "三气味顺序块：cVA→DA1 / 果醋酯→DM2 / 脂肪酸→VA1v（3 s 快速迭代版）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "小规模迭代协议：各通道 900 ms 脉冲 @ 300/1500/2700 ms（触发 AL 募集的最短脉冲，全量版为 2 s）；同通道同幅度",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1500,
-            2400
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_VA1v",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            2700,
-            3600
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "taste3_short",
-    "modality": "gustatory",
-    "label": "三器官糖脉冲：唇瓣 LgLG* / 翅 WG* / 跗节 claw_tpGRN（3 s 快速迭代版）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "小规模迭代协议：各通道 900 ms 脉冲 @ 300/1500/2700 ms（触发 AL 募集的最短脉冲，全量版为 2 s）；同通道同幅度；幅度 400 pA=ORN 的 2.7 倍，补偿 GRN_C 突触量只有 ORN_C 的 1/6（exp019 标定）",
-    "channels": [
-      {
-        "pop": "GRN",
-        "group": "LgLG*",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      },
-      {
-        "pop": "GRN",
-        "group": "WG*",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            1500,
-            2400
-          ]
-        ]
-      },
-      {
-        "pop": "GRN",
-        "group": "claw_tpGRN",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            2700,
-            3600
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mi_L_short",
-    "modality": "proprioception",
-    "label": "运动指令 L（左腿)",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "运动想象范式：300-1200 ms 指令窗注入一侧腿本体感受器的运动反馈模式（400 pA），其后 2.4 s 为无驱动的延迟/保持窗；类别=指令侧别",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@L",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mi_R_short",
-    "modality": "proprioception",
-    "label": "运动指令 R（右腿）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "运动想象范式：300-1200 ms 指令窗注入一侧腿本体感受器的运动反馈模式（400 pA），其后 2.4 s 为无驱动的延迟/保持窗；类别=指令侧别",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@R",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mi2_L_short",
-    "modality": "motor_imagery",
-    "label": "运动想象 v2-L：腿反馈指令 + 同侧 LAL→DN 保持驱动",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "MI-v2（exp020，DN 通路探针设计）：300-1200 ms 指令窗 = 一侧腿本体反馈（400 pA，与 v1 相同）；1300-3500 ms 想象窗 = 同侧 LAL 群（317 细胞，300 pA）经真实 LAL→DN 突触（LAL083/126/PS 等占 DN 输入 61%）驱动运动计划层——对应皮层运动想象『无执行、自上而下保持』；类别=侧别；幅度含 PhotoCascade 800 ms 适配补偿（稳态=30%）：LAL 1200 pA→稳态 360 pA，DN 800 pA→稳态 240 pA（exp020 标定：300/250 pA 稳态 90/75 pA 不可见）",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@L",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 1200.0,
-        "pulses": [
-          [
-            1300,
-            3500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mi2_R_short",
-    "modality": "motor_imagery",
-    "label": "运动想象 v2-R：腿反馈指令 + 同侧 LAL→DN 保持驱动",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "同 mi2_L_short，侧别为右；幅度含 PhotoCascade 800 ms 适配补偿（稳态=30%）：LAL 1200 pA→稳态 360 pA，DN 800 pA→稳态 240 pA（exp020 标定：300/250 pA 稳态 90/75 pA 不可见）",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@R",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 1200.0,
-        "pulses": [
-          [
-            1300,
-            3500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mi2c_L_short",
-    "modality": "motor_imagery",
-    "label": "对照 C-L：腿反馈指令 + 同侧 DN 直驱（上界）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "MI-v2 对照：想象窗直接注入同侧 DN 群（596-712 细胞，250 pA）——绕过通路的『集总冠状放电』上界，用于对照 LAL 路由的效率",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@L",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "DN@L",
-        "amp_pa": 250.0,
-        "pulses": [
-          [
-            1300,
-            3500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mi2c_R_short",
-    "modality": "motor_imagery",
-    "label": "对照 C-R：腿反馈指令 + 同侧 DN 直驱（上界）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "同 mi2c_L_short，侧别为右",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@R",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "DN@R",
-        "amp_pa": 250.0,
-        "pulses": [
-          [
-            1300,
-            3500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "odor_da1_short",
-    "modality": "olfactory",
-    "label": "单气味 ORN_DA1：cVA（乙醛酸酯，雄性信息素）（bci/olfactory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "odor_dm2_short",
-    "modality": "olfactory",
-    "label": "单气味 ORN_DM2：果醋酯（ vinegar，食物气味）（bci/olfactory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类；幅度按 ORN 群大小补偿（DA1 204/DM2 54/VA1v 130 细胞；150 pA 下 DM2/VA1v 仅 +4%，bci 标定）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "odor_va1v_short",
-    "modality": "olfactory",
-    "label": "单气味 ORN_VA1v：脂肪酸（乳酸菌气味）（bci/olfactory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类；幅度按 ORN 群大小补偿（bci 标定）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_VA1v",
-        "amp_pa": 250.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "aud_pulse_L",
-    "modality": "auditory",
-    "label": "pulse song @L（bci/auditory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 15.0,
-    "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
-    "channels": [
-      {
-        "pop": "JOA",
-        "group": "*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300.0,
-            320.0
-          ],
-          [
-            340.0,
-            360.0
-          ],
-          [
-            380.0,
-            400.0
-          ],
-          [
-            420.0,
-            440.0
-          ],
-          [
-            460.0,
-            480.0
-          ],
-          [
-            500.0,
-            520.0
-          ],
-          [
-            540.0,
-            560.0
-          ],
-          [
-            580.0,
-            600.0
-          ],
-          [
-            620.0,
-            640.0
-          ],
-          [
-            660.0,
-            680.0
-          ],
-          [
-            700.0,
-            720.0
-          ],
-          [
-            740.0,
-            760.0
-          ],
-          [
-            780.0,
-            800.0
-          ],
-          [
-            820.0,
-            840.0
-          ],
-          [
-            860.0,
-            880.0
-          ],
-          [
-            900.0,
-            920.0
-          ],
-          [
-            940.0,
-            960.0
-          ],
-          [
-            980.0,
-            1000.0
-          ],
-          [
-            1020.0,
-            1040.0
-          ],
-          [
-            1060.0,
-            1080.0
-          ],
-          [
-            1100.0,
-            1120.0
-          ],
-          [
-            1140.0,
-            1160.0
-          ],
-          [
-            1180.0,
-            1200.0
-          ],
-          [
-            1220.0,
-            1240.0
-          ],
-          [
-            1260.0,
-            1280.0
-          ],
-          [
-            1300.0,
-            1320.0
-          ],
-          [
-            1340.0,
-            1360.0
-          ],
-          [
-            1380.0,
-            1400.0
-          ],
-          [
-            1420.0,
-            1440.0
-          ],
-          [
-            1460.0,
-            1480.0
-          ],
-          [
-            1500.0,
-            1520.0
-          ],
-          [
-            1540.0,
-            1560.0
-          ],
-          [
-            1580.0,
-            1600.0
-          ],
-          [
-            1620.0,
-            1640.0
-          ],
-          [
-            1660.0,
-            1680.0
-          ],
-          [
-            1700.0,
-            1720.0
-          ],
-          [
-            1740.0,
-            1760.0
-          ],
-          [
-            1780.0,
-            1800.0
-          ],
-          [
-            1820.0,
-            1840.0
-          ],
-          [
-            1860.0,
-            1880.0
-          ],
-          [
-            1900.0,
-            1920.0
-          ],
-          [
-            1940.0,
-            1960.0
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "aud_sine_L",
-    "modality": "auditory",
-    "label": "sine song @L（bci/auditory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 15.0,
-    "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
-    "channels": [
-      {
-        "pop": "JOA",
-        "group": "*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300.0,
-            2000.0
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "aud_pulse_R",
-    "modality": "auditory",
-    "label": "pulse song @R（bci/auditory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 15.0,
-    "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
-    "channels": [
-      {
-        "pop": "JOA",
-        "group": "*@R",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300.0,
-            320.0
-          ],
-          [
-            340.0,
-            360.0
-          ],
-          [
-            380.0,
-            400.0
-          ],
-          [
-            420.0,
-            440.0
-          ],
-          [
-            460.0,
-            480.0
-          ],
-          [
-            500.0,
-            520.0
-          ],
-          [
-            540.0,
-            560.0
-          ],
-          [
-            580.0,
-            600.0
-          ],
-          [
-            620.0,
-            640.0
-          ],
-          [
-            660.0,
-            680.0
-          ],
-          [
-            700.0,
-            720.0
-          ],
-          [
-            740.0,
-            760.0
-          ],
-          [
-            780.0,
-            800.0
-          ],
-          [
-            820.0,
-            840.0
-          ],
-          [
-            860.0,
-            880.0
-          ],
-          [
-            900.0,
-            920.0
-          ],
-          [
-            940.0,
-            960.0
-          ],
-          [
-            980.0,
-            1000.0
-          ],
-          [
-            1020.0,
-            1040.0
-          ],
-          [
-            1060.0,
-            1080.0
-          ],
-          [
-            1100.0,
-            1120.0
-          ],
-          [
-            1140.0,
-            1160.0
-          ],
-          [
-            1180.0,
-            1200.0
-          ],
-          [
-            1220.0,
-            1240.0
-          ],
-          [
-            1260.0,
-            1280.0
-          ],
-          [
-            1300.0,
-            1320.0
-          ],
-          [
-            1340.0,
-            1360.0
-          ],
-          [
-            1380.0,
-            1400.0
-          ],
-          [
-            1420.0,
-            1440.0
-          ],
-          [
-            1460.0,
-            1480.0
-          ],
-          [
-            1500.0,
-            1520.0
-          ],
-          [
-            1540.0,
-            1560.0
-          ],
-          [
-            1580.0,
-            1600.0
-          ],
-          [
-            1620.0,
-            1640.0
-          ],
-          [
-            1660.0,
-            1680.0
-          ],
-          [
-            1700.0,
-            1720.0
-          ],
-          [
-            1740.0,
-            1760.0
-          ],
-          [
-            1780.0,
-            1800.0
-          ],
-          [
-            1820.0,
-            1840.0
-          ],
-          [
-            1860.0,
-            1880.0
-          ],
-          [
-            1900.0,
-            1920.0
-          ],
-          [
-            1940.0,
-            1960.0
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "aud_sine_R",
-    "modality": "auditory",
-    "label": "sine song @R（bci/auditory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 15.0,
-    "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
-    "channels": [
-      {
-        "pop": "JOA",
-        "group": "*@R",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300.0,
-            2000.0
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mrcp_l",
-    "modality": "motor_readiness",
-    "label": "运动准备 MRCP-L：LAL 阶梯坡道 + 执行复反馈",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "MRCP 范式：LAL*@L 阶梯坡道（300/600/900 pA @1300/1900/2500，3100 补满 1200——PhotoCascade 30 适配补偿后稳态 90→360 pA）= 准备电位上升期；2800 ms 同侧腿 PRO 400 pA 复反馈 = 运动执行/感知副本；类别=侧别",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            1300,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            1900,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            2500,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "PRO",
-        "group": "*@L",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            2800,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            3100,
-            3500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mrcp_r",
-    "modality": "motor_readiness",
-    "label": "运动准备 MRCP-R：LAL 阶梯坡道 + 执行复反馈",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "MRCP 范式：LAL*@R 阶梯坡道（300/600/900 pA @1300/1900/2500，3100 补满 1200——PhotoCascade 30 适配补偿后稳态 90→360 pA）= 准备电位上升期；2800 ms 同侧腿 PRO 400 pA 复反馈 = 运动执行/感知副本；类别=侧别",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            1300,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            1900,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            2500,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "PRO",
-        "group": "*@R",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            2800,
-            3500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            3100,
-            3500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_l",
-    "modality": "seizure",
-    "label": "癫痫灶-L：默认复归增益下的同侧 LAL 焦点驱动（点火=发作）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/seizure：与 exp019 标定相反，故意不压 CEN_C 增益（no_cen_damp）——默认增益下任何超阈 chem 输入触发 82 Hz 自持点火（exp019 发现的发作样吸引子）；800-2800 ms 焦点驱动同侧 LAL（600 pA）= 发作灶；类别=灶侧别",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_r",
-    "modality": "seizure",
-    "label": "癫痫灶-R：默认复归增益下的同侧 LAL 焦点驱动（点火=发作）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/seizure：与 exp019 标定相反，故意不压 CEN_C 增益（no_cen_damp）——默认增益下任何超阈 chem 输入触发 82 Hz 自持点火（exp019 发现的发作样吸引子）；800-2800 ms 焦点驱动同侧 LAL（600 pA）= 发作灶；类别=灶侧别",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_ctl",
-    "modality": "seizure",
-    "label": "对照：chem 工作点下同幅驱动（不点火）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "bci/seizure 对照：同幅同窗 LAL 驱动但保持 CEN_C=0.002 工作点（有 damp）——预期无点火",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "taste_lglg",
-    "modality": "gustatory",
-    "label": "单器官糖脉冲：唇瓣（bci/gustatory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：唇瓣味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（LgLG 400 pA；群大小 667/385/50，参照 LgLG 400 pA）",
-    "channels": [
-      {
-        "pop": "GRN",
-        "group": "LgLG",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "taste_wg",
-    "modality": "gustatory",
-    "label": "单器官糖脉冲：翅（bci/gustatory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：翅味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（WG 693 pA；群大小 667/385/50，参照 LgLG 400 pA）",
-    "channels": [
-      {
-        "pop": "GRN",
-        "group": "WG",
-        "amp_pa": 693.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "taste_claw",
-    "modality": "gustatory",
-    "label": "单器官糖脉冲：跗节（bci/gustatory 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：跗节味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（claw_tpGRN 5336 pA；群大小 667/385/50，参照 LgLG 400 pA）",
-    "channels": [
-      {
-        "pop": "GRN",
-        "group": "claw_tpGRN",
-        "amp_pa": 5336.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "touch_l",
-    "modality": "touch",
-    "label": "体表触觉-L（bci/touch 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：同侧全体表触觉群（SNta*，~1.2k 细胞）900 ms 触压脉冲 @300 ms（300 pA，总驱动≈嗅觉全量标定）；类别=触压侧别",
-    "channels": [
-      {
-        "pop": "TC",
-        "group": "*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "touch_r",
-    "modality": "touch",
-    "label": "体表触觉-R（bci/touch 类别刺激）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci 范式：同侧全体表触觉群（SNta*，~1.2k 细胞）900 ms 触压脉冲 @300 ms（300 pA，总驱动≈嗅觉全量标定）；类别=触压侧别",
-    "channels": [
-      {
-        "pop": "TC",
-        "group": "*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "szg_002",
-    "modality": "seizure",
-    "label": "增益扫描 CEN_C=0.002：焦点 L 驱动",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "cen_gain": 0.002,
-    "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "szg_0025",
-    "modality": "seizure",
-    "label": "增益扫描 CEN_C=0.0025：焦点 L 驱动",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "cen_gain": 0.0025,
-    "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "szg_003",
-    "modality": "seizure",
-    "label": "增益扫描 CEN_C=0.003：焦点 L 驱动",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "cen_gain": 0.003,
-    "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "szg_0035",
-    "modality": "seizure",
-    "label": "增益扫描 CEN_C=0.0035：焦点 L 驱动",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "cen_gain": 0.0035,
-    "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "cnv_l",
-    "modality": "anticipation",
-    "label": "CNV-L：S1 预警 + LAL 预期坡道 + S2 命令",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "CNV 范式（Walter 1964 双刺激结构）：S1=同侧腿 PRO 400 pA [300,600] 预警；预期期=同侧 LAL 阶梯坡道 300/600/900 pA @900/1500/2100（至 3100）；S2=同侧 PRO 600 pA [2400,3100] 命令/执行；类别=侧别",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@L",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            900,
-            3100
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            1500,
-            3100
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            2100,
-            3100
-          ]
-        ]
-      },
-      {
-        "pop": "PRO",
-        "group": "*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            2400,
-            3100
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "cnv_r",
-    "modality": "anticipation",
-    "label": "CNV-R：S1 预警 + LAL 预期坡道 + S2 命令",
-    "t_end_ms": 3600.0,
-    "edge_ms": 100.0,
-    "note": "CNV 范式（Walter 1964 双刺激结构）：S1=同侧腿 PRO 400 pA [300,600] 预警；预期期=同侧 LAL 阶梯坡道 300/600/900 pA @900/1500/2100（至 3100）；S2=同侧 PRO 600 pA [2400,3100] 命令/执行；类别=侧别",
-    "channels": [
-      {
-        "pop": "PRO",
-        "group": "*@R",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            900,
-            3100
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            1500,
-            3100
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            2100,
-            3100
-          ]
-        ]
-      },
-      {
-        "pop": "PRO",
-        "group": "*@R",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            2400,
-            3100
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "aud_dev",
-    "modality": "auditory",
-    "label": "听觉偏差：25 Hz 脉冲歌列车中嵌入 50 Hz 偏差段",
-    "t_end_ms": 3600.0,
-    "edge_ms": 15.0,
-    "note": "bci/auddev：双侧 JO-A 群（JO-A*，600 pA）；四段 25 Hz 标准脉冲歌爆发 + 第三段 50 Hz 偏差（1500-2000）；分析=偏差段 vs 相邻标准段的响应比较（外周适应偏差检测）",
-    "channels": [
-      {
-        "pop": "JOA",
-        "group": "JO-A*",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300,
-            320.0
-          ],
-          [
-            340.0,
-            360.0
-          ],
-          [
-            380.0,
-            400.0
-          ],
-          [
-            420.0,
-            440.0
-          ],
-          [
-            460.0,
-            480.0
-          ],
-          [
-            500.0,
-            520.0
-          ],
-          [
-            540.0,
-            560.0
-          ],
-          [
-            580.0,
-            600.0
-          ],
-          [
-            620.0,
-            640.0
-          ],
-          [
-            660.0,
-            680.0
-          ],
-          [
-            700.0,
-            720.0
-          ],
-          [
-            740.0,
-            760.0
-          ],
-          [
-            780.0,
-            800.0
-          ],
-          [
-            900,
-            920.0
-          ],
-          [
-            940.0,
-            960.0
-          ],
-          [
-            980.0,
-            1000.0
-          ],
-          [
-            1020.0,
-            1040.0
-          ],
-          [
-            1060.0,
-            1080.0
-          ],
-          [
-            1100.0,
-            1120.0
-          ],
-          [
-            1140.0,
-            1160.0
-          ],
-          [
-            1180.0,
-            1200.0
-          ],
-          [
-            1220.0,
-            1240.0
-          ],
-          [
-            1260.0,
-            1280.0
-          ],
-          [
-            1300.0,
-            1320.0
-          ],
-          [
-            1340.0,
-            1360.0
-          ],
-          [
-            1380.0,
-            1400.0
-          ],
-          [
-            1500,
-            1510.0
-          ],
-          [
-            1520.0,
-            1530.0
-          ],
-          [
-            1540.0,
-            1550.0
-          ],
-          [
-            1560.0,
-            1570.0
-          ],
-          [
-            1580.0,
-            1590.0
-          ],
-          [
-            1600.0,
-            1610.0
-          ],
-          [
-            1620.0,
-            1630.0
-          ],
-          [
-            1640.0,
-            1650.0
-          ],
-          [
-            1660.0,
-            1670.0
-          ],
-          [
-            1680.0,
-            1690.0
-          ],
-          [
-            1700.0,
-            1710.0
-          ],
-          [
-            1720.0,
-            1730.0
-          ],
-          [
-            1740.0,
-            1750.0
-          ],
-          [
-            1760.0,
-            1770.0
-          ],
-          [
-            1780.0,
-            1790.0
-          ],
-          [
-            1800.0,
-            1810.0
-          ],
-          [
-            1820.0,
-            1830.0
-          ],
-          [
-            1840.0,
-            1850.0
-          ],
-          [
-            1860.0,
-            1870.0
-          ],
-          [
-            1880.0,
-            1890.0
-          ],
-          [
-            1900.0,
-            1910.0
-          ],
-          [
-            1920.0,
-            1930.0
-          ],
-          [
-            1940.0,
-            1950.0
-          ],
-          [
-            1960.0,
-            1970.0
-          ],
-          [
-            1980.0,
-            1990.0
-          ],
-          [
-            2100,
-            2120.0
-          ],
-          [
-            2140.0,
-            2160.0
-          ],
-          [
-            2180.0,
-            2200.0
-          ],
-          [
-            2220.0,
-            2240.0
-          ],
-          [
-            2260.0,
-            2280.0
-          ],
-          [
-            2300.0,
-            2320.0
-          ],
-          [
-            2340.0,
-            2360.0
-          ],
-          [
-            2380.0,
-            2400.0
-          ],
-          [
-            2420.0,
-            2440.0
-          ],
-          [
-            2460.0,
-            2480.0
-          ],
-          [
-            2500.0,
-            2520.0
-          ],
-          [
-            2540.0,
-            2560.0
-          ],
-          [
-            2580.0,
-            2600.0
-          ],
-          [
-            2700,
-            2720.0
-          ],
-          [
-            2740.0,
-            2760.0
-          ],
-          [
-            2780.0,
-            2800.0
-          ],
-          [
-            2820.0,
-            2840.0
-          ],
-          [
-            2860.0,
-            2880.0
-          ],
-          [
-            2900.0,
-            2920.0
-          ],
-          [
-            2940.0,
-            2960.0
-          ],
-          [
-            2980.0,
-            3000.0
-          ],
-          [
-            3020.0,
-            3040.0
-          ],
-          [
-            3060.0,
-            3080.0
-          ],
-          [
-            3100.0,
-            3120.0
-          ],
-          [
-            3140.0,
-            3160.0
-          ],
-          [
-            3180.0,
-            3200.0
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "odormix_ab",
-    "modality": "olfactory",
-    "label": "混合物 AB 同时（DA1+DM2）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci/odormix：两气味同一脉冲窗 [300,1200] 同时给（DA1 150 + DM2 600 pA，均衡幅度）——混合非线性检验",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "odormix_abseq",
-    "modality": "olfactory",
-    "label": "顺序 A→B（DA1 先）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci/odormix：A 先 B 后（DA1 [300,700] → DM2 [800,1200]）——顺序解码",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            700
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "odormix_baseq",
-    "modality": "olfactory",
-    "label": "顺序 B→A（DM2 先）",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "同 odormix_abseq，顺序反转",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            300,
-            700
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            800,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dose_075",
-    "modality": "olfactory",
-    "label": "DA1 剂量 75 pA",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci/dose：浓度档 0.5×/1×/2×（1×=odor_da1_short 复用）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 75.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dose_300",
-    "modality": "olfactory",
-    "label": "DA1 剂量 300 pA",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci/dose：浓度档 0.5×/1×/2×（1×=odor_da1_short 复用）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 300.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "hyb_l",
-    "modality": "hybrid",
-    "label": "Hybrid 想象-L（SSVEP 闪烁 + LAL 保持驱动）",
-    "t_end_ms": 10500.0,
-    "edge_ms": 100.0,
-    "note": "bci/hybrid：SSVEP 视觉闪烁全程 + 同侧 LAL*@L 1200 pA 平台 [1500,9800]（想象保持）；与 hyb_n 对照测双任务干扰",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 1200.0,
-        "pulses": [
-          [
-            1500,
-            9800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "hyb_r",
-    "modality": "hybrid",
-    "label": "Hybrid 想象-R（SSVEP 闪烁 + LAL 保持驱动）",
-    "t_end_ms": 10500.0,
-    "edge_ms": 100.0,
-    "note": "bci/hybrid：SSVEP 视觉闪烁全程 + 同侧 LAL*@R 1200 pA 平台 [1500,9800]（想象保持）；与 hyb_n 对照测双任务干扰",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@R",
-        "amp_pa": 1200.0,
-        "pulses": [
-          [
-            1500,
-            9800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "hyb_n",
-    "modality": "hybrid",
-    "label": "Hybrid 对照：纯视觉（同工作点）",
-    "t_end_ms": 10500.0,
-    "edge_ms": 100.0,
-    "cen_gain": 0.002,
-    "note": "bci/hybrid 对照：无 chem 驱动但显式 cen_gain=0.002（与想象试次同工作点，避免增益混杂）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 0.0,
-        "pulses": [
-          [
-            1500,
-            9800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "orn_l",
-    "modality": "olfactory",
-    "label": "立体嗅觉-L：同侧 DA1 气味脉冲",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci/stereo：同侧 DA1 群（rootSide L，51 细胞）900 ms 脉冲 @300 ms，幅度按侧别群大小补偿（L 310 / R 150 pA）；类别=气味来向",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1@L",
-        "amp_pa": 310.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "orn_r",
-    "modality": "olfactory",
-    "label": "立体嗅觉-R：同侧 DA1 气味脉冲",
-    "t_end_ms": 3600.0,
-    "edge_ms": 50.0,
-    "note": "bci/stereo：同侧 DA1 群（rootSide R，105 细胞）900 ms 脉冲 @300 ms，幅度按侧别群大小补偿（L 310 / R 150 pA）；类别=气味来向",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1@R",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            1200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mmn_train",
-    "modality": "olfactory",
-    "label": "MMN 列车：DA1×5 标准脉冲 + DM2 偏差 + DA1 恢复",
-    "t_end_ms": 3600.0,
-    "edge_ms": 30.0,
-    "note": "bci/mmdev：五个 DA1 标准脉冲（150 pA，300 ms/个）→ DM2 偏差（600 pA，身份偏差）→ DA1 恢复脉冲；配合 --std-gates ORN_C 检验突触级适应的贡献",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            700,
-            1000
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1100,
-            1400
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1500,
-            1800
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1900,
-            2200
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            2300,
-            2600
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            2700,
-            3000
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "condit",
-    "modality": "conditioning",
-    "label": "嗅觉条件化：训练 A+奖励(PAM) → 测试 A/B",
-    "t_end_ms": 8000.0,
-    "edge_ms": 100.0,
-    "note": "bci/condit：训练段 0.5-2.5s 气味 A(DA1 400pA)+双侧 PAM 群 800pA(奖励=DAN 发放)；测试段 A@4.2s(150pA)/B@6.2s(DM2 600pA 均衡)；配 --plastic-mb --plastic-window 500,2500，对照用 --plastic-lr 0（同奖励同动力学，唯一差异=学习开关）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 400.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            4200,
-            5200
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            6200,
-            7200
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "condit_kc",
-    "modality": "conditioning",
-    "label": "可塑性机制验证：直接驱动 KC + 奖励窗",
-    "t_end_ms": 8000.0,
-    "edge_ms": 100.0,
-    "note": "bci/condit 诊断：训练窗直接 chem 驱动 KC 主簇（KCg-m/KCab-s/KCab-m @双侧 400pA，绕开被工作点压制的 PN→KC 通路）+ PAM 奖励 800pA；只看 KCM w_scale 是否下调（机制在完整 GPU 管线的端到端验证）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KC*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "condt2",
-    "modality": "conditioning",
-    "label": "驱动条件化 v2：KC 表征训练+奖励 → KC 探针",
-    "t_end_ms": 8000.0,
-    "edge_ms": 100.0,
-    "note": "bci/condit v2：通路约束（PN→KC 在 CEN_C 内被 chem 工作点 0.002 压制，气味到不了 KC）下的驱动版——训练 0.5-2.5s：KC 主簇双侧 1600 pA（=气味 KC 表征注入）+ PAM 双侧 800 pA（奖励）；探针 4.2-4.7s：同 KC 驱动（500 ms）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6，对照 lr=0；读出=探针响应的通路级抑郁",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KC*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "condtx",
-    "modality": "conditioning",
-    "label": "驱动条件化-消退试次：KC 表征训练（无奖励）→ KC 探针",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/condit2 消退/对照试次：与 condt2 相同的 KC 训练（0.5-2.5s 1600pA）+ KC 探针（4.2-4.7s），但无 PAM 奖励通道；配 --plastic-mb（不传 --plastic-window → mod 门关闭，无抑郁）+ --plastic-tau-w 30000 → w_scale 仅慢恢复 → 消退；也用作 never-rewarded 平坦对照",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KC*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "condt3a",
-    "modality": "conditioning",
-    "label": "真气味条件化：ORN DA1 训练+PAM 奖励 → 探针=DA1（训练气味）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/condit3：配 --al-gain 0.01（AL→KC 独立增益，绕过 chem 工作点对 PN→KC 的 500× 压制）+ --plastic-mb --plastic-window 500,2500 --plastic-lr 5e-5；训练 0.5-2.5s：真实气味入口 ORN_DA1 150pA + PAM 双侧 800pA；探针 4.2-4.7s 同入口；对照 lr=0；读出=探针净响应的通路级抑郁 + A/B 特异性（condt3a vs condt3b）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "condt3b",
-    "modality": "conditioning",
-    "label": "真气味条件化：ORN DA1 训练+PAM 奖励 → 探针=DM2（未训练气味，群大小补偿幅度）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/condit3：配 --al-gain 0.01（AL→KC 独立增益，绕过 chem 工作点对 PN→KC 的 500× 压制）+ --plastic-mb --plastic-window 500,2500 --plastic-lr 5e-5；训练 0.5-2.5s：真实气味入口 ORN_DA1 150pA + PAM 双侧 800pA；探针 4.2-4.7s 同入口；对照 lr=0；读出=探针净响应的通路级抑郁 + A/B 特异性（condt3a vs condt3b）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "blockA",
-    "modality": "conditioning",
-    "label": "阻断检验 blockA: A(KCg-m)+奖励 → A 探针（阶段1）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "blockAB",
-    "modality": "conditioning",
-    "label": "阻断检验 blockAB: A+B(KCab-m)+奖励 → B 探针（阶段2）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "blockC",
-    "modality": "conditioning",
-    "label": "阻断检验 blockC: C(KCab-s)+奖励 → C 探针（对照阶段1）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCab-s@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dual1",
-    "modality": "conditioning",
-    "label": "双时间常数记忆 dual1：全 KC 训练+奖励 → γ/αβ 双探针",
-    "t_end_ms": 5200.0,
-    "edge_ms": 100.0,
-    "note": "bci/dualmem 短/长时记忆分离：训练驱动全 KC（两组同学习），探针分窗——γ 窗 4.2-4.45s（KCg*）、α/β 窗 4.6-4.85s（KCab*）；配 --plastic-mb --plastic-dual-tauw 30000,300000（γ 快恢复=短时记忆，α/β 慢恢复=长时记忆）+ --plastic-window 500,2500 --plastic-lr 3e-6 + 状态链；dualx 为无奖励消退版",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KC*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@L",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM*@R",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4450
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4450
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4600,
-            4850
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4600,
-            4850
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dualx",
-    "modality": "conditioning",
-    "label": "双时间常数记忆 dualx：全 KC 训练（无奖励）→ γ/αβ 双探针（消退）",
-    "t_end_ms": 5200.0,
-    "edge_ms": 100.0,
-    "note": "bci/dualmem 短/长时记忆分离：训练驱动全 KC（两组同学习），探针分窗——γ 窗 4.2-4.45s（KCg*）、α/β 窗 4.6-4.85s（KCab*）；配 --plastic-mb --plastic-dual-tauw 30000,300000（γ 快恢复=短时记忆，α/β 慢恢复=长时记忆）+ --plastic-window 500,2500 --plastic-lr 3e-6 + 状态链；dualx 为无奖励消退版",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KC*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KC*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4450
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4450
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab*@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4600,
-            4850
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab*@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4600,
-            4850
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "thermal_w",
-    "modality": "thermal",
-    "label": "温/湿度刺激 thermal_w",
-    "t_end_ms": 3600.0,
-    "edge_ms": 300.0,
-    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
-    "channels": [
-      {
-        "pop": "TH",
-        "group": "TRN_VP1m*@L",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "TH",
-        "group": "TRN_VP1m*@R",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "thermal_c",
-    "modality": "thermal",
-    "label": "温/湿度刺激 thermal_c",
-    "t_end_ms": 3600.0,
-    "edge_ms": 300.0,
-    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
-    "channels": [
-      {
-        "pop": "TH",
-        "group": "TRN_VP2*@L",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "TH",
-        "group": "TRN_VP2*@R",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "TH",
-        "group": "TRN_VP3*@L",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "TH",
-        "group": "TRN_VP3*@R",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "hygro_d",
-    "modality": "thermal",
-    "label": "温/湿度刺激 hygro_d",
-    "t_end_ms": 3600.0,
-    "edge_ms": 300.0,
-    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
-    "channels": [
-      {
-        "pop": "HY",
-        "group": "HRN_VP4*@L",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "HY",
-        "group": "HRN_VP4*@R",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "hygro_m",
-    "modality": "thermal",
-    "label": "温/湿度刺激 hygro_m",
-    "t_end_ms": 3600.0,
-    "edge_ms": 300.0,
-    "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
-    "channels": [
-      {
-        "pop": "HY",
-        "group": "HRN_VP1*@L",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "HY",
-        "group": "HRN_VP1*@R",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "HY",
-        "group": "HRN_VP5*@L",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      },
-      {
-        "pop": "HY",
-        "group": "HRN_VP5*@R",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            3300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sleep_probe",
-    "modality": "state",
-    "label": "睡眠双稳态探查：点火侧增益 0.004 + 无驱动长时空转",
-    "t_end_ms": 60000.0,
-    "edge_ms": 100.0,
-    "cen_gain": 0.004,
-    "note": "睡眠-觉醒双稳态设计：cen_gain 0.004（点火侧）+ --std-gates 'CEN_C:U,tau_rec_ms' 慢恢复资源门控——高活动耗竭资源→有效增益降过双稳分岔→下行（睡眠）；静默期恢复→噪声可再点火（觉醒）。配 --t-end 60000 观察 60s 内的状态转移",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 0.0,
-        "pulses": [
-          [
-            1000,
-            2000
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dangateA",
-    "modality": "conditioning",
-    "label": "误差门电路化 dangateA: A(KCg-m)+DAN_err 奖励 → A 探针（阶段1）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "DAN_err",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dangateAB",
-    "modality": "conditioning",
-    "label": "误差门电路化 dangateAB: A+B(KCab-m)+DAN_err 奖励 → B 探针（阶段2）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "DAN_err",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dangateC",
-    "modality": "conditioning",
-    "label": "误差门电路化 dangateC: C(KCab-s)+DAN_err 奖励 → C 探针（阶段1）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCab-s@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "DAN_err",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_l2",
-    "modality": "seizure",
-    "label": "癫痫灶-L 双脉冲：0.8-2.8s 与 35-37.3s 两次点火（bci/sleep3 迟滞循环探针）",
-    "t_end_ms": 60000.0,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/sleep3：同 sz_l 但 60s 试验 + 第二次点火 35000-37300 ms——STD 慢资源门下测上行态塌缩后的再点火（迟滞/循环能力）；no_cen_damp 保持",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ],
-          [
-            35000,
-            37300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mmn_match",
-    "modality": "olfactory",
-    "label": "MMN 等强度列车：DA1×5 标准脉冲 + DM2 偏差（同 150 pA，仅身份偏差）+ DA1 恢复",
-    "t_end_ms": 3600.0,
-    "edge_ms": 30.0,
-    "note": "bci/mmdev2：mmdev 重审发现 STD=强度依赖增益控制，旧 mmn_train 的 DM2 偏差（600 pA=4×标准）自耗竭更深而反转偏差比；本条目把偏差脉冲降到 150 pA 与标准等强度，隔离纯身份偏差（时序与 mmn_train 完全一致）",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            700,
-            1000
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1100,
-            1400
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1500,
-            1800
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1900,
-            2200
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            2300,
-            2600
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            2700,
-            3000
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "da1_solo",
-    "modality": "olfactory",
-    "label": "DA1 单脉冲标定（bci/mmdev2 等响应对照的剂量寻找）",
-    "t_end_ms": 1200.0,
-    "edge_ms": 30.0,
-    "note": "bci/mmdev2 pilot：单通道单脉冲 300-600 ms @150 pA；DM2 侧配合 --chem-amp-scale 做剂量扫描（solo 入口只有一条通道，全局 scale 即 DM2 scale），找与 DA1@150 等净响应的 DM2 强度",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dm2_solo",
-    "modality": "olfactory",
-    "label": "DM2 单脉冲标定（bci/mmdev2 等响应对照的剂量寻找）",
-    "t_end_ms": 1200.0,
-    "edge_ms": 30.0,
-    "note": "bci/mmdev2 pilot：单通道单脉冲 300-600 ms @150 pA；DM2 侧配合 --chem-amp-scale 做剂量扫描（solo 入口只有一条通道，全局 scale 即 DM2 scale），找与 DA1@150 等净响应的 DM2 强度",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mmn_matchr",
-    "modality": "olfactory",
-    "label": "MMN 等响应列车：DA1×5 标准（150 pA）+ DM2 偏差（492 pA，单脉冲标定等净响应）+ DA1 恢复",
-    "t_end_ms": 3600.0,
-    "edge_ms": 30.0,
-    "note": "bci/mmdev2：等强度版（mmn_match）证明 DM2@150 头皮不可见（强度与响应混杂）；solo 剂量标定（da1_solo/dm2_solo + --chem-amp-scale）测得 DM2 阈值崖 466-492 pA，492 pA 落稳定平台（净响应 +0.247 vs DA1@150 的 +0.197，校准比 1.25），此为等响应偏差：oddball 中 devB/A1 相对 1.25 的偏离 = 身份新颖性的真实贡献",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            700,
-            1000
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1100,
-            1400
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1500,
-            1800
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            1900,
-            2200
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DM2",
-        "amp_pa": 492.0,
-        "pulses": [
-          [
-            2300,
-            2600
-          ]
-        ]
-      },
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            2700,
-            3000
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "da1_dc8",
-    "modality": "olfactory",
-    "label": "DA1 单脉冲 8s 直流探针（bci/mmdev2 DC 漂移衰减时间测量）",
-    "t_end_ms": 8000.0,
-    "edge_ms": 30.0,
-    "note": "bci/mmdev2：oddball 语境发现脉冲列车驱动持续 -0.43 uV DC 台阶（一个脉冲即饱和、身份/幅度盲、U=0.05 不影响、U=0.1 摧毁）；本条目单 DA1@150 脉冲 300-600 ms + 8 s 试验，测台阶的衰减时间常数",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_l1",
-    "modality": "seizure",
-    "label": "癫痫灶-L 单脉冲 90s（bci/sleep4 内源性再点火检验）",
-    "t_end_ms": 90000.0,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/sleep4：同 sz_l 但只保留 800-2800 ms 一次点火、试验拉长到 90 s——U=1.5e-4/tau=10s 下塌缩 ~8s、再武装 3tau ~30s，[40,90]s 为无外脉冲的自发再点火观察窗；观察到=内源慢振荡，观察不到=外部驱动边界",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_l3",
-    "modality": "seizure",
-    "label": "癫痫灶-L 双脉冲 120s（第二次点火 80s，tau>=15s 再武装网格）",
-    "t_end_ms": 120000.0,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/sleep4：同 sz_l2 但第二次点火挪到 80000-82300 ms——tau=15/20s 时 3tau=45/60s（从 ~8s 塌缩起算 ~55-70s 完成再武装），旧 35s 脉冲会打在未武装完的资源上；80s 保证全武装后点火，读第二次塌缩延迟 vs tau 的标度",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ],
-          [
-            80000,
-            82300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_l5",
-    "modality": "seizure",
-    "label": "癫痫灶-L 双脉冲（第二次 10s，bci/sleep5 再武装恢复曲线）",
-    "t_end_ms": 35000,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/sleep5：同 sz_l 但第二次点火 10000-12300 ms、试验 35s——再武装恢复曲线的第 10s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ],
-          [
-            10000,
-            12300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_l6",
-    "modality": "seizure",
-    "label": "癫痫灶-L 双脉冲（第二次 20s，bci/sleep5 再武装恢复曲线）",
-    "t_end_ms": 45000,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/sleep5：同 sz_l 但第二次点火 20000-22300 ms、试验 45s——再武装恢复曲线的第 20s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ],
-          [
-            20000,
-            22300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sz_l7",
-    "modality": "seizure",
-    "label": "癫痫灶-L 双脉冲（第二次 50s，bci/sleep5 再武装恢复曲线）",
-    "t_end_ms": 75000,
-    "edge_ms": 100.0,
-    "no_cen_damp": true,
-    "note": "bci/sleep5：同 sz_l 但第二次点火 50000-52300 ms、试验 75s——再武装恢复曲线的第 50s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "LAL*@L",
-        "amp_pa": 600.0,
-        "pulses": [
-          [
-            800,
-            2800
-          ],
-          [
-            50000,
-            52300
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "compA",
-    "modality": "conditioning",
-    "label": "compA：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "同 dangateA 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM07*",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "compAB",
-    "modality": "conditioning",
-    "label": "compAB：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "同 dangateAB 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCg-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCg-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM07*",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "compC",
-    "modality": "conditioning",
-    "label": "compC：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "同 dangateC 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCab-s@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PAM07*",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-s@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "dangateB",
-    "modality": "conditioning",
-    "label": "dangateB：B 气味（KCab-m）+ DAN_err 全池 US（bci/comp2 全局门对照相）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/comp2 全局臂的 B+ 相：KCab-m 配 DAN_err(154 细胞) US，训练窗与探针同 dangateA",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "DAN_err",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "compBp",
-    "modality": "conditioning",
-    "label": "compBp：B 气味（KCab-m）+ PPL103 小室 US（bci/comp2 双小室第二相）",
-    "t_end_ms": 5000.0,
-    "edge_ms": 100.0,
-    "note": "bci/comp2：B+ 相——KCab-m 气味脉冲配 PPL103* US（800 pA 逐细胞），配合 --plastic-comp-reward 'PAM07*:0.16,PPL103*:<gain>' 的第二小室；训练窗 500-2500 ms + B 探针 4200-4700 ms",
-    "channels": [
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "PPL103*",
-        "amp_pa": 800.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            500,
-            2500
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@L",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      },
-      {
-        "pop": "CEN",
-        "group": "KCab-m@R",
-        "amp_pa": 1600.0,
-        "pulses": [
-          [
-            4200,
-            4700
-          ]
-        ]
-      }
-    ]
-  },
-  {
-    "id": "da1_dc60",
-    "modality": "olfactory",
-    "label": "DA1 单脉冲 60s 直流探针（dstate1 被压制态的持续时长与速率画像）",
-    "t_end_ms": 60000.0,
-    "edge_ms": 30.0,
-    "note": "dstate1：mmdev2 的 DC 开关目标态（mean -1.825/std 0.179）与 sleep 系癫痫平台态（-1.825/0.18）三位小数一致——假设同一被压制状态；本条目 60s 单 DA1@150 脉冲测状态持续时长 + 状态内群体速率画像，与 sz_l1 平台 (MBON 3-5 Hz, ALPN 38 Hz) 对齐检验",
-    "channels": [
-      {
-        "pop": "ORN",
-        "group": "ORN_DA1",
-        "amp_pa": 150.0,
-        "pulses": [
-          [
-            300,
-            600
-          ]
-        ]
-      }
-    ]
-  }
+ {
+  "id": "odor3_block",
+  "modality": "olfactory",
+  "label": "三气味顺序块：cVA→DA1 / 果醋酯→DM2 / 脂肪酸→VA1v",
+  "t_end_ms": 10500.0,
+  "edge_ms": 150.0,
+  "note": "气味→受体→肾小球映射依据 Vosshall 2000 / Fishilevich & Vosshall 2005 / Hallem & Carlson 2006 / Kurtovic 2007（详见 docs/SENSORY_INPUTS.md）；脉冲幅度 = 满量程（与视觉 i_lum=150 pA 同标定），150 ms 平滑沿",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      2500,
+      4500
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      5500,
+      7500
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_VA1v",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      8500,
+      10500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "taste3_block",
+  "modality": "gustatory",
+  "label": "三器官糖脉冲：唇瓣 LgLG* / 翅 WG* / 跗节 claw_tpGRN",
+  "t_end_ms": 10500.0,
+  "edge_ms": 150.0,
+  "note": "MaleCNS 标注携带味觉器官而非品质（甜/苦未标注），故按器官分通道：唇瓣/翅/跗节味觉毛糖脉冲，幅度=满量程（文档化为假设）；幅度 400 pA=ORN 的 2.7 倍，补偿 GRN_C 突触量只有 ORN_C 的 1/6（exp019 标定）",
+  "channels": [
+   {
+    "pop": "GRN",
+    "group": "LgLG*",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      2500,
+      4500
+     ]
+    ]
+   },
+   {
+    "pop": "GRN",
+    "group": "WG*",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      5500,
+      7500
+     ]
+    ]
+   },
+   {
+    "pop": "GRN",
+    "group": "claw_tpGRN",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      8500,
+      10500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "odor3_short",
+  "modality": "olfactory",
+  "label": "三气味顺序块：cVA→DA1 / 果醋酯→DM2 / 脂肪酸→VA1v（3 s 快速迭代版）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "小规模迭代协议：各通道 900 ms 脉冲 @ 300/1500/2700 ms（触发 AL 募集的最短脉冲，全量版为 2 s）；同通道同幅度",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1500,
+      2400
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_VA1v",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      2700,
+      3600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "taste3_short",
+  "modality": "gustatory",
+  "label": "三器官糖脉冲：唇瓣 LgLG* / 翅 WG* / 跗节 claw_tpGRN（3 s 快速迭代版）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "小规模迭代协议：各通道 900 ms 脉冲 @ 300/1500/2700 ms（触发 AL 募集的最短脉冲，全量版为 2 s）；同通道同幅度；幅度 400 pA=ORN 的 2.7 倍，补偿 GRN_C 突触量只有 ORN_C 的 1/6（exp019 标定）",
+  "channels": [
+   {
+    "pop": "GRN",
+    "group": "LgLG*",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   },
+   {
+    "pop": "GRN",
+    "group": "WG*",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      1500,
+      2400
+     ]
+    ]
+   },
+   {
+    "pop": "GRN",
+    "group": "claw_tpGRN",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      2700,
+      3600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mi_L_short",
+  "modality": "proprioception",
+  "label": "运动指令 L（左腿)",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "运动想象范式：300-1200 ms 指令窗注入一侧腿本体感受器的运动反馈模式（400 pA），其后 2.4 s 为无驱动的延迟/保持窗；类别=指令侧别",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@L",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mi_R_short",
+  "modality": "proprioception",
+  "label": "运动指令 R（右腿）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "运动想象范式：300-1200 ms 指令窗注入一侧腿本体感受器的运动反馈模式（400 pA），其后 2.4 s 为无驱动的延迟/保持窗；类别=指令侧别",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@R",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mi2_L_short",
+  "modality": "motor_imagery",
+  "label": "运动想象 v2-L：腿反馈指令 + 同侧 LAL→DN 保持驱动",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "MI-v2（exp020，DN 通路探针设计）：300-1200 ms 指令窗 = 一侧腿本体反馈（400 pA，与 v1 相同）；1300-3500 ms 想象窗 = 同侧 LAL 群（317 细胞，300 pA）经真实 LAL→DN 突触（LAL083/126/PS 等占 DN 输入 61%）驱动运动计划层——对应皮层运动想象『无执行、自上而下保持』；类别=侧别；幅度含 PhotoCascade 800 ms 适配补偿（稳态=30%）：LAL 1200 pA→稳态 360 pA，DN 800 pA→稳态 240 pA（exp020 标定：300/250 pA 稳态 90/75 pA 不可见）",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@L",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 1200.0,
+    "pulses": [
+     [
+      1300,
+      3500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mi2_R_short",
+  "modality": "motor_imagery",
+  "label": "运动想象 v2-R：腿反馈指令 + 同侧 LAL→DN 保持驱动",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "同 mi2_L_short，侧别为右；幅度含 PhotoCascade 800 ms 适配补偿（稳态=30%）：LAL 1200 pA→稳态 360 pA，DN 800 pA→稳态 240 pA（exp020 标定：300/250 pA 稳态 90/75 pA 不可见）",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@R",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 1200.0,
+    "pulses": [
+     [
+      1300,
+      3500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mi2c_L_short",
+  "modality": "motor_imagery",
+  "label": "对照 C-L：腿反馈指令 + 同侧 DN 直驱（上界）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "MI-v2 对照：想象窗直接注入同侧 DN 群（596-712 细胞，250 pA）——绕过通路的『集总冠状放电』上界，用于对照 LAL 路由的效率",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@L",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DN@L",
+    "amp_pa": 250.0,
+    "pulses": [
+     [
+      1300,
+      3500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mi2c_R_short",
+  "modality": "motor_imagery",
+  "label": "对照 C-R：腿反馈指令 + 同侧 DN 直驱（上界）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "同 mi2c_L_short，侧别为右",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@R",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DN@R",
+    "amp_pa": 250.0,
+    "pulses": [
+     [
+      1300,
+      3500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "odor_da1_short",
+  "modality": "olfactory",
+  "label": "单气味 ORN_DA1：cVA（乙醛酸酯，雄性信息素）（bci/olfactory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "odor_dm2_short",
+  "modality": "olfactory",
+  "label": "单气味 ORN_DM2：果醋酯（ vinegar，食物气味）（bci/olfactory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类；幅度按 ORN 群大小补偿（DA1 204/DM2 54/VA1v 130 细胞；150 pA 下 DM2/VA1v 仅 +4%，bci 标定）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "odor_va1v_short",
+  "modality": "olfactory",
+  "label": "单气味 ORN_VA1v：脂肪酸（乳酸菌气味）（bci/olfactory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：每试次单一气味 900 ms 脉冲 @300 ms（exp019 标定的 AL 募集最短脉冲）；类别=气味身份，3 类；幅度按 ORN 群大小补偿（bci 标定）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_VA1v",
+    "amp_pa": 250.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aud_pulse_L",
+  "modality": "auditory",
+  "label": "pulse song @L（bci/auditory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 15.0,
+  "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
+  "channels": [
+   {
+    "pop": "JOA",
+    "group": "*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300.0,
+      320.0
+     ],
+     [
+      340.0,
+      360.0
+     ],
+     [
+      380.0,
+      400.0
+     ],
+     [
+      420.0,
+      440.0
+     ],
+     [
+      460.0,
+      480.0
+     ],
+     [
+      500.0,
+      520.0
+     ],
+     [
+      540.0,
+      560.0
+     ],
+     [
+      580.0,
+      600.0
+     ],
+     [
+      620.0,
+      640.0
+     ],
+     [
+      660.0,
+      680.0
+     ],
+     [
+      700.0,
+      720.0
+     ],
+     [
+      740.0,
+      760.0
+     ],
+     [
+      780.0,
+      800.0
+     ],
+     [
+      820.0,
+      840.0
+     ],
+     [
+      860.0,
+      880.0
+     ],
+     [
+      900.0,
+      920.0
+     ],
+     [
+      940.0,
+      960.0
+     ],
+     [
+      980.0,
+      1000.0
+     ],
+     [
+      1020.0,
+      1040.0
+     ],
+     [
+      1060.0,
+      1080.0
+     ],
+     [
+      1100.0,
+      1120.0
+     ],
+     [
+      1140.0,
+      1160.0
+     ],
+     [
+      1180.0,
+      1200.0
+     ],
+     [
+      1220.0,
+      1240.0
+     ],
+     [
+      1260.0,
+      1280.0
+     ],
+     [
+      1300.0,
+      1320.0
+     ],
+     [
+      1340.0,
+      1360.0
+     ],
+     [
+      1380.0,
+      1400.0
+     ],
+     [
+      1420.0,
+      1440.0
+     ],
+     [
+      1460.0,
+      1480.0
+     ],
+     [
+      1500.0,
+      1520.0
+     ],
+     [
+      1540.0,
+      1560.0
+     ],
+     [
+      1580.0,
+      1600.0
+     ],
+     [
+      1620.0,
+      1640.0
+     ],
+     [
+      1660.0,
+      1680.0
+     ],
+     [
+      1700.0,
+      1720.0
+     ],
+     [
+      1740.0,
+      1760.0
+     ],
+     [
+      1780.0,
+      1800.0
+     ],
+     [
+      1820.0,
+      1840.0
+     ],
+     [
+      1860.0,
+      1880.0
+     ],
+     [
+      1900.0,
+      1920.0
+     ],
+     [
+      1940.0,
+      1960.0
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aud_sine_L",
+  "modality": "auditory",
+  "label": "sine song @L（bci/auditory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 15.0,
+  "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
+  "channels": [
+   {
+    "pop": "JOA",
+    "group": "*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300.0,
+      2000.0
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aud_pulse_R",
+  "modality": "auditory",
+  "label": "pulse song @R（bci/auditory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 15.0,
+  "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
+  "channels": [
+   {
+    "pop": "JOA",
+    "group": "*@R",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300.0,
+      320.0
+     ],
+     [
+      340.0,
+      360.0
+     ],
+     [
+      380.0,
+      400.0
+     ],
+     [
+      420.0,
+      440.0
+     ],
+     [
+      460.0,
+      480.0
+     ],
+     [
+      500.0,
+      520.0
+     ],
+     [
+      540.0,
+      560.0
+     ],
+     [
+      580.0,
+      600.0
+     ],
+     [
+      620.0,
+      640.0
+     ],
+     [
+      660.0,
+      680.0
+     ],
+     [
+      700.0,
+      720.0
+     ],
+     [
+      740.0,
+      760.0
+     ],
+     [
+      780.0,
+      800.0
+     ],
+     [
+      820.0,
+      840.0
+     ],
+     [
+      860.0,
+      880.0
+     ],
+     [
+      900.0,
+      920.0
+     ],
+     [
+      940.0,
+      960.0
+     ],
+     [
+      980.0,
+      1000.0
+     ],
+     [
+      1020.0,
+      1040.0
+     ],
+     [
+      1060.0,
+      1080.0
+     ],
+     [
+      1100.0,
+      1120.0
+     ],
+     [
+      1140.0,
+      1160.0
+     ],
+     [
+      1180.0,
+      1200.0
+     ],
+     [
+      1220.0,
+      1240.0
+     ],
+     [
+      1260.0,
+      1280.0
+     ],
+     [
+      1300.0,
+      1320.0
+     ],
+     [
+      1340.0,
+      1360.0
+     ],
+     [
+      1380.0,
+      1400.0
+     ],
+     [
+      1420.0,
+      1440.0
+     ],
+     [
+      1460.0,
+      1480.0
+     ],
+     [
+      1500.0,
+      1520.0
+     ],
+     [
+      1540.0,
+      1560.0
+     ],
+     [
+      1580.0,
+      1600.0
+     ],
+     [
+      1620.0,
+      1640.0
+     ],
+     [
+      1660.0,
+      1680.0
+     ],
+     [
+      1700.0,
+      1720.0
+     ],
+     [
+      1740.0,
+      1760.0
+     ],
+     [
+      1780.0,
+      1800.0
+     ],
+     [
+      1820.0,
+      1840.0
+     ],
+     [
+      1860.0,
+      1880.0
+     ],
+     [
+      1900.0,
+      1920.0
+     ],
+     [
+      1940.0,
+      1960.0
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aud_sine_R",
+  "modality": "auditory",
+  "label": "sine song @R（bci/auditory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 15.0,
+  "note": "bci 范式：近场求偶歌的幅度包络（载波 150-300 Hz 远超 LIF 跟随能力，文档化建模选择：包络编码经 PhotoCascade）注入同侧 JO-A 听觉群（~60 细胞，600 pA 标定起点）；类别=侧别×歌模式，4 类",
+  "channels": [
+   {
+    "pop": "JOA",
+    "group": "*@R",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300.0,
+      2000.0
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mrcp_l",
+  "modality": "motor_readiness",
+  "label": "运动准备 MRCP-L：LAL 阶梯坡道 + 执行复反馈",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "MRCP 范式：LAL*@L 阶梯坡道（300/600/900 pA @1300/1900/2500，3100 补满 1200——PhotoCascade 30 适配补偿后稳态 90→360 pA）= 准备电位上升期；2800 ms 同侧腿 PRO 400 pA 复反馈 = 运动执行/感知副本；类别=侧别",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      1300,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      1900,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      2500,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "PRO",
+    "group": "*@L",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      2800,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      3100,
+      3500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mrcp_r",
+  "modality": "motor_readiness",
+  "label": "运动准备 MRCP-R：LAL 阶梯坡道 + 执行复反馈",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "MRCP 范式：LAL*@R 阶梯坡道（300/600/900 pA @1300/1900/2500，3100 补满 1200——PhotoCascade 30 适配补偿后稳态 90→360 pA）= 准备电位上升期；2800 ms 同侧腿 PRO 400 pA 复反馈 = 运动执行/感知副本；类别=侧别",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      1300,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      1900,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      2500,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "PRO",
+    "group": "*@R",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      2800,
+      3500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      3100,
+      3500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_l",
+  "modality": "seizure",
+  "label": "癫痫灶-L：默认复归增益下的同侧 LAL 焦点驱动（点火=发作）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/seizure：与 exp019 标定相反，故意不压 CEN_C 增益（no_cen_damp）——默认增益下任何超阈 chem 输入触发 82 Hz 自持点火（exp019 发现的发作样吸引子）；800-2800 ms 焦点驱动同侧 LAL（600 pA）= 发作灶；类别=灶侧别",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_r",
+  "modality": "seizure",
+  "label": "癫痫灶-R：默认复归增益下的同侧 LAL 焦点驱动（点火=发作）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/seizure：与 exp019 标定相反，故意不压 CEN_C 增益（no_cen_damp）——默认增益下任何超阈 chem 输入触发 82 Hz 自持点火（exp019 发现的发作样吸引子）；800-2800 ms 焦点驱动同侧 LAL（600 pA）= 发作灶；类别=灶侧别",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_ctl",
+  "modality": "seizure",
+  "label": "对照：chem 工作点下同幅驱动（不点火）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "bci/seizure 对照：同幅同窗 LAL 驱动但保持 CEN_C=0.002 工作点（有 damp）——预期无点火",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "taste_lglg",
+  "modality": "gustatory",
+  "label": "单器官糖脉冲：唇瓣（bci/gustatory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：唇瓣味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（LgLG 400 pA；群大小 667/385/50，参照 LgLG 400 pA）",
+  "channels": [
+   {
+    "pop": "GRN",
+    "group": "LgLG",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "taste_wg",
+  "modality": "gustatory",
+  "label": "单器官糖脉冲：翅（bci/gustatory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：翅味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（WG 693 pA；群大小 667/385/50，参照 LgLG 400 pA）",
+  "channels": [
+   {
+    "pop": "GRN",
+    "group": "WG",
+    "amp_pa": 693.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "taste_claw",
+  "modality": "gustatory",
+  "label": "单器官糖脉冲：跗节（bci/gustatory 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：跗节味觉群 900 ms 单脉冲 @300 ms；幅度按器官群大小均衡总驱动（claw_tpGRN 5336 pA；群大小 667/385/50，参照 LgLG 400 pA）",
+  "channels": [
+   {
+    "pop": "GRN",
+    "group": "claw_tpGRN",
+    "amp_pa": 5336.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "touch_l",
+  "modality": "touch",
+  "label": "体表触觉-L（bci/touch 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：同侧全体表触觉群（SNta*，~1.2k 细胞）900 ms 触压脉冲 @300 ms（300 pA，总驱动≈嗅觉全量标定）；类别=触压侧别",
+  "channels": [
+   {
+    "pop": "TC",
+    "group": "*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "touch_r",
+  "modality": "touch",
+  "label": "体表触觉-R（bci/touch 类别刺激）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci 范式：同侧全体表触觉群（SNta*，~1.2k 细胞）900 ms 触压脉冲 @300 ms（300 pA，总驱动≈嗅觉全量标定）；类别=触压侧别",
+  "channels": [
+   {
+    "pop": "TC",
+    "group": "*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "szg_002",
+  "modality": "seizure",
+  "label": "增益扫描 CEN_C=0.002：焦点 L 驱动",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "cen_gain": 0.002,
+  "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "szg_0025",
+  "modality": "seizure",
+  "label": "增益扫描 CEN_C=0.0025：焦点 L 驱动",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "cen_gain": 0.0025,
+  "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "szg_003",
+  "modality": "seizure",
+  "label": "增益扫描 CEN_C=0.003：焦点 L 驱动",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "cen_gain": 0.003,
+  "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "szg_0035",
+  "modality": "seizure",
+  "label": "增益扫描 CEN_C=0.0035：焦点 L 驱动",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "cen_gain": 0.0035,
+  "note": "bci/seizure 扫描：显式复归增益下同幅焦点驱动（800-2800 LAL*@L 600 pA），测起始时刻-增益关系（自发 vs 驱动锁定）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cnv_l",
+  "modality": "anticipation",
+  "label": "CNV-L：S1 预警 + LAL 预期坡道 + S2 命令",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "CNV 范式（Walter 1964 双刺激结构）：S1=同侧腿 PRO 400 pA [300,600] 预警；预期期=同侧 LAL 阶梯坡道 300/600/900 pA @900/1500/2100（至 3100）；S2=同侧 PRO 600 pA [2400,3100] 命令/执行；类别=侧别",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@L",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      900,
+      3100
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      1500,
+      3100
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      2100,
+      3100
+     ]
+    ]
+   },
+   {
+    "pop": "PRO",
+    "group": "*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      2400,
+      3100
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cnv_r",
+  "modality": "anticipation",
+  "label": "CNV-R：S1 预警 + LAL 预期坡道 + S2 命令",
+  "t_end_ms": 3600.0,
+  "edge_ms": 100.0,
+  "note": "CNV 范式（Walter 1964 双刺激结构）：S1=同侧腿 PRO 400 pA [300,600] 预警；预期期=同侧 LAL 阶梯坡道 300/600/900 pA @900/1500/2100（至 3100）；S2=同侧 PRO 600 pA [2400,3100] 命令/执行；类别=侧别",
+  "channels": [
+   {
+    "pop": "PRO",
+    "group": "*@R",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      900,
+      3100
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      1500,
+      3100
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      2100,
+      3100
+     ]
+    ]
+   },
+   {
+    "pop": "PRO",
+    "group": "*@R",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      2400,
+      3100
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aud_dev",
+  "modality": "auditory",
+  "label": "听觉偏差：25 Hz 脉冲歌列车中嵌入 50 Hz 偏差段",
+  "t_end_ms": 3600.0,
+  "edge_ms": 15.0,
+  "note": "bci/auddev：双侧 JO-A 群（JO-A*，600 pA）；四段 25 Hz 标准脉冲歌爆发 + 第三段 50 Hz 偏差（1500-2000）；分析=偏差段 vs 相邻标准段的响应比较（外周适应偏差检测）",
+  "channels": [
+   {
+    "pop": "JOA",
+    "group": "JO-A*",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300,
+      320.0
+     ],
+     [
+      340.0,
+      360.0
+     ],
+     [
+      380.0,
+      400.0
+     ],
+     [
+      420.0,
+      440.0
+     ],
+     [
+      460.0,
+      480.0
+     ],
+     [
+      500.0,
+      520.0
+     ],
+     [
+      540.0,
+      560.0
+     ],
+     [
+      580.0,
+      600.0
+     ],
+     [
+      620.0,
+      640.0
+     ],
+     [
+      660.0,
+      680.0
+     ],
+     [
+      700.0,
+      720.0
+     ],
+     [
+      740.0,
+      760.0
+     ],
+     [
+      780.0,
+      800.0
+     ],
+     [
+      900,
+      920.0
+     ],
+     [
+      940.0,
+      960.0
+     ],
+     [
+      980.0,
+      1000.0
+     ],
+     [
+      1020.0,
+      1040.0
+     ],
+     [
+      1060.0,
+      1080.0
+     ],
+     [
+      1100.0,
+      1120.0
+     ],
+     [
+      1140.0,
+      1160.0
+     ],
+     [
+      1180.0,
+      1200.0
+     ],
+     [
+      1220.0,
+      1240.0
+     ],
+     [
+      1260.0,
+      1280.0
+     ],
+     [
+      1300.0,
+      1320.0
+     ],
+     [
+      1340.0,
+      1360.0
+     ],
+     [
+      1380.0,
+      1400.0
+     ],
+     [
+      1500,
+      1510.0
+     ],
+     [
+      1520.0,
+      1530.0
+     ],
+     [
+      1540.0,
+      1550.0
+     ],
+     [
+      1560.0,
+      1570.0
+     ],
+     [
+      1580.0,
+      1590.0
+     ],
+     [
+      1600.0,
+      1610.0
+     ],
+     [
+      1620.0,
+      1630.0
+     ],
+     [
+      1640.0,
+      1650.0
+     ],
+     [
+      1660.0,
+      1670.0
+     ],
+     [
+      1680.0,
+      1690.0
+     ],
+     [
+      1700.0,
+      1710.0
+     ],
+     [
+      1720.0,
+      1730.0
+     ],
+     [
+      1740.0,
+      1750.0
+     ],
+     [
+      1760.0,
+      1770.0
+     ],
+     [
+      1780.0,
+      1790.0
+     ],
+     [
+      1800.0,
+      1810.0
+     ],
+     [
+      1820.0,
+      1830.0
+     ],
+     [
+      1840.0,
+      1850.0
+     ],
+     [
+      1860.0,
+      1870.0
+     ],
+     [
+      1880.0,
+      1890.0
+     ],
+     [
+      1900.0,
+      1910.0
+     ],
+     [
+      1920.0,
+      1930.0
+     ],
+     [
+      1940.0,
+      1950.0
+     ],
+     [
+      1960.0,
+      1970.0
+     ],
+     [
+      1980.0,
+      1990.0
+     ],
+     [
+      2100,
+      2120.0
+     ],
+     [
+      2140.0,
+      2160.0
+     ],
+     [
+      2180.0,
+      2200.0
+     ],
+     [
+      2220.0,
+      2240.0
+     ],
+     [
+      2260.0,
+      2280.0
+     ],
+     [
+      2300.0,
+      2320.0
+     ],
+     [
+      2340.0,
+      2360.0
+     ],
+     [
+      2380.0,
+      2400.0
+     ],
+     [
+      2420.0,
+      2440.0
+     ],
+     [
+      2460.0,
+      2480.0
+     ],
+     [
+      2500.0,
+      2520.0
+     ],
+     [
+      2540.0,
+      2560.0
+     ],
+     [
+      2580.0,
+      2600.0
+     ],
+     [
+      2700,
+      2720.0
+     ],
+     [
+      2740.0,
+      2760.0
+     ],
+     [
+      2780.0,
+      2800.0
+     ],
+     [
+      2820.0,
+      2840.0
+     ],
+     [
+      2860.0,
+      2880.0
+     ],
+     [
+      2900.0,
+      2920.0
+     ],
+     [
+      2940.0,
+      2960.0
+     ],
+     [
+      2980.0,
+      3000.0
+     ],
+     [
+      3020.0,
+      3040.0
+     ],
+     [
+      3060.0,
+      3080.0
+     ],
+     [
+      3100.0,
+      3120.0
+     ],
+     [
+      3140.0,
+      3160.0
+     ],
+     [
+      3180.0,
+      3200.0
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "odormix_ab",
+  "modality": "olfactory",
+  "label": "混合物 AB 同时（DA1+DM2）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci/odormix：两气味同一脉冲窗 [300,1200] 同时给（DA1 150 + DM2 600 pA，均衡幅度）——混合非线性检验",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "odormix_abseq",
+  "modality": "olfactory",
+  "label": "顺序 A→B（DA1 先）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci/odormix：A 先 B 后（DA1 [300,700] → DM2 [800,1200]）——顺序解码",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      700
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "odormix_baseq",
+  "modality": "olfactory",
+  "label": "顺序 B→A（DM2 先）",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "同 odormix_abseq，顺序反转",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300,
+      700
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      800,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dose_075",
+  "modality": "olfactory",
+  "label": "DA1 剂量 75 pA",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci/dose：浓度档 0.5×/1×/2×（1×=odor_da1_short 复用）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 75.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dose_300",
+  "modality": "olfactory",
+  "label": "DA1 剂量 300 pA",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci/dose：浓度档 0.5×/1×/2×（1×=odor_da1_short 复用）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "hyb_l",
+  "modality": "hybrid",
+  "label": "Hybrid 想象-L（SSVEP 闪烁 + LAL 保持驱动）",
+  "t_end_ms": 10500.0,
+  "edge_ms": 100.0,
+  "note": "bci/hybrid：SSVEP 视觉闪烁全程 + 同侧 LAL*@L 1200 pA 平台 [1500,9800]（想象保持）；与 hyb_n 对照测双任务干扰",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 1200.0,
+    "pulses": [
+     [
+      1500,
+      9800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "hyb_r",
+  "modality": "hybrid",
+  "label": "Hybrid 想象-R（SSVEP 闪烁 + LAL 保持驱动）",
+  "t_end_ms": 10500.0,
+  "edge_ms": 100.0,
+  "note": "bci/hybrid：SSVEP 视觉闪烁全程 + 同侧 LAL*@R 1200 pA 平台 [1500,9800]（想象保持）；与 hyb_n 对照测双任务干扰",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@R",
+    "amp_pa": 1200.0,
+    "pulses": [
+     [
+      1500,
+      9800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "hyb_n",
+  "modality": "hybrid",
+  "label": "Hybrid 对照：纯视觉（同工作点）",
+  "t_end_ms": 10500.0,
+  "edge_ms": 100.0,
+  "cen_gain": 0.002,
+  "note": "bci/hybrid 对照：无 chem 驱动但显式 cen_gain=0.002（与想象试次同工作点，避免增益混杂）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 0.0,
+    "pulses": [
+     [
+      1500,
+      9800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "orn_l",
+  "modality": "olfactory",
+  "label": "立体嗅觉-L：同侧 DA1 气味脉冲",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci/stereo：同侧 DA1 群（rootSide L，51 细胞）900 ms 脉冲 @300 ms，幅度按侧别群大小补偿（L 310 / R 150 pA）；类别=气味来向",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1@L",
+    "amp_pa": 310.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "orn_r",
+  "modality": "olfactory",
+  "label": "立体嗅觉-R：同侧 DA1 气味脉冲",
+  "t_end_ms": 3600.0,
+  "edge_ms": 50.0,
+  "note": "bci/stereo：同侧 DA1 群（rootSide R，105 细胞）900 ms 脉冲 @300 ms，幅度按侧别群大小补偿（L 310 / R 150 pA）；类别=气味来向",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1@R",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      1200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mmn_train",
+  "modality": "olfactory",
+  "label": "MMN 列车：DA1×5 标准脉冲 + DM2 偏差 + DA1 恢复",
+  "t_end_ms": 3600.0,
+  "edge_ms": 30.0,
+  "note": "bci/mmdev：五个 DA1 标准脉冲（150 pA，300 ms/个）→ DM2 偏差（600 pA，身份偏差）→ DA1 恢复脉冲；配合 --std-gates ORN_C 检验突触级适应的贡献",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      700,
+      1000
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1100,
+      1400
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1500,
+      1800
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1900,
+      2200
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      2300,
+      2600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      2700,
+      3000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "condit",
+  "modality": "conditioning",
+  "label": "嗅觉条件化：训练 A+奖励(PAM) → 测试 A/B",
+  "t_end_ms": 8000.0,
+  "edge_ms": 100.0,
+  "note": "bci/condit：训练段 0.5-2.5s 气味 A(DA1 400pA)+双侧 PAM 群 800pA(奖励=DAN 发放)；测试段 A@4.2s(150pA)/B@6.2s(DM2 600pA 均衡)；配 --plastic-mb --plastic-window 500,2500，对照用 --plastic-lr 0（同奖励同动力学，唯一差异=学习开关）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      4200,
+      5200
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      6200,
+      7200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "condit_kc",
+  "modality": "conditioning",
+  "label": "可塑性机制验证：直接驱动 KC + 奖励窗",
+  "t_end_ms": 8000.0,
+  "edge_ms": 100.0,
+  "note": "bci/condit 诊断：训练窗直接 chem 驱动 KC 主簇（KCg-m/KCab-s/KCab-m @双侧 400pA，绕开被工作点压制的 PN→KC 通路）+ PAM 奖励 800pA；只看 KCM w_scale 是否下调（机制在完整 GPU 管线的端到端验证）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KC*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "condt2",
+  "modality": "conditioning",
+  "label": "驱动条件化 v2：KC 表征训练+奖励 → KC 探针",
+  "t_end_ms": 8000.0,
+  "edge_ms": 100.0,
+  "note": "bci/condit v2：通路约束（PN→KC 在 CEN_C 内被 chem 工作点 0.002 压制，气味到不了 KC）下的驱动版——训练 0.5-2.5s：KC 主簇双侧 1600 pA（=气味 KC 表征注入）+ PAM 双侧 800 pA（奖励）；探针 4.2-4.7s：同 KC 驱动（500 ms）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6，对照 lr=0；读出=探针响应的通路级抑郁",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KC*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "condtx",
+  "modality": "conditioning",
+  "label": "驱动条件化-消退试次：KC 表征训练（无奖励）→ KC 探针",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/condit2 消退/对照试次：与 condt2 相同的 KC 训练（0.5-2.5s 1600pA）+ KC 探针（4.2-4.7s），但无 PAM 奖励通道；配 --plastic-mb（不传 --plastic-window → mod 门关闭，无抑郁）+ --plastic-tau-w 30000 → w_scale 仅慢恢复 → 消退；也用作 never-rewarded 平坦对照",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KC*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "condt3a",
+  "modality": "conditioning",
+  "label": "真气味条件化：ORN DA1 训练+PAM 奖励 → 探针=DA1（训练气味）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/condit3：配 --al-gain 0.01（AL→KC 独立增益，绕过 chem 工作点对 PN→KC 的 500× 压制）+ --plastic-mb --plastic-window 500,2500 --plastic-lr 5e-5；训练 0.5-2.5s：真实气味入口 ORN_DA1 150pA + PAM 双侧 800pA；探针 4.2-4.7s 同入口；对照 lr=0；读出=探针净响应的通路级抑郁 + A/B 特异性（condt3a vs condt3b）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "condt3b",
+  "modality": "conditioning",
+  "label": "真气味条件化：ORN DA1 训练+PAM 奖励 → 探针=DM2（未训练气味，群大小补偿幅度）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/condit3：配 --al-gain 0.01（AL→KC 独立增益，绕过 chem 工作点对 PN→KC 的 500× 压制）+ --plastic-mb --plastic-window 500,2500 --plastic-lr 5e-5；训练 0.5-2.5s：真实气味入口 ORN_DA1 150pA + PAM 双侧 800pA；探针 4.2-4.7s 同入口；对照 lr=0；读出=探针净响应的通路级抑郁 + A/B 特异性（condt3a vs condt3b）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "blockA",
+  "modality": "conditioning",
+  "label": "阻断检验 blockA: A(KCg-m)+奖励 → A 探针（阶段1）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "blockAB",
+  "modality": "conditioning",
+  "label": "阻断检验 blockAB: A+B(KCab-m)+奖励 → B 探针（阶段2）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "blockC",
+  "modality": "conditioning",
+  "label": "阻断检验 blockC: C(KCab-s)+奖励 → C 探针（对照阶段1）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/blocking Kamin 阻断检验：KC 子类型=合成气味（A=KCg-m 1342, B=KCab-m 536, C=KCab-s 657）；配 --plastic-mb --plastic-window 500,2500 --plastic-lr 3e-6 + --plastic-state 状态链（无 tau_w，权重冻结跨阶段）；读出=探针净响应曲线 + 状态文件 w 按子类型分解；纯三因子 Hebbian 规则（无误差项）预测：不发生阻断（B 在 AB+ 阶段同样学习）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCab-s@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dual1",
+  "modality": "conditioning",
+  "label": "双时间常数记忆 dual1：全 KC 训练+奖励 → γ/αβ 双探针",
+  "t_end_ms": 5200.0,
+  "edge_ms": 100.0,
+  "note": "bci/dualmem 短/长时记忆分离：训练驱动全 KC（两组同学习），探针分窗——γ 窗 4.2-4.45s（KCg*）、α/β 窗 4.6-4.85s（KCab*）；配 --plastic-mb --plastic-dual-tauw 30000,300000（γ 快恢复=短时记忆，α/β 慢恢复=长时记忆）+ --plastic-window 500,2500 --plastic-lr 3e-6 + 状态链；dualx 为无奖励消退版",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KC*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@L",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM*@R",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4450
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4450
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4600,
+      4850
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4600,
+      4850
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dualx",
+  "modality": "conditioning",
+  "label": "双时间常数记忆 dualx：全 KC 训练（无奖励）→ γ/αβ 双探针（消退）",
+  "t_end_ms": 5200.0,
+  "edge_ms": 100.0,
+  "note": "bci/dualmem 短/长时记忆分离：训练驱动全 KC（两组同学习），探针分窗——γ 窗 4.2-4.45s（KCg*）、α/β 窗 4.6-4.85s（KCab*）；配 --plastic-mb --plastic-dual-tauw 30000,300000（γ 快恢复=短时记忆，α/β 慢恢复=长时记忆）+ --plastic-window 500,2500 --plastic-lr 3e-6 + 状态链；dualx 为无奖励消退版",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KC*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KC*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4450
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4450
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab*@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4600,
+      4850
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab*@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4600,
+      4850
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "thermal_w",
+  "modality": "thermal",
+  "label": "温/湿度刺激 thermal_w",
+  "t_end_ms": 3600.0,
+  "edge_ms": 300.0,
+  "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+  "channels": [
+   {
+    "pop": "TH",
+    "group": "TRN_VP1m*@L",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "TH",
+    "group": "TRN_VP1m*@R",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "thermal_c",
+  "modality": "thermal",
+  "label": "温/湿度刺激 thermal_c",
+  "t_end_ms": 3600.0,
+  "edge_ms": 300.0,
+  "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+  "channels": [
+   {
+    "pop": "TH",
+    "group": "TRN_VP2*@L",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "TH",
+    "group": "TRN_VP2*@R",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "TH",
+    "group": "TRN_VP3*@L",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "TH",
+    "group": "TRN_VP3*@R",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "hygro_d",
+  "modality": "thermal",
+  "label": "温/湿度刺激 hygro_d",
+  "t_end_ms": 3600.0,
+  "edge_ms": 300.0,
+  "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+  "channels": [
+   {
+    "pop": "HY",
+    "group": "HRN_VP4*@L",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "HY",
+    "group": "HRN_VP4*@R",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "hygro_m",
+  "modality": "thermal",
+  "label": "温/湿度刺激 hygro_m",
+  "t_end_ms": 3600.0,
+  "edge_ms": 300.0,
+  "note": "bci/thermal：新区域 thermal（TH 25 TRN / HY 66 HRN→CEN 前馈）；3s 慢斜坡（300ms 平滑沿）驱动对应受体群，150pA 满量程每细胞；温度类 warm=TRN_VP1m（热通路）vs cool=TRN_VP2+VP3*（冷通路）；湿度类 dry=HRN_VP4 vs moist=HRN_VP1*+VP5",
+  "channels": [
+   {
+    "pop": "HY",
+    "group": "HRN_VP1*@L",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "HY",
+    "group": "HRN_VP1*@R",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "HY",
+    "group": "HRN_VP5*@L",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   },
+   {
+    "pop": "HY",
+    "group": "HRN_VP5*@R",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      3300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sleep_probe",
+  "modality": "state",
+  "label": "睡眠双稳态探查：点火侧增益 0.004 + 无驱动长时空转",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "cen_gain": 0.004,
+  "note": "睡眠-觉醒双稳态设计：cen_gain 0.004（点火侧）+ --std-gates 'CEN_C:U,tau_rec_ms' 慢恢复资源门控——高活动耗竭资源→有效增益降过双稳分岔→下行（睡眠）；静默期恢复→噪声可再点火（觉醒）。配 --t-end 60000 观察 60s 内的状态转移",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 0.0,
+    "pulses": [
+     [
+      1000,
+      2000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dangateA",
+  "modality": "conditioning",
+  "label": "误差门电路化 dangateA: A(KCg-m)+DAN_err 奖励 → A 探针（阶段1）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dangateAB",
+  "modality": "conditioning",
+  "label": "误差门电路化 dangateAB: A+B(KCab-m)+DAN_err 奖励 → B 探针（阶段2）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dangateC",
+  "modality": "conditioning",
+  "label": "误差门电路化 dangateC: C(KCab-s)+DAN_err 奖励 → C 探针（阶段1）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/dangate 机制15（误差门电路化）：与 block* 同构，但奖励注入 DAN_err 分室（MBMD 突触后 DAN 群，207 细胞）——奖励与 MBON->DAN 的 V 反馈作用在同一细胞群上，多巴胺放电率本身编码 R−V；配 --plastic-mb（电位化：负 lr + w0）--plastic-kcm-gain --mbon-dan-gain --plastic-dan-gate",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCab-s@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_l2",
+  "modality": "seizure",
+  "label": "癫痫灶-L 双脉冲：0.8-2.8s 与 35-37.3s 两次点火（bci/sleep3 迟滞循环探针）",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/sleep3：同 sz_l 但 60s 试验 + 第二次点火 35000-37300 ms——STD 慢资源门下测上行态塌缩后的再点火（迟滞/循环能力）；no_cen_damp 保持",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ],
+     [
+      35000,
+      37300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mmn_match",
+  "modality": "olfactory",
+  "label": "MMN 等强度列车：DA1×5 标准脉冲 + DM2 偏差（同 150 pA，仅身份偏差）+ DA1 恢复",
+  "t_end_ms": 3600.0,
+  "edge_ms": 30.0,
+  "note": "bci/mmdev2：mmdev 重审发现 STD=强度依赖增益控制，旧 mmn_train 的 DM2 偏差（600 pA=4×标准）自耗竭更深而反转偏差比；本条目把偏差脉冲降到 150 pA 与标准等强度，隔离纯身份偏差（时序与 mmn_train 完全一致）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      700,
+      1000
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1100,
+      1400
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1500,
+      1800
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1900,
+      2200
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      2300,
+      2600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      2700,
+      3000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_solo",
+  "modality": "olfactory",
+  "label": "DA1 单脉冲标定（bci/mmdev2 等响应对照的剂量寻找）",
+  "t_end_ms": 1200.0,
+  "edge_ms": 30.0,
+  "note": "bci/mmdev2 pilot：单通道单脉冲 300-600 ms @150 pA；DM2 侧配合 --chem-amp-scale 做剂量扫描（solo 入口只有一条通道，全局 scale 即 DM2 scale），找与 DA1@150 等净响应的 DM2 强度",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dm2_solo",
+  "modality": "olfactory",
+  "label": "DM2 单脉冲标定（bci/mmdev2 等响应对照的剂量寻找）",
+  "t_end_ms": 1200.0,
+  "edge_ms": 30.0,
+  "note": "bci/mmdev2 pilot：单通道单脉冲 300-600 ms @150 pA；DM2 侧配合 --chem-amp-scale 做剂量扫描（solo 入口只有一条通道，全局 scale 即 DM2 scale），找与 DA1@150 等净响应的 DM2 强度",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "mmn_matchr",
+  "modality": "olfactory",
+  "label": "MMN 等响应列车：DA1×5 标准（150 pA）+ DM2 偏差（492 pA，单脉冲标定等净响应）+ DA1 恢复",
+  "t_end_ms": 3600.0,
+  "edge_ms": 30.0,
+  "note": "bci/mmdev2：等强度版（mmn_match）证明 DM2@150 头皮不可见（强度与响应混杂）；solo 剂量标定（da1_solo/dm2_solo + --chem-amp-scale）测得 DM2 阈值崖 466-492 pA，492 pA 落稳定平台（净响应 +0.247 vs DA1@150 的 +0.197，校准比 1.25），此为等响应偏差：oddball 中 devB/A1 相对 1.25 的偏离 = 身份新颖性的真实贡献",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      700,
+      1000
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1100,
+      1400
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1500,
+      1800
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      1900,
+      2200
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DM2",
+    "amp_pa": 492.0,
+    "pulses": [
+     [
+      2300,
+      2600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      2700,
+      3000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_dc8",
+  "modality": "olfactory",
+  "label": "DA1 单脉冲 8s 直流探针（bci/mmdev2 DC 漂移衰减时间测量）",
+  "t_end_ms": 8000.0,
+  "edge_ms": 30.0,
+  "note": "bci/mmdev2：oddball 语境发现脉冲列车驱动持续 -0.43 uV DC 台阶（一个脉冲即饱和、身份/幅度盲、U=0.05 不影响、U=0.1 摧毁）；本条目单 DA1@150 脉冲 300-600 ms + 8 s 试验，测台阶的衰减时间常数",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_l1",
+  "modality": "seizure",
+  "label": "癫痫灶-L 单脉冲 90s（bci/sleep4 内源性再点火检验）",
+  "t_end_ms": 90000.0,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/sleep4：同 sz_l 但只保留 800-2800 ms 一次点火、试验拉长到 90 s——U=1.5e-4/tau=10s 下塌缩 ~8s、再武装 3tau ~30s，[40,90]s 为无外脉冲的自发再点火观察窗；观察到=内源慢振荡，观察不到=外部驱动边界",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_l3",
+  "modality": "seizure",
+  "label": "癫痫灶-L 双脉冲 120s（第二次点火 80s，tau>=15s 再武装网格）",
+  "t_end_ms": 120000.0,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/sleep4：同 sz_l2 但第二次点火挪到 80000-82300 ms——tau=15/20s 时 3tau=45/60s（从 ~8s 塌缩起算 ~55-70s 完成再武装），旧 35s 脉冲会打在未武装完的资源上；80s 保证全武装后点火，读第二次塌缩延迟 vs tau 的标度",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ],
+     [
+      80000,
+      82300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_l5",
+  "modality": "seizure",
+  "label": "癫痫灶-L 双脉冲（第二次 10s，bci/sleep5 再武装恢复曲线）",
+  "t_end_ms": 35000,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/sleep5：同 sz_l 但第二次点火 10000-12300 ms、试验 35s——再武装恢复曲线的第 10s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ],
+     [
+      10000,
+      12300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_l6",
+  "modality": "seizure",
+  "label": "癫痫灶-L 双脉冲（第二次 20s，bci/sleep5 再武装恢复曲线）",
+  "t_end_ms": 45000,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/sleep5：同 sz_l 但第二次点火 20000-22300 ms、试验 45s——再武装恢复曲线的第 20s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ],
+     [
+      20000,
+      22300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sz_l7",
+  "modality": "seizure",
+  "label": "癫痫灶-L 双脉冲（第二次 50s，bci/sleep5 再武装恢复曲线）",
+  "t_end_ms": 75000,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "bci/sleep5：同 sz_l 但第二次点火 50000-52300 ms、试验 75s——再武装恢复曲线的第 50s 延迟点（固定 U=1.5e-4/tau=10s；35s 点复用 sleep3 sz_l2，80s 点复用 sz_l3）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ],
+     [
+      50000,
+      52300
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "compA",
+  "modality": "conditioning",
+  "label": "compA：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "同 dangateA 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM07*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "compAB",
+  "modality": "conditioning",
+  "label": "compAB：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "同 dangateAB 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM07*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "compC",
+  "modality": "conditioning",
+  "label": "compC：bci/comp1 逐室小室臂（US 只驱 PAM07 小室 DAN）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "同 dangateC 但 US 通道从 DAN_err(154 细胞) 换成 PAM07*(14 细胞，逐细胞电流匹配 800 pA)——配合 --plastic-comp-reward PAM07* 做小室限定误差回路；气味通道不变",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCab-s@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM07*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-s@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dangateB",
+  "modality": "conditioning",
+  "label": "dangateB：B 气味（KCab-m）+ DAN_err 全池 US（bci/comp2 全局门对照相）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/comp2 全局臂的 B+ 相：KCab-m 配 DAN_err(154 细胞) US，训练窗与探针同 dangateA",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "compBp",
+  "modality": "conditioning",
+  "label": "compBp：B 气味（KCab-m）+ PPL103 小室 US（bci/comp2 双小室第二相）",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/comp2：B+ 相——KCab-m 气味脉冲配 PPL103* US（800 pA 逐细胞），配合 --plastic-comp-reward 'PAM07*:0.16,PPL103*:<gain>' 的第二小室；训练窗 500-2500 ms + B 探针 4200-4700 ms",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PPL103*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_dc60",
+  "modality": "olfactory",
+  "label": "DA1 单脉冲 60s 直流探针（dstate1 被压制态的持续时长与速率画像）",
+  "t_end_ms": 60000.0,
+  "edge_ms": 30.0,
+  "note": "dstate1：mmdev2 的 DC 开关目标态（mean -1.825/std 0.179）与 sleep 系癫痫平台态（-1.825/0.18）三位小数一致——假设同一被压制状态；本条目 60s 单 DA1@150 脉冲测状态持续时长 + 状态内群体速率画像，与 sz_l1 平台 (MBON 3-5 Hz, ALPN 38 Hz) 对齐检验",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "compABd",
+  "modality": "conditioning",
+  "label": "compABd：bci/comp3 共现双奖励——AB 同时在场 + PAM07/PPL103 双小室 US 同发",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "bci/comp3：2x2 矩阵缺角（共现 x B 自奖励）——KCg-m(A)+KCab-m(B) 共现训练窗 500-2500 ms 配 PAM07*(800 pA)+PPL103*(800 pA) 双小室 US 同发，B 探针 4200-4700 ms；comp 臂配 --plastic-comp-reward \"PAM07*:0.16,PPL103*:0.02\"，glob 参照臂协议与 comp1 全局臂（dangateAB）逐位相同（数据确定性复用）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PAM07*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PPL103*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      4200,
+      4700
+     ]
+    ]
+   }
+  ]
+ }
 ]

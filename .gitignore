@@ -99,3 +99,8 @@ bci/dstate3/outputs/*.npy
 bci/dstate3/outputs/_trial_*/
 bci/dstate4/outputs/*.npy
 bci/dstate4/outputs/_trial_*/
+bci/comp3/outputs/*.npy
+bci/comp3/outputs/_trial_*/
+bci/comp3/outputs/states/
+bci/comp3/outputs/*.log
+bci/kcdrv1/outputs/*.npy
