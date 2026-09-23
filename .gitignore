@@ -117,3 +117,6 @@ bci/dstate6/outputs/*.npy
 bci/dstate6/outputs/_trial_*/
 bci/sign4/outputs/*.npy
 bci/sign4/outputs/_trial_*/
+bci/kcdrv3/outputs/*.npy
+bci/kcdrv3/outputs/_trial_*/
+bci/kcdrv3/outputs/_mprobe_*/

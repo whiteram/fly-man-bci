@@ -1,0 +1,38 @@
+{
+ "arms": {
+  "lock_us": {
+   "chem": "kc_lock_us"
+  },
+  "ml_us": {
+   "chem": "kcp_us",
+   "std": true,
+   "g2": true
+  },
+  "ml_ctl": {
+   "chem": "kcp_ctl",
+   "std": true,
+   "g2": true
+  }
+ },
+ "groups": "Kenyon_Cell,MBON,ALPN,DAN",
+ "dur_ms": 25000.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "windows_ms": {
+  "base": [
+   11000,
+   14500
+  ],
+  "us": [
+   15100,
+   16900
+  ]
+ },
+ "state_ladder_hz": {
+  "naive_kc": 0.0,
+  "quiet_lock_kc": 0.0,
+  "mid_latch_kc": 12.0,
+  "full_latch_kc": 74.0
+ },
+ "era_note": "sleep-era plateau (KC 0.1) not reproducible today; bracket mapped on the current ladder"
+}

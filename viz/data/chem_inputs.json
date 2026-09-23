@@ -4271,5 +4271,90 @@
     ]
    }
   ]
+ },
+ {
+  "modality": "conditioning",
+  "label": "kcp_us",
+  "t_end_ms": 30000.0,
+  "edge_ms": 100.0,
+  "note": "kcdrv3：sz_l1 点火 + 慢STD门(0.00015,5000)建立压制平台，t=15-17 s PPL103* 800 pA 直接注入；判据=KC 增量 vs 平台基线 [11,14.5] s",
+  "id": "kcp_us",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PPL103*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "modality": "conditioning",
+  "label": "kcp_ctl",
+  "t_end_ms": 30000.0,
+  "edge_ms": 100.0,
+  "note": "kcdrv3 对照——仅 sz_l1 点火，无 US；提供平台态基线波动",
+  "id": "kcp_ctl",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "kc_lock_us",
+  "modality": "conditioning",
+  "label": "kc_lock_us：bci/kcdrv3 静默锁内 DAN 注入——DA1@150 成锁 + PPL103* US",
+  "t_end_ms": 25000.0,
+  "edge_ms": 100.0,
+  "note": "kcdrv3 v2：单 DA1@150(300-600) 建立静默锁，t=15-17 s PPL103* 800 pA 注入；锁内 KC 基线 0（同 naive），预测通道死（与 naive 同阈下）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PPL103*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   }
+  ]
  }
 ]
