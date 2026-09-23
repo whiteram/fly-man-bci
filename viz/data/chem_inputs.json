@@ -4356,5 +4356,110 @@
     ]
    }
   ]
+ },
+ {
+  "id": "da1_d25",
+  "modality": "olfactory",
+  "label": "da1_d25：bci/dstate7 锁形成剂量阈——单 DA1@25 pA 脉冲",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "note": "dstate7：单 DA1 脉冲 [300,600] ms 幅度阶梯（dstate1 的 150 pA 成静默锁为参照）——暗→锁形成阈与更高剂量的直接成态（dstate5 示锁后 1600 探针升级高锁；naive 首脉冲 1600 直接成什么态未测）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 25.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_d50",
+  "modality": "olfactory",
+  "label": "da1_d50：bci/dstate7 锁形成剂量阈——单 DA1@50 pA 脉冲",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "note": "dstate7：单 DA1 脉冲 [300,600] ms 幅度阶梯（dstate1 的 150 pA 成静默锁为参照）——暗→锁形成阈与更高剂量的直接成态（dstate5 示锁后 1600 探针升级高锁；naive 首脉冲 1600 直接成什么态未测）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 50.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_d100",
+  "modality": "olfactory",
+  "label": "da1_d100：bci/dstate7 锁形成剂量阈——单 DA1@100 pA 脉冲",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "note": "dstate7：单 DA1 脉冲 [300,600] ms 幅度阶梯（dstate1 的 150 pA 成静默锁为参照）——暗→锁形成阈与更高剂量的直接成态（dstate5 示锁后 1600 探针升级高锁；naive 首脉冲 1600 直接成什么态未测）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 100.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_d300",
+  "modality": "olfactory",
+  "label": "da1_d300：bci/dstate7 锁形成剂量阈——单 DA1@300 pA 脉冲",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "note": "dstate7：单 DA1 脉冲 [300,600] ms 幅度阶梯（dstate1 的 150 pA 成静默锁为参照）——暗→锁形成阈与更高剂量的直接成态（dstate5 示锁后 1600 探针升级高锁；naive 首脉冲 1600 直接成什么态未测）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_d1600",
+  "modality": "olfactory",
+  "label": "da1_d1600：bci/dstate7 锁形成剂量阈——单 DA1@1600 pA 脉冲",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "note": "dstate7：单 DA1 脉冲 [300,600] ms 幅度阶梯（dstate1 的 150 pA 成静默锁为参照）——暗→锁形成阈与更高剂量的直接成态（dstate5 示锁后 1600 探针升级高锁；naive 首脉冲 1600 直接成什么态未测）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]

@@ -1,0 +1,39 @@
+{
+ "arms": {
+  "d025": "da1_d25",
+  "d050": "da1_d50",
+  "d100": "da1_d100",
+  "d300": "da1_d300",
+  "d1600": "da1_d1600"
+ },
+ "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 60000.0,
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "window_ms": [
+  10000,
+  29000
+ ],
+ "refs": {
+  "dark": {
+   "alpn": 0.0,
+   "std": 0.1
+  },
+  "lock": {
+   "alpn": 20.0,
+   "std": 0.0145
+  },
+  "high_lock": {
+   "alpn": 100.0,
+   "std": 0.017
+  },
+  "mid_latch": {
+   "alpn": 83.0,
+   "std": 0.15
+  }
+ },
+ "ref_150pA_dstate1": {
+  "alpn": 19.8,
+  "std": 0.0145
+ }
+}
