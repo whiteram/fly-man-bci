@@ -4461,5 +4461,80 @@
     ]
    }
   ]
+ },
+ {
+  "id": "kc_w400",
+  "modality": "conditioning",
+  "label": "kc_w400：bci/kcdrv4 US×US 配对窗",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "kcdrv4：阈下弱 KCab-m 驱动（400 pA，对照条件化用 1600）——单腿响应探针",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "kc_p400",
+  "modality": "conditioning",
+  "label": "kc_p400：bci/kcdrv4 US×US 配对窗",
+  "t_end_ms": 5000.0,
+  "edge_ms": 100.0,
+  "note": "kcdrv4：配对——同窗弱 KC 驱动 + PPL103 DAN US；判据=KC 是否超过弱驱动单独水平（DAN 输入把阈下推过阈？）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCab-m@L",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCab-m@R",
+    "amp_pa": 400.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "PPL103*",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      500,
+      2500
+     ]
+    ]
+   }
+  ]
  }
 ]

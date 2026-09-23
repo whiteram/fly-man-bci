@@ -122,3 +122,5 @@ bci/kcdrv3/outputs/_trial_*/
 bci/kcdrv3/outputs/_mprobe_*/
 bci/dstate7/outputs/*.npy
 bci/dstate7/outputs/_trial_*/
+bci/kcdrv4/outputs/*.npy
+bci/kcdrv4/outputs/_trial_*/

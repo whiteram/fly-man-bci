@@ -1,0 +1,17 @@
+{
+ "kc_w400": {
+  "Kenyon_Cell": 8.864,
+  "MBON": 9.242,
+  "DAN": 0.118
+ },
+ "us_ppl103": {
+  "Kenyon_Cell": 0.0,
+  "MBON": 0.035,
+  "DAN": 0.673
+ },
+ "kc_p400": {
+  "Kenyon_Cell": 8.871,
+  "MBON": 9.838,
+  "DAN": 0.786
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "arms": {
+  "kc_w400": "kc_w400",
+  "us_ppl103": "us_ppl103",
+  "kc_p400": "kc_p400"
+ },
+ "groups": "Kenyon_Cell,MBON,DAN",
+ "dur_ms": 5000.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "windows_ms": {
+  "base": [
+   0,
+   400
+  ],
+  "us": [
+   600,
+   2400
+  ]
+ },
+ "ref_cond_drive_pa": 1600
+}
