@@ -27,8 +27,8 @@ def state_stats(npz):
             float(w.mean()), float((np.abs(w - W0) > 0.005).mean()))
 
 
-def mod_ms(tag):
-    p = OUT / f"{tag}_dan.npy"
+def mod_ms(tag, out):
+    p = out / f"{tag}_dan.npy"
     if not p.exists():
         return np.nan
     tr = np.load(p)
@@ -36,8 +36,8 @@ def mod_ms(tag):
     return float(tr[inwin, 2].sum() * 0.5)
 
 
-def probe_uv(tag):
-    p = OUT / f"{tag}.npy"
+def probe_uv(tag, out):
+    p = out / f"{tag}.npy"
     if not p.exists():
         return np.nan
     e = np.load(p)
@@ -48,7 +48,12 @@ def probe_uv(tag):
 
 
 def main():
-    meta = json.loads((OUT / "meta.json").read_text(encoding="utf-8"))
+    import argparse
+    _ap = argparse.ArgumentParser()
+    _ap.add_argument("--outdir", type=str, default=None)
+    _args = _ap.parse_args()
+    out = Path(_args.outdir) if _args.outdir else OUT
+    meta = json.loads((out / "meta.json").read_text(encoding="utf-8"))
     res = {}
     for arm in meta["arms"]:
         rows = []
@@ -56,14 +61,14 @@ def main():
             for i in range(meta["n_p1"] + meta["n_p2"]):
                 ph = "p1" if i < meta["n_p1"] else "p2"
                 tag = f"{arm}_r{r}_{ph}{i if ph == 'p1' else i - meta['n_p1']}"
-                st = OUT / "states" / f"{tag}.npz"
+                st = out / "states" / f"{tag}.npz"
                 if not st.exists():
                     continue
                 wa, wb, wall, gf = state_stats(st)
                 rows.append({"tag": tag, "w_A": wa, "w_B": wb,
                              "w_all": wall, "grown_frac": gf,
-                             "mod_ms": mod_ms(tag),
-                             "probe_uv": probe_uv(tag)})
+                             "mod_ms": mod_ms(tag, out),
+                             "probe_uv": probe_uv(tag, out)})
         res[arm] = rows
         print(f"\n-- {arm} --  trial  w_A  w_B  w_all  grown%  "
               f"mod_ms  probe_uv")
@@ -112,7 +117,7 @@ def main():
             r = summary[gate]["B_ratio"]
             print(f"  A CO-PRESENT, dual reward (comp3): "
                   f"{gate} {r:.2f}")
-    (OUT / "summary.json").write_text(json.dumps(
+    (out / "summary.json").write_text(json.dumps(
         {"per_arm": res, "contrast": summary}, indent=1))
     print(f"\n[comp3] summary -> {OUT / 'summary.json'}")
 

@@ -59,8 +59,9 @@ ARMS = {
 REUSE_SRC = {"glob_tr": "global_blocked", "glob_ctl": "global_control"}
 
 
-def run_trial(arm, chem, seed, state_in, state_out, dst, tag):
-    out = HERE / "outputs"
+def run_trial(arm, chem, seed, state_in, state_out, dst, tag,
+              out=None):
+    out = out or HERE / "outputs"
     trial = out / f"_trial_{tag}"
     cmd = [sys.executable, str(ROOT / "viz" / "export_data.py"),
            "--regions", REGIONS, "--visual-input", "dark",
@@ -109,8 +110,8 @@ def reuse_glob(arm, sessions):
           flush=True)
 
 
-def session(arm, r):
-    out = HERE / "outputs"
+def session(arm, r, out=None):
+    out = out or HERE / "outputs"
     (out / "states").mkdir(parents=True, exist_ok=True)
     state = None
     for i in range(N_P1 + N_P2):
@@ -123,7 +124,7 @@ def session(arm, r):
             state = nxt
             continue
         run_trial(arm, ARMS[arm][ph], SEED0[arm] + 10 * r + i,
-                  state, nxt, dst, tag)
+                  state, nxt, dst, tag, out=out)
         state = nxt
 
 
@@ -134,19 +135,31 @@ def main():
                          "comp_tr,comp_ctl,glob_tr,glob_ctl "
                          "(default: reuse glob + run comp)")
     ap.add_argument("--sessions", type=int, default=SESSIONS)
+    ap.add_argument("--outdir", type=str, default=None,
+                    help="alternate outputs dir (e.g. bci/seedchk1/"
+                         "outputs for fresh-seed robustness runs)")
+    ap.add_argument("--seed0", type=str, default=None,
+                    help="fresh-seed mode 'tr,ctl': seed bases for the "
+                         "comp arms (glob arms get +500) -- glob arms "
+                         "then run LIVE at those seeds instead of "
+                         "reusing comp1 (bci/seedchk1 robustness)")
     args = ap.parse_args()
-    out = HERE / "outputs"
+    out = Path(args.outdir) if args.outdir else HERE / "outputs"
     out.mkdir(parents=True, exist_ok=True)
+    if args.seed0:
+        _tr, _ctl = (int(v) for v in args.seed0.split(","))
+        SEED0.update({"comp_tr": _tr, "comp_ctl": _ctl,
+                      "glob_tr": _tr + 500, "glob_ctl": _ctl + 500})
     if args.arms:
         arms = args.arms.split(",")
     else:
         arms = ["glob_tr", "glob_ctl", "comp_tr", "comp_ctl"]
     for arm in arms:
-        if arm.startswith("glob"):
+        if arm.startswith("glob") and not args.seed0:
             reuse_glob(arm, args.sessions)
         else:
             for r in range(args.sessions):
-                session(arm, r)
+                session(arm, r, out=out)
     meta_p = out / "meta.json"
     meta = json.loads(meta_p.read_text(encoding="utf-8")) \
         if meta_p.exists() else {}
@@ -158,13 +171,19 @@ def main():
                  "mbmd_gain": MBMD_GAIN, "dan_gate": DAN_GATE,
                  "mbon_bias": MBON_BIAS, "regions": REGIONS,
                  "comp_gate": COMP_GATE,
-                 "seed0": SEED0, "train_ms": [500, 2500],
+                 "seed0": SEED0,
+                 **({} if args.seed0 else {"seed0": {"comp_tr": 6042,
+                                                     "comp_ctl": 6542}}),
+                 "train_ms": [500, 2500],
                  "probe_ms": [4200, 4700],
-                 "reuse": {"glob_tr": "comp1/global_blocked",
-                           "glob_ctl": "comp1/global_control",
-                           "note": "protocol-bitwise-identical "
-                                   "(dangateA/C->dangateAB, "
-                                   "seeds 1042+/1092+ +10r+k)"}})
+                 **({"reuse": {"glob_tr": "comp1/global_blocked",
+                               "glob_ctl": "comp1/global_control",
+                               "note": "protocol-bitwise-identical "
+                                       "(dangateA/C->dangateAB, "
+                                       "seeds 1042+/1092+ +10r+k)"}}
+                    if not args.seed0 else
+                    {"seed_mode": f"fresh {args.seed0} "
+                                  "(glob +500)"})})
     meta_p.write_text(json.dumps(meta, indent=1))
     print(f"[acquire] done -> {out}")
 
