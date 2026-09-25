@@ -4599,5 +4599,26 @@
     ]
    }
   ]
+ },
+ {
+  "id": "da1_d600",
+  "modality": "olfactory",
+  "label": "da1_d600：bci/dstate12 退化×剂量交互——单 DA1@600 pA",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "note": "dstate12：剂量轴中点（dstate7 的 300 与 1600 之间）用于退化网络的固化面测量",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]

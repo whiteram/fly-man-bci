@@ -135,3 +135,5 @@ bci/dstate10/outputs/*.npy
 bci/dstate10/outputs/_trial_*/
 bci/dstate11/outputs/*.npy
 bci/dstate11/outputs/_trial_*/
+bci/dstate12/outputs/*.npy
+bci/dstate12/outputs/_trial_*/
