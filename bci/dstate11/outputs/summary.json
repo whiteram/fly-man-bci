@@ -1,0 +1,20 @@
+{
+ "vis_loom": {
+  "Kenyon_Cell": 0.0,
+  "MBON": 0.0,
+  "ALPN": 0.0,
+  "DAN": 0.0
+ },
+ "vis_ssvep": {
+  "Kenyon_Cell": 0.0,
+  "MBON": 0.0,
+  "ALPN": 0.0,
+  "DAN": 0.0
+ },
+ "vis_dir": {
+  "Kenyon_Cell": 0.0,
+  "MBON": 0.0,
+  "ALPN": 0.0,
+  "DAN": 0.0
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "arms": {
+  "vis_loom": "loom_static",
+  "vis_ssvep": "ssvep1_f14.0",
+  "vis_dir": "dir_270"
+ },
+ "groups": "Kenyon_Cell,MBON,ALPN,DAN",
+ "dur_ms": 30000.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "window_ms": [
+  20000,
+  28000
+ ],
+ "ref_dark_late": {
+  "mbon": 0.0,
+  "alpn": 0.0
+ }
+}
