@@ -1,0 +1,44 @@
+{
+ "arms": {
+  "g10_nostd": {
+   "gain_factor": 1.0,
+   "std": false
+  },
+  "g15_nostd": {
+   "gain_factor": 1.5,
+   "std": false
+  },
+  "g20_nostd": {
+   "gain_factor": 2.0,
+   "std": false
+  },
+  "g10_std": {
+   "gain_factor": 1.0,
+   "std": true
+  },
+  "g15_std": {
+   "gain_factor": 1.5,
+   "std": true
+  },
+  "g20_std": {
+   "gain_factor": 2.0,
+   "std": true
+  }
+ },
+ "groups": "Kenyon_Cell,MBON,ALPN,DAN",
+ "dur_ms": 30000.0,
+ "seed": 616,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "sz_l1",
+ "window_ms": [
+  8000,
+  28000
+ ],
+ "refs_hz": {
+  "latch": 395.0,
+  "mid_latch": 76.0,
+  "plateau": 3.0,
+  "dark": 0.0
+ },
+ "era_note": "current-era entry map; the sleep-era plateau (MBON ~3) may no longer exist (kcdrv3)"
+}

@@ -129,3 +129,5 @@ bci/seedchk1/outputs/_trial_*/
 bci/seedchk1/outputs/states/
 bci/dstate8/outputs/*.npy
 bci/dstate8/outputs/_trial_*/
+bci/dstate9/outputs/*.npy
+bci/dstate9/outputs/_trial_*/

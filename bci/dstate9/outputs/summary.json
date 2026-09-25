@@ -1,0 +1,56 @@
+{
+ "g10_nostd": {
+  "gain_factor": 1.0,
+  "std": false,
+  "mbon": 387.7,
+  "alpn": 218.3,
+  "kc": 74.16,
+  "dan": 43.8,
+  "state": "latch"
+ },
+ "g15_nostd": {
+  "gain_factor": 1.5,
+  "std": false,
+  "mbon": 678.4,
+  "alpn": 358.9,
+  "kc": 110.95,
+  "dan": 103.93,
+  "state": "latch"
+ },
+ "g20_nostd": {
+  "gain_factor": 2.0,
+  "std": false,
+  "mbon": 700.2,
+  "alpn": 433.7,
+  "kc": 135.97,
+  "dan": 142.52,
+  "state": "latch"
+ },
+ "g10_std": {
+  "gain_factor": 1.0,
+  "std": true,
+  "mbon": 76.7,
+  "alpn": 83.6,
+  "kc": 12.16,
+  "dan": 6.49,
+  "state": "mid_latch"
+ },
+ "g15_std": {
+  "gain_factor": 1.5,
+  "std": true,
+  "mbon": 315.3,
+  "alpn": 141.3,
+  "kc": 41.69,
+  "dan": 26.75,
+  "state": "latch"
+ },
+ "g20_std": {
+  "gain_factor": 2.0,
+  "std": true,
+  "mbon": 429.4,
+  "alpn": 185.8,
+  "kc": 64.16,
+  "dan": 56.91,
+  "state": "latch"
+ }
+}
