@@ -4536,5 +4536,68 @@
     ]
    }
   ]
+ },
+ {
+  "id": "da1_t25",
+  "modality": "olfactory",
+  "label": "da1_t25：bci/dstate10 锁形成时长阈——单 DA1@150 pA 持续 25 ms",
+  "t_end_ms": 60000.0,
+  "edge_ms": 20.0,
+  "note": "dstate10：剂量轴（dstate7：100-150 pA 锐边）之上的时长轴——150 pA 下多短的脉冲即成锁；判据同 dstate7（[10,29] s ALPN~20/std 0.0145）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      325
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_t50",
+  "modality": "olfactory",
+  "label": "da1_t50：bci/dstate10 锁形成时长阈——单 DA1@150 pA 持续 50 ms",
+  "t_end_ms": 60000.0,
+  "edge_ms": 20.0,
+  "note": "dstate10：剂量轴（dstate7：100-150 pA 锐边）之上的时长轴——150 pA 下多短的脉冲即成锁；判据同 dstate7（[10,29] s ALPN~20/std 0.0145）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      350
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "da1_t100",
+  "modality": "olfactory",
+  "label": "da1_t100：bci/dstate10 锁形成时长阈——单 DA1@150 pA 持续 100 ms",
+  "t_end_ms": 60000.0,
+  "edge_ms": 100.0,
+  "note": "dstate10：剂量轴（dstate7：100-150 pA 锐边）之上的时长轴——150 pA 下多短的脉冲即成锁；判据同 dstate7（[10,29] s ALPN~20/std 0.0145）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      400
+     ]
+    ]
+   }
+  ]
  }
 ]

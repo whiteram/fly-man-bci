@@ -1,0 +1,38 @@
+{
+ "t025": {
+  "chem": "da1_t25",
+  "seed": 62,
+  "alpn": 0.0,
+  "mbon": 0.0,
+  "std": 0.005,
+  "mean": -1.389,
+  "state": "dark"
+ },
+ "t050": {
+  "chem": "da1_t50",
+  "seed": 62,
+  "alpn": 0.0,
+  "mbon": 0.0,
+  "std": 0.005,
+  "mean": -1.389,
+  "state": "dark"
+ },
+ "t100": {
+  "chem": "da1_t100",
+  "seed": 62,
+  "alpn": 0.0,
+  "mbon": 0.0,
+  "std": 0.005,
+  "mean": -1.389,
+  "state": "dark"
+ },
+ "s63": {
+  "chem": "da1_dc60",
+  "seed": 63,
+  "alpn": 19.53,
+  "mbon": 0.016,
+  "std": 0.0146,
+  "mean": -1.822,
+  "state": "lock"
+ }
+}

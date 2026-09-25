@@ -1,0 +1,38 @@
+{
+ "arms": {
+  "t025": {
+   "chem": "da1_t25",
+   "seed": 62
+  },
+  "t050": {
+   "chem": "da1_t50",
+   "seed": 62
+  },
+  "t100": {
+   "chem": "da1_t100",
+   "seed": 62
+  },
+  "s63": {
+   "chem": "da1_dc60",
+   "seed": 63
+  }
+ },
+ "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 60000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "window_ms": [
+  10000,
+  29000
+ ],
+ "dose_pa": 150.0,
+ "refs": {
+  "dark": {
+   "alpn": 0.0,
+   "std": 0.005
+  },
+  "lock": {
+   "alpn": 20.0,
+   "std": 0.0145
+  }
+ }
+}
