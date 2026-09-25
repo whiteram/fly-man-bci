@@ -1,0 +1,16 @@
+{
+ "trace_test": {
+  "latency1_ms": 0,
+  "alpn_40_44s": 0.0,
+  "alpn_46_50s": 0.0,
+  "latency2_ms": 0,
+  "alpn_tail": 20.0
+ },
+ "restore_only": {
+  "latency1_ms": 0,
+  "alpn_40_44s": 0.0,
+  "alpn_46_50s": 0.0,
+  "latency2_ms": null,
+  "alpn_tail": 0.0
+ }
+}

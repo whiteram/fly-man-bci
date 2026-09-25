@@ -4620,5 +4620,37 @@
     ]
    }
   ]
+ },
+ {
+  "id": "da2_trace",
+  "modality": "olfactory",
+  "label": "da2_trace：bci/dstate15 重暴露痕迹检验——两次 DA1@150 脉冲（0.3 s 与 50 s）",
+  "t_end_ms": 62000.0,
+  "edge_ms": 100.0,
+  "note": "dstate15：首次暴露 [300,600]（成锁）→ 30 s 降增益溶解（调度）→ 45 s 恢复增益 → 50 s 第二次同强脉冲 [50000,50600]；判据=第二次成锁延迟 vs 第一次（更短=痕迹/敏化）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      50000,
+      50600
+     ]
+    ]
+   }
+  ]
  }
 ]

@@ -1,0 +1,28 @@
+{
+ "arms": {
+  "trace_test": {
+   "chem": "da2_trace",
+   "sched": "30000:CEN_C=0.5,45000:CEN_C=2.0"
+  },
+  "restore_only": {
+   "chem": "da1_dc60",
+   "sched": "30000:CEN_C=0.5,45000:CEN_C=2.0"
+  }
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 62000.0,
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "events_ms": {
+  "pulse1": [
+   300,
+   600
+  ],
+  "drop": 30000,
+  "restore": 45000,
+  "pulse2": [
+   50000,
+   50600
+  ]
+ }
+}
