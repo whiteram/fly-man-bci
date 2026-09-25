@@ -167,6 +167,16 @@ def main():
                          "whole-group gain is dead-or-latched there). "
                          "Requires --al-local-gain.  Salts the cache "
                          "key")
+    ap.add_argument("--al-subsample", type=float, default=None,
+                    help="fraction F in (0,1] of AL cells to KEEP in "
+                         "the ALL group: a seeded-RNG subset of the "
+                         "AL-internal population is drawn (RNG seed "
+                         "derived from F, cache-deterministic -- "
+                         "never from --seed) and only rows with both "
+                         "ends in the subset remain; tests the "
+                         "quiescence-lock window's sensitivity to AL "
+                         "population size (bci/dstate8).  Requires "
+                         "--al-local-gain.  Salts the cache key")
     ap.add_argument("--al-gain", type=float, default=None,
                     help="AL-independence surgery: split AL->KC (PN->"
                          "Kenyon) rows out of CEN_C into group ALK at "
@@ -586,6 +596,29 @@ def main():
             ckey = (ckey + "+alb"
                     + args.al_leg_balance.replace(",", "-")
                     ) if ckey is not None else None
+        if args.al_subsample is not None:
+            # population-size surgery (bci/dstate8): keep a seeded
+            # subset of AL cells, drop ALL rows touching dropped cells
+            if args.al_local_gain is None:
+                raise SystemExit("--al-subsample requires "
+                                 "--al-local-gain (the ALL group)")
+            _f = float(args.al_subsample)
+            if not 0.0 < _f <= 1.0:
+                raise SystemExit("--al-subsample: F must be in (0,1]")
+            _cells = np.unique(np.concatenate([
+                _allrows["body_pre"].to_numpy(np.int64),
+                _allrows["body_post"].to_numpy(np.int64)]))
+            _rng = np.random.default_rng(int(round(_f * 1_000_000)))
+            _keep = set(_rng.permutation(_cells)
+                        [:max(1, int(round(len(_cells) * _f)))].tolist())
+            _in = (_allrows["body_pre"].isin(_keep)
+                   & _allrows["body_post"].isin(_keep)).to_numpy()
+            _allrows = _allrows[_in].reset_index(drop=True)
+            circuit["extra_edges"]["ALL"]["table"] = _allrows
+            print(f"al-subsample: kept {len(_keep)}/{len(_cells)} AL "
+                  f"cells (F={_f:g}) -> {len(_allrows)} ALL rows",
+                  flush=True)
+            ckey = (ckey + f"+als{_f:g}") if ckey is not None else None
     if args.mb_mod_gain is not None:
         # MB-modulator surgery (bci/condit3 follow-up): APL (1 per side,
         # GABAergic wide field) carries a MASSIVE negative-feedback loop

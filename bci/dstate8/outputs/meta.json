@@ -1,0 +1,51 @@
+{
+ "arms": {
+  "f070": {
+   "F": 0.7,
+   "gain": null
+  },
+  "f050": {
+   "F": 0.5,
+   "gain": null
+  },
+  "f030": {
+   "F": 0.3,
+   "gain": null
+  },
+  "f050_g0015": {
+   "F": 0.5,
+   "gain": 0.0015
+  },
+  "f050_g0025": {
+   "F": 0.5,
+   "gain": 0.0025
+  },
+  "f070_g004": {
+   "F": 0.7,
+   "gain": 0.004
+  },
+  "f050_g008": {
+   "F": 0.5,
+   "gain": 0.008
+  }
+ },
+ "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 60000.0,
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "da1_dc60",
+ "window_ms": [
+  10000,
+  29000
+ ],
+ "refs_fullpop": {
+  "lock": {
+   "alpn": 19.8,
+   "std": 0.0145
+  },
+  "window_abs": [
+   0.0016,
+   0.0023
+  ]
+ }
+}
