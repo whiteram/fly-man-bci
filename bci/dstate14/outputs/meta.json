@@ -1,0 +1,34 @@
+{
+ "arms": {
+  "hold": null,
+  "d0015": "30000:CEN_C=0.75",
+  "d001": "30000:CEN_C=0.5",
+  "d0005": "30000:CEN_C=0.25"
+ },
+ "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 60000.0,
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "da1_dc60",
+ "drop_ms": 30000,
+ "windows_ms": {
+  "pre": [
+   10000,
+   29000
+  ],
+  "post": [
+   35000,
+   55000
+  ]
+ },
+ "refs": {
+  "dark": {
+   "alpn": 0.0,
+   "std": 0.005
+  },
+  "lock": {
+   "alpn": 20.0,
+   "std": 0.0145
+  }
+ }
+}

@@ -244,6 +244,17 @@ def main():
                          "vectors).  Requires --plastic-mb + "
                          "--mbon-dan-gain + --plastic-dan-gate on the "
                          "single-KCM split (bci/comp1, bci/comp2)")
+    ap.add_argument("--gain-schedule", type=str, default=None,
+                    help="mid-RUN gain changes, 't_ms:GRP=f[,t_ms:"
+                         "GRP=f...]': at the first step with t >= t_ms "
+                         "the named extra-edge group's runtime g_unit "
+                         "is MULTIPLIED by f (e.g. '30000:CEN_C=0.5' "
+                         "halves CEN_C at 30 s) -- runtime-only scalar "
+                         "via the step hook (GPU only; never in a "
+                         "cache key; the CPU twin ignores it).  For "
+                         "hysteresis tests on established states "
+                         "(bci/dstate14: does the quiet lock survive "
+                         "a gain drop below its formation window?)")
     ap.add_argument("--use-sign-all", action="store_true",
                     help="run EVERY extra-edge group with its "
                          "inhibitory rows actually inhibitory (per-edge "
@@ -1943,9 +1954,31 @@ def main():
                     prn_vec_g[_g] += _mk.astype(cp.int32)
             stim[j] = float(np.mean(luminance(t)))
 
+        _hook = None
+        if args.gain_schedule:
+            _sched = []
+            for _tok in args.gain_schedule.split(","):
+                _tt, _, _gs = _tok.partition(":")
+                _gn, _, _fs = _gs.partition("=")
+                if _gn not in trial.exp:
+                    raise SystemExit(f"--gain-schedule: unknown group "
+                                     f"{_gn!r} (have "
+                                     f"{sorted(trial.exp)})")
+                _sched.append((float(_tt), _gn.strip(), float(_fs)))
+            _sched.sort()
+            _pend = list(_sched)
+
+            def _hook(_k, _t):
+                while _pend and _t >= _pend[0][0]:
+                    _tt, _gn, _fs = _pend.pop(0)
+                    _pg = trial.exp[_gn]
+                    _pg.g_unit = np.float32(_pg.g_unit * _fs)
+                    print(f"gain-schedule: t={_tt:g} ms -> {_gn} "
+                          f"g_unit x{_fs:g}", flush=True)
+            _hook = _hook
         trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
                   int(T_END / fp.DT_MS), on_record=record_gpu,
-                  chem_fn=chem_fn, mod_fn=mod_fn)
+                  chem_fn=chem_fn, mod_fn=mod_fn, hook=_hook)
         if args.std_gates:
             # bci/sleep3 diagnostics: the post-run depletion state of
             # every std-gated pool (d distribution + gated-current

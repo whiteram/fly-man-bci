@@ -1,0 +1,54 @@
+{
+ "hold": {
+  "sched": null,
+  "pre": {
+   "alpn": 19.65,
+   "std": 0.0145,
+   "state": "lock"
+  },
+  "post": {
+   "alpn": 20.17,
+   "std": 0.0145,
+   "state": "lock"
+  }
+ },
+ "d0015": {
+  "sched": "30000:CEN_C=0.75",
+  "pre": {
+   "alpn": 19.65,
+   "std": 0.0145,
+   "state": "lock"
+  },
+  "post": {
+   "alpn": 7.7,
+   "std": 0.0102,
+   "state": "dark"
+  }
+ },
+ "d001": {
+  "sched": "30000:CEN_C=0.5",
+  "pre": {
+   "alpn": 19.65,
+   "std": 0.0145,
+   "state": "lock"
+  },
+  "post": {
+   "alpn": 0.0,
+   "std": 0.0051,
+   "state": "dark"
+  }
+ },
+ "d0005": {
+  "sched": "30000:CEN_C=0.25",
+  "pre": {
+   "alpn": 19.65,
+   "std": 0.0145,
+   "state": "lock"
+  },
+  "post": {
+   "alpn": 0.0,
+   "std": 0.0051,
+   "state": "dark"
+  }
+ }
+}
