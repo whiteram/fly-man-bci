@@ -4652,5 +4652,48 @@
     ]
    }
   ]
+ },
+ {
+  "id": "da3_cycle",
+  "modality": "olfactory",
+  "label": "da3_cycle：bci/dstate18 多循环疲劳——三脉冲成锁循环",
+  "t_end_ms": 210000.0,
+  "edge_ms": 100.0,
+  "note": "dstate18：三循环固解疲劳检验——脉冲@0.3/70/140 s（各成锁），增益调度@30/100/170 s ×0.5 溶解、@45/115/185 s ×2.0 恢复（dstate15 配方×3）；判据=各循环成锁延迟/水平是否衰减（疲劳）或一致（无疲劳）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      70000,
+      70600
+     ]
+    ]
+   },
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      140000,
+      140600
+     ]
+    ]
+   }
+  ]
  }
 ]

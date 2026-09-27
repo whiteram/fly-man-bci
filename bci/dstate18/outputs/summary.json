@@ -1,0 +1,21 @@
+{
+ "cycles": [
+  {
+   "latency_ms": 0,
+   "level_hz": 20.15,
+   "post_drop_hz": 0.0
+  },
+  {
+   "latency_ms": 0,
+   "level_hz": 20.26,
+   "post_drop_hz": 0.0
+  },
+  {
+   "latency_ms": 0,
+   "level_hz": 19.65,
+   "post_drop_hz": 0.0
+  }
+ ],
+ "tail_alpn": 0.0,
+ "verdict": "no fatigue: instant re-lock each cycle, level spread 3.0% (noise), full dissolution each drop"
+}

@@ -1,0 +1,47 @@
+{
+ "chem": "da3_cycle",
+ "sched": "30000:CEN_C=0.5,45000:CEN_C=2.0,100000:CEN_C=0.5,115000:CEN_C=2.0,170000:CEN_C=0.5,185000:CEN_C=2.0",
+ "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 210000.0,
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "cycles": [
+  {
+   "pulse_end_ms": 600,
+   "lock_win": [
+    1000,
+    29000
+   ],
+   "post_drop_win": [
+    35000,
+    44000
+   ]
+  },
+  {
+   "pulse_end_ms": 70600,
+   "lock_win": [
+    71000,
+    99000
+   ],
+   "post_drop_win": [
+    105000,
+    114000
+   ]
+  },
+  {
+   "pulse_end_ms": 140600,
+   "lock_win": [
+    141000,
+    169000
+   ],
+   "post_drop_win": [
+    175000,
+    184000
+   ]
+  }
+ ],
+ "tail_ms": [
+  190000,
+  209000
+ ]
+}
