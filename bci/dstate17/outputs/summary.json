@@ -1,0 +1,43 @@
+{
+ "residual (d16 latch_dn2 post)": {
+  "ALPN": 98.19,
+  "ALIN": 39.03,
+  "ALON": 118.9,
+  "ALLN": 284.44,
+  "Kenyon_Cell": 17.42,
+  "MBON": 44.6,
+  "DAN": 1.97,
+  "ratios": {
+   "ALPN": 1.0,
+   "ALIN": 0.398,
+   "ALON": 1.211,
+   "ALLN": 2.897,
+   "Kenyon_Cell": 0.177,
+   "MBON": 0.454,
+   "DAN": 0.02
+  }
+ },
+ "high lock (d6 hi_comp post)": {
+  "ALPN": 100.58,
+  "ALIN": 54.43,
+  "ALON": 118.41,
+  "ALLN": 280.02,
+  "Kenyon_Cell": 3.97,
+  "MBON": 11.81,
+  "DAN": 0.6,
+  "ratios": {
+   "ALPN": 1.0,
+   "ALIN": 0.541,
+   "ALON": 1.177,
+   "ALLN": 2.784,
+   "Kenyon_Cell": 0.039,
+   "MBON": 0.117,
+   "DAN": 0.006
+  }
+ },
+ "verdict": {
+  "mbon_share_ratio": 3.87,
+  "kc_share_ratio": 4.5,
+  "text": "central-heavy state (distinct from the high lock)"
+ }
+}
