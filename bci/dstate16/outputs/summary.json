@@ -1,0 +1,66 @@
+{
+ "lock_up3": {
+  "chem": "da1_dc60",
+  "sched": "30000:CEN_C=1.5",
+  "pre": {
+   "mbon": 0.0,
+   "alpn": 19.6,
+   "std": 0.0145,
+   "state": "lock"
+  },
+  "post": {
+   "mbon": 164.8,
+   "alpn": 153.5,
+   "std": 0.0405,
+   "state": "high_lock"
+  }
+ },
+ "lock_up4": {
+  "chem": "da1_dc60",
+  "sched": "30000:CEN_C=2.0",
+  "pre": {
+   "mbon": 0.0,
+   "alpn": 19.6,
+   "std": 0.0145,
+   "state": "lock"
+  },
+  "post": {
+   "mbon": 382.7,
+   "alpn": 216.7,
+   "std": 0.0666,
+   "state": "high_lock"
+  }
+ },
+ "latch_dn2": {
+  "chem": "sz_l1",
+  "sched": "30000:CEN_C=0.5",
+  "pre": {
+   "mbon": 395.6,
+   "alpn": 216.5,
+   "std": 0.0532,
+   "state": "high_lock"
+  },
+  "post": {
+   "mbon": 44.6,
+   "alpn": 98.2,
+   "std": 0.014,
+   "state": "high_lock"
+  }
+ },
+ "latch_dn1": {
+  "chem": "sz_l1",
+  "sched": "30000:CEN_C=0.25",
+  "pre": {
+   "mbon": 395.6,
+   "alpn": 216.5,
+   "std": 0.0532,
+   "state": "high_lock"
+  },
+  "post": {
+   "mbon": 0.0,
+   "alpn": 0.0,
+   "std": 0.0051,
+   "state": "dark"
+  }
+ }
+}

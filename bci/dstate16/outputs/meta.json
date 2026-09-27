@@ -1,0 +1,41 @@
+{
+ "arms": {
+  "lock_up3": {
+   "chem": "da1_dc60",
+   "sched": "30000:CEN_C=1.5",
+   "pre_expect": "lock"
+  },
+  "lock_up4": {
+   "chem": "da1_dc60",
+   "sched": "30000:CEN_C=2.0",
+   "pre_expect": "lock"
+  },
+  "latch_dn2": {
+   "chem": "sz_l1",
+   "sched": "30000:CEN_C=0.5",
+   "pre_expect": "latch"
+  },
+  "latch_dn1": {
+   "chem": "sz_l1",
+   "sched": "30000:CEN_C=0.25",
+   "pre_expect": "latch"
+  }
+ },
+ "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 60000.0,
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "sz_l1",
+ "drop_ms": 30000,
+ "windows_ms": {
+  "pre": [
+   10000,
+   29000
+  ],
+  "post": [
+   40000,
+   55000
+  ]
+ },
+ "note": "lock arms: odor pulse (da1_dc60) forms the lock at the working point; latch arms: sz_l1 at x2.0 (0.004, dstate9 g20 full latch).  Gain schedule moves ACROSS regions at t=30 s."
+}
