@@ -1,0 +1,45 @@
+{
+ "arms": {
+  "hl62": {
+   "chem": "cs4hl",
+   "seed": 62
+  },
+  "ctl62": {
+   "chem": "cs3ctl",
+   "seed": 62
+  },
+  "hlnt62": {
+   "chem": "cs4hlnt",
+   "seed": 62
+  },
+  "ctl63": {
+   "chem": "cs3ctl",
+   "seed": 63
+  },
+  "hl63": {
+   "chem": "cs4hl",
+   "seed": 63
+  },
+  "hlnt63": {
+   "chem": "cs4hlnt",
+   "seed": 63
+  }
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 22000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "train_ms": [
+  17000,
+  19000
+ ],
+ "probe_ms": [
+  20000,
+  20500
+ ],
+ "pre_ms": [
+  12000,
+  16500
+ ],
+ "sig_ref": "dstate6/17 high-lock profile",
+ "calib": "dangate2 (lr -2e-7, w0 0.03, kcm 0.015, mbmd 178, gate 150,0.02,400)"
+}

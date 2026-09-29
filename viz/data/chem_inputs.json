@@ -5293,5 +5293,102 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs4hl",
+  "modality": "conditioning",
+  "label": "cs4hl：bci/condstate4 高锁内条件化——DA1@1600 直达高锁 + A+ 训练",
+  "t_end_ms": 22000.0,
+  "edge_ms": 100.0,
+  "note": "condstate4：da1_d1600 同构单脉冲 [300,600]（dstate7：naive 直达高锁 ALPN~100/MBON~12/KC~4）+ [17000,19000] 高锁内 A+ 训练、[20000,20500] 探针；判据=租金-深度曲线第三点（判别 AL 自持 vs 中央余燃谁驱动门压制）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      20000,
+      20500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      20000,
+      20500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs4hlnt",
+  "modality": "conditioning",
+  "label": "cs4hlnt：bci/condstate4 纯漂移探针——高锁无训练",
+  "t_end_ms": 22000.0,
+  "edge_ms": 100.0,
+  "note": "condstate4：cs4hl 去掉训练/探针通道——高锁态（KC 4 Hz 微活）自身是否写 w",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]
