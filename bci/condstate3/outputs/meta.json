@@ -1,0 +1,52 @@
+{
+ "arms": {
+  "res62": {
+   "chem": "cs3res",
+   "seed": 62,
+   "sched": "6000:CEN_C=0.5"
+  },
+  "ctl62": {
+   "chem": "cs3ctl",
+   "seed": 62,
+   "sched": null
+  },
+  "resnt62": {
+   "chem": "cs3resnt",
+   "seed": 62,
+   "sched": "6000:CEN_C=0.5"
+  },
+  "ctl63": {
+   "chem": "cs3ctl",
+   "seed": 63,
+   "sched": null
+  },
+  "res63": {
+   "chem": "cs3res",
+   "seed": 63,
+   "sched": "6000:CEN_C=0.5"
+  },
+  "resnt63": {
+   "chem": "cs3resnt",
+   "seed": 63,
+   "sched": "6000:CEN_C=0.5"
+  }
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 22000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "train_ms": [
+  17000,
+  19000
+ ],
+ "probe_ms": [
+  20000,
+  20500
+ ],
+ "pre_ms": [
+  12000,
+  16500
+ ],
+ "sched": "6000:CEN_C=0.5",
+ "sig_ref": "dstate17 residual profile",
+ "calib": "dangate2 (lr -2e-7, w0 0.03, kcm 0.015, mbmd 178, gate 150,0.02,400)"
+}

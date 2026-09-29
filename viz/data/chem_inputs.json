@@ -5129,5 +5129,169 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs3ctl",
+  "modality": "conditioning",
+  "label": "cs3ctl：bci/condstate3 时间匹配对照——A+ 后置训练（无点火）",
+  "t_end_ms": 22000.0,
+  "edge_ms": 100.0,
+  "note": "condstate3：训练 [17000,19000]、探针 [20000,20500]，前置 17 s 暗态（与残留臂时间匹配）；判据=幼稚基线",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      20000,
+      20500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      20000,
+      20500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs3res",
+  "modality": "conditioning",
+  "label": "cs3res：bci/condstate3 残留态内条件化——点火成闳锁→×0.5 入残留→训练",
+  "t_end_ms": 22000.0,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "condstate3：sz_l1 同构点火（LAL*@L 600 pA [800,2800]，no_cen_damp=默认 0.004 全闳锁，dstate16 配方）+ --gain-schedule 6000:CEN_C=0.5 降 0.002 残留态（dstate17 签名 ALPN~98/KC~17/MBON~45）；[17000,19000] 残留态内 A+ 训练",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      17000,
+      19000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      20000,
+      20500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      20000,
+      20500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs3resnt",
+  "modality": "conditioning",
+  "label": "cs3resnt：bci/condstate3 纯漂移探针——点火→残留，无训练",
+  "t_end_ms": 22000.0,
+  "edge_ms": 100.0,
+  "no_cen_damp": true,
+  "note": "condstate3：cs3res 去掉训练/探针通道——残留态自身是否写 w（结构债务探针）；配套 --gain-schedule 6000:CEN_C=0.5",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "LAL*@L",
+    "amp_pa": 600.0,
+    "pulses": [
+     [
+      800,
+      2800
+     ]
+    ]
+   }
+  ]
  }
 ]
