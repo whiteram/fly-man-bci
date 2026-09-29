@@ -153,3 +153,5 @@ bci/condstate3/outputs/*.npy
 bci/condstate3/outputs/_trial_*/
 bci/condstate4/outputs/*.npy
 bci/condstate4/outputs/_trial_*/
+bci/condstate5/outputs/*.npy
+bci/condstate5/outputs/_trial_*/

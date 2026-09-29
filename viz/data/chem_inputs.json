@@ -5390,5 +5390,134 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs5t",
+  "modality": "conditioning",
+  "label": "cs5t：bci/condstate5 幼稚链环节——单次 A+ 训练",
+  "t_end_ms": 4500.0,
+  "edge_ms": 100.0,
+  "note": "condstate5 链式条件化幼稚链环节：A+ [2000,4000]（KCg-m 1600 + DAN_err 800），链间用 --plastic-state-in/out 传 w",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs5lt",
+  "modality": "conditioning",
+  "label": "cs5lt：bci/condstate5 锁内链环节——重入锁 + 单次 A+",
+  "t_end_ms": 4500.0,
+  "edge_ms": 100.0,
+  "note": "condstate5 锁内链环节：DA1@150 [300,600] 每链重成锁（动力学每链重置，condstate1 剂量）+ A+ [2000,4000]；判据=逐链 w 增量比（租金是否逐试恒定）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs5p",
+  "modality": "conditioning",
+  "label": "cs5p：bci/condstate5 探针环节——习得气味反应（幼稚动力学）",
+  "t_end_ms": 3000.0,
+  "edge_ms": 100.0,
+  "note": "condstate5 表达端探针：KCg-m@L/R 1600 pA [2000,2500]，无锁无训练——读 MBON 对习得气味的反应（两链共用同款探针，判据=锁内习得记忆的读出是否完好）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      2500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      2500
+     ]
+    ]
+   }
+  ]
  }
 ]
