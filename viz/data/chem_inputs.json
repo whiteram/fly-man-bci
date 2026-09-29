@@ -4695,5 +4695,222 @@
     ]
    }
   ]
+ },
+ {
+  "id": "dgA_late",
+  "modality": "conditioning",
+  "label": "dgA_late：bci/condstate1 对照——A+ 训练窗错开版（无锁脉冲）",
+  "t_end_ms": 6000.0,
+  "edge_ms": 100.0,
+  "note": "condstate1：dangateA 同构但训练窗 [2000,4000]、探针 [5000,5500]（为与锁臂窗对齐）；判据=w_A 学习 vs lockdgA",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      5000,
+      5500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      5000,
+      5500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "lockdgA",
+  "modality": "conditioning",
+  "label": "lockdgA：bci/condstate1 锁内条件化——DA1@150 成锁 + A+ 训练",
+  "t_end_ms": 6000.0,
+  "edge_ms": 100.0,
+  "note": "condstate1：先 DA1@150 [300,600] 成静默锁（dstate7 剂量），锁内 [2000,4000] 跑 A+（KCg-m+DAN_err），探针 [5000,5500]；判据=锁内 w_A 学习 vs 无锁对照",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      5000,
+      5500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      5000,
+      5500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "lockdgA300",
+  "modality": "conditioning",
+  "label": "lockdgA300：bci/condstate1 复证——DA1@300 成锁（刀刃上方）+ A+ 训练",
+  "t_end_ms": 6000.0,
+  "edge_ms": 100.0,
+  "note": "condstate1 复证版：锁脉冲 300 pA（dstate7：与 150 成同一锁吸引子，种子稳健）；其余同 lockdgA",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      2000,
+      4000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      5000,
+      5500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      5000,
+      5500
+     ]
+    ]
+   }
+  ]
  }
 ]

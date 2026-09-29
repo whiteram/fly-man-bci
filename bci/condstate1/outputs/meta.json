@@ -1,0 +1,19 @@
+{
+ "arms": {
+  "ctl": "dgA_late",
+  "locked": "lockdgA"
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 6000.0,
+ "seed": 62,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "train_ms": [
+  2000,
+  4000
+ ],
+ "probe_ms": [
+  5000,
+  5500
+ ],
+ "calib": "dangate2 (lr -2e-7, w0 0.03, kcm 0.015, mbmd 178, gate 150,0.02,400)"
+}

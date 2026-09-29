@@ -1,0 +1,23 @@
+{
+ "ctl": {
+  "w_A": 0.05717,
+  "w_A_growth": 0.02717,
+  "lock_check_alpn_1_1.9s": 0.0,
+  "pre_train_alpn_1.2_1.9s": 0.0,
+  "kc_train": 56.5,
+  "mbon_train": 40.83,
+  "mbon_probe": 48.04,
+  "mod_ms": 599.6
+ },
+ "locked": {
+  "w_A": 0.05126,
+  "w_A_growth": 0.02126,
+  "lock_check_alpn_1_1.9s": 19.43,
+  "pre_train_alpn_1.2_1.9s": 19.46,
+  "kc_train": 55.61,
+  "mbon_train": 45.27,
+  "mbon_probe": 44.71,
+  "mod_ms": 476.6
+ },
+ "locked_learning_ratio": 0.782
+}
