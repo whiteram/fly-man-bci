@@ -4912,5 +4912,222 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs2ctl",
+  "modality": "conditioning",
+  "label": "cs2ctl：bci/condstate2 时间匹配对照——A+ 后置训练（无锁）",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate2：训练 [15000,17000]、探针 [18000,18500]，前置 15 s 暗态（与锁臂时间匹配）；判据=幼稚基线 w_A 学习",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      18000,
+      18500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      18000,
+      18500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs2lock",
+  "modality": "conditioning",
+  "label": "cs2lock：bci/condstate2 锁内条件化（时间匹配版）",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate2：DA1@150 [300,600] 成静默锁（dstate7 剂量，seed 62），锁持续至 [15000,17000] 训练窗；unlk 臂复用本条目+--gain-schedule 8000:CEN_C=0.5,12000:CEN_C=2.0（溶锁后训练）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      18000,
+      18500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      18000,
+      18500
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs2lock300",
+  "modality": "conditioning",
+  "label": "cs2lock300：bci/condstate2 复证——DA1@300 成锁 + 后置训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate2 复证版（seed 63）：锁脉冲 300 pA（刀刃上方，condstate1 lockdgA300 同剂量）；其余同 cs2lock",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@L",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      18000,
+      18500
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "KCg-m@R",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      18000,
+      18500
+     ]
+    ]
+   }
+  ]
  }
 ]

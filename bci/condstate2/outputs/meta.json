@@ -1,0 +1,47 @@
+{
+ "arms": {
+  "unlk62": {
+   "chem": "cs2lock",
+   "seed": 62,
+   "sched": "8000:CEN_C=0.5,12000:CEN_C=2.0"
+  },
+  "ctl62": {
+   "chem": "cs2ctl",
+   "seed": 62,
+   "sched": null
+  },
+  "lock62": {
+   "chem": "cs2lock",
+   "seed": 62,
+   "sched": null
+  },
+  "ctl63": {
+   "chem": "cs2ctl",
+   "seed": 63,
+   "sched": null
+  },
+  "lock63": {
+   "chem": "cs2lock300",
+   "seed": 63,
+   "sched": null
+  },
+  "unlk63": {
+   "chem": "cs2lock300",
+   "seed": 63,
+   "sched": "8000:CEN_C=0.5,12000:CEN_C=2.0"
+  }
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 20000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "train_ms": [
+  15000,
+  17000
+ ],
+ "probe_ms": [
+  18000,
+  18500
+ ],
+ "sched": "8000:CEN_C=0.5,12000:CEN_C=2.0",
+ "calib": "dangate2 (lr -2e-7, w0 0.03, kcm 0.015, mbmd 178, gate 150,0.02,400)"
+}
