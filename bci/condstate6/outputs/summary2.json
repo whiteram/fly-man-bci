@@ -1,0 +1,48 @@
+{
+ "usmb100": {
+  "mbon_train": 5.36,
+  "mod_ms": 1870.6,
+  "r_mean": 55.61
+ },
+ "usmb200": {
+  "mbon_train": 32.23,
+  "mod_ms": 1.4,
+  "r_mean": 0.03
+ },
+ "usmb300": {
+  "mbon_train": 53.69,
+  "mod_ms": 0.0,
+  "r_mean": 0.0
+ },
+ "usmb115": {
+  "mbon_train": 7.95,
+  "mod_ms": 1545.4,
+  "r_mean": 38.63
+ },
+ "usmb130": {
+  "mbon_train": 11.24,
+  "mod_ms": 839.4,
+  "r_mean": 20.99
+ },
+ "ushinst": {
+  "mbon_train": 7.58,
+  "mod_ms": 1613.4,
+  "r_mean": 40.34,
+  "ALPN_pre": 99.48,
+  "CX_pre": 0.0
+ },
+ "lockinst": {
+  "mbon_train": 46.09,
+  "mod_ms": 479.9,
+  "r_mean": 12.0,
+  "ALPN_pre": 20.44,
+  "CX_pre": 0.0
+ },
+ "ctlinst": {
+  "mbon_train": 41.24,
+  "mod_ms": 595.7,
+  "r_mean": 14.89,
+  "ALPN_pre": 0.11,
+  "CX_pre": 0.0
+ }
+}

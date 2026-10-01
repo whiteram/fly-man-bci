@@ -1,0 +1,46 @@
+{
+ "us62": {
+  "mod_ms": 1936.0,
+  "r_mean": 110.17,
+  "r_peak": 128.55,
+  "r_onset": 69.41,
+  "mbon_train": 1.53,
+  "lock_alpn": 0.0
+ },
+ "usl62": {
+  "mod_ms": 1929.2,
+  "r_mean": 100.22,
+  "r_peak": 115.33,
+  "r_onset": 62.03,
+  "mbon_train": 1.94,
+  "lock_alpn": 19.43
+ },
+ "usl63": {
+  "mod_ms": 1937.1,
+  "r_mean": 111.97,
+  "r_peak": 128.7,
+  "r_onset": 73.03,
+  "mbon_train": 1.53,
+  "lock_alpn": 0.0
+ },
+ "ush62": {
+  "mod_ms": 1613.4,
+  "r_mean": 40.34,
+  "r_peak": 50.33,
+  "r_onset": 26.77,
+  "mbon_train": 7.58,
+  "lock_alpn": 100.11
+ },
+ "ush63": {
+  "mod_ms": 1570.0,
+  "r_mean": 39.25,
+  "r_peak": 45.82,
+  "r_onset": 24.63,
+  "mbon_train": 7.4,
+  "lock_alpn": 99.53
+ },
+ "usl62_ratio": 0.996,
+ "usl63_ratio": 1.001,
+ "ush62_ratio": 0.833,
+ "ush63_ratio": 0.811
+}

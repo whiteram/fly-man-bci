@@ -1,0 +1,44 @@
+{
+ "arms": {
+  "usmb100": {
+   "chem": "cs6us",
+   "bias": 100,
+   "groups": "MBON,DAN"
+  },
+  "usmb200": {
+   "chem": "cs6us",
+   "bias": 200,
+   "groups": "MBON,DAN"
+  },
+  "usmb300": {
+   "chem": "cs6us",
+   "bias": 300,
+   "groups": "MBON,DAN"
+  },
+  "usmb115": {
+   "chem": "cs6us",
+   "bias": 115,
+   "groups": "MBON,DAN"
+  },
+  "usmb130": {
+   "chem": "cs6us",
+   "bias": 130,
+   "groups": "MBON,DAN"
+  },
+  "ushinst": {
+   "chem": "cs6ush",
+   "bias": null,
+   "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN,CX"
+  },
+  "lockinst": {
+   "chem": "cs2lock",
+   "bias": null,
+   "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN,CX"
+  },
+  "ctlinst": {
+   "chem": "cs2ctl",
+   "bias": null,
+   "groups": "ALPN,ALIN,ALON,ALLN,Kenyon_Cell,MBON,DAN,CX"
+  }
+ }
+}

@@ -5519,5 +5519,90 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs6us",
+  "modality": "conditioning",
+  "label": "cs6us：bci/condstate6 US-only 对照——纯 DAN_err 驱动（无 KC 腿）",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate6 通路判别：US-only [15000,17000]，无 KCg-m——MBON 全程静默，V 反馈为零；判据=mod 基线（幼稚）",
+  "channels": [
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs6usl",
+  "modality": "conditioning",
+  "label": "cs6usl：bci/condstate6 静默锁 + US-only",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate6：DA1@150 [300,600] 成静默锁（MBON_pre=0）+ US-only [15000,17000]——门压制若仍在，压制造在 DAN 侧直接通路（X→DAN）；若消失，MBON 反应腿为必要中介",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs6ush",
+  "modality": "conditioning",
+  "label": "cs6ush：bci/condstate6 高锁 + US-only",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate6：DA1@1600 [300,600] 直达高锁（MBON_pre~6 微活）+ US-only——测深状态的直接分量",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 1600.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   },
+   {
+    "pop": "CEN",
+    "group": "DAN_err",
+    "amp_pa": 800.0,
+    "pulses": [
+     [
+      15000,
+      17000
+     ]
+    ]
+   }
+  ]
  }
 ]

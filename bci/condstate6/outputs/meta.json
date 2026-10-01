@@ -1,0 +1,30 @@
+{
+ "arms": {
+  "us62": {
+   "chem": "cs6us",
+   "seed": 62
+  },
+  "usl62": {
+   "chem": "cs6usl",
+   "seed": 62
+  },
+  "usl63": {
+   "chem": "cs6usl",
+   "seed": 63
+  },
+  "ush62": {
+   "chem": "cs6ush",
+   "seed": 62
+  },
+  "ush63": {
+   "chem": "cs6ush",
+   "seed": 63
+  }
+ },
+ "dur_ms": 20000.0,
+ "train_ms": [
+  15000,
+  17000
+ ],
+ "question": "US-only: does lock-state gate suppression survive without the KC->MBON leg?"
+}
