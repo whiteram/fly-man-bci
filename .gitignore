@@ -158,3 +158,6 @@ bci/condstate5/outputs/_trial_*/
 bci/condstate6/outputs/*.npy
 bci/condstate6/outputs/_trial_*/
 bci/condstate6/outputs/*.parquet
+bci/condstate7/outputs/*.npy
+bci/condstate7/outputs/*.npz
+bci/condstate7/outputs/_trial_*/

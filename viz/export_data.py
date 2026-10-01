@@ -295,6 +295,13 @@ def main():
                          "..) or a whole extra-pop name (ORN, OLR, ..) "
                          "-- the central-subpopulation instrumentation "
                          "for the validation table (VALIDATION #5)")
+    ap.add_argument("--pop-rate-type", type=str, default=None,
+                    help="comma list of annotation TYPE names to "
+                         "record into _pop_rate.npz, same mechanics as "
+                         "--pop-rate but matching the type column "
+                         "(KCg-m, PPL101, DPM, APL, .. -- classes stay "
+                         "on --pop-rate); recording only, no cache-key "
+                         "salt (bci/condstate7 GABA-subset readout)")
     ap.add_argument("--chem-amp-scale", type=float, default=1.0,
                     help="multiply every chem channel amplitude by this "
                          "runtime factor (intensity sweeps with a "
@@ -796,7 +803,7 @@ def main():
     # later; class subsets index into the CEN pop, bare pop names cover
     # a whole extra pop
     POP_RATE = {}
-    if args.pop_rate:
+    if args.pop_rate or args.pop_rate_type:
         if "_rmap" not in locals():
             from ffbm import data as _fdata
             _ann = _fdata.load_annotations()
@@ -811,7 +818,9 @@ def main():
             _cen_ids_pr = circuit["extra_pops"]["CEN"]["ids"]
             _rmap = dict(zip(_cen_raw.tolist(),
                              _cen_ids_pr.tolist()))
-        for _g in (s.strip() for s in args.pop_rate.split(",")):
+        _typc = _ann["type"].fillna("")   # RangeIndex type column (the
+        # bodyId-indexed _typ below at line ~449 stays untouched)
+        for _g in (s.strip() for s in (args.pop_rate or "").split(",")):
             if not _g:
                 continue
             if _g in (circuit.get("extra_pops") or {}):
@@ -823,6 +832,19 @@ def main():
                        if int(b) in _rmap)
             if not _ids:
                 raise SystemExit(f"--pop-rate: no CEN class {_g!r}")
+            _idx = np.searchsorted(
+                circuit["extra_pops"]["CEN"]["ids"],
+                np.array(sorted(_ids), dtype=np.int64))
+            POP_RATE[_g] = ("CEN", _idx, len(_idx))
+        for _g in (s.strip()
+                   for s in (args.pop_rate_type or "").split(",")):
+            if not _g or _g in POP_RATE:
+                continue
+            _ids = set(_rmap[int(b)] for b in
+                       _ann.loc[_typc == _g, "bodyId"]
+                       if int(b) in _rmap)
+            if not _ids:
+                raise SystemExit(f"--pop-rate-type: no CEN type {_g!r}")
             _idx = np.searchsorted(
                 circuit["extra_pops"]["CEN"]["ids"],
                 np.array(sorted(_ids), dtype=np.int64))

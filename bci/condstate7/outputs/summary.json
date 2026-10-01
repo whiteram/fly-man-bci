@@ -1,0 +1,32 @@
+{
+ "ctl62t": {
+  "r_mean": 14.89,
+  "mod_ms": 595.7,
+  "vsub_int": 447911.8,
+  "mbon_mean": 41.24
+ },
+ "lock62t": {
+  "r_mean": 12.0,
+  "mod_ms": 479.9,
+  "vsub_int": 489798.8,
+  "mbon_mean": 46.09
+ },
+ "res62t": {
+  "r_mean": 9.31,
+  "mod_ms": 372.5,
+  "vsub_int": 483710.2,
+  "mbon_mean": 49.15
+ },
+ "hl62t": {
+  "r_mean": 9.5,
+  "mod_ms": 379.9,
+  "vsub_int": 484451.0,
+  "mbon_mean": 47.48
+ },
+ "naive2r": {
+  "r_mean": 13.75,
+  "mod_ms": 549.9,
+  "vsub_int": 792406.2,
+  "mbon_mean": 59.28
+ }
+}

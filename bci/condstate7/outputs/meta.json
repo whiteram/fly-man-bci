@@ -1,0 +1,37 @@
+{
+ "arms": {
+  "ctl62t": {
+   "chem": "cs2ctl",
+   "seed": "62",
+   "t_end": "20000.0",
+   "state_in": "None"
+  },
+  "lock62t": {
+   "chem": "cs2lock",
+   "seed": "62",
+   "t_end": "20000.0",
+   "state_in": "None"
+  },
+  "res62t": {
+   "chem": "cs3res",
+   "seed": "62",
+   "t_end": "22000.0",
+   "state_in": "None",
+   "sched": "6000:CEN_C=0.5"
+  },
+  "hl62t": {
+   "chem": "cs4hl",
+   "seed": "62",
+   "t_end": "22000.0",
+   "state_in": "None"
+  },
+  "naive2r": {
+   "chem": "cs5t",
+   "seed": "63",
+   "t_end": "4500.0",
+   "state_in": "D:\\Dav\\CodeHub\\Agent\\male-fruit-fly-brain-map\\bci\\condstate5\\outputs\\states\\naive1.npz"
+  }
+ },
+ "types": "MBON01,MBON02,MBON03,MBON04,MBON05,MBON06,MBON07,MBON09,MBON10,MBON11,MBON20,MBON25,MBON30,MBON31,MBON32,MBON34,MBON15-like,MBON25-like,DPM,APL,LHMB1,CRE067,LAL155,PPL101,PPL103,PPL106,PAM05,PAM06,PAM07,PAM08,PAM09,PAM10,PAM11,PAM12,KCg-m",
+ "groups": "ALPN,MBON,DAN,Kenyon_Cell"
+}
