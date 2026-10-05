@@ -1,0 +1,24 @@
+{
+ "arms": {
+  "usn9": {
+   "chem": "cs6us",
+   "seed": 62,
+   "t_end": 20000.0
+  },
+  "usl9": {
+   "chem": "cs6usl",
+   "seed": 62,
+   "t_end": 20000.0
+  },
+  "ctln9": {
+   "chem": "cs2ctl",
+   "seed": 62,
+   "t_end": 20000.0
+  },
+  "lockn9": {
+   "chem": "cs2lock",
+   "seed": 62,
+   "t_end": 20000.0
+  }
+ }
+}
