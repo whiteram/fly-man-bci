@@ -1,0 +1,20 @@
+{
+ "arms": {
+  "ctl2042": {
+   "chem": "cs2ctl",
+   "seed": 2042
+  },
+  "lock2042": {
+   "chem": "cs2lock",
+   "seed": 2042
+  },
+  "ctl2092": {
+   "chem": "cs2ctl",
+   "seed": 2092
+  },
+  "lock2092": {
+   "chem": "cs2lock",
+   "seed": 2092
+  }
+ }
+}
