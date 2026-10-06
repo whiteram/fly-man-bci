@@ -61,3 +61,10 @@ python bci/condstate11/acquire.py     # 4 臂幂等 + 读出
 ```
 
 汇总：outputs/summary.json。
+
+## 追加：钳制向量跨家族复现（usn2042/usl2042）
+
+condstate9 的「预期稳健未证」旗标关闭：seed 2042 重跑 US-only 对
+——usl/usn 比集中位 0.906（s62: 0.903）、重钳比例 23%（21%），
+**钳深 vs GABA 接触权重 Spearman +0.298（p=1.7e-4；s62: +0.333,
+2.4e-5）**——除法钳制向量的定量规律家族稳健，与租金比同级。
