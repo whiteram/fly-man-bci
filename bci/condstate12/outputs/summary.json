@@ -1,0 +1,66 @@
+{
+ "naive_c1": {
+  "win_best_uv": 0.0489,
+  "win_mean_uv": 0.0357,
+  "pre_best_uv": 0.1171,
+  "trials_best": 217295
+ },
+ "quiet_lock_c1": {
+  "win_best_uv": 0.0433,
+  "win_mean_uv": 0.0304,
+  "pre_best_uv": 0.116,
+  "trials_best": 277658
+ },
+ "naive_c2": {
+  "win_best_uv": 0.0445,
+  "win_mean_uv": 0.0302,
+  "pre_best_uv": 0.0014,
+  "trials_best": 262568
+ },
+ "quiet_lock_c2": {
+  "win_best_uv": 0.0446,
+  "win_mean_uv": 0.0334,
+  "pre_best_uv": 0.0043,
+  "trials_best": 261858
+ },
+ "residual_c3": {
+  "win_best_uv": 0.0082,
+  "win_mean_uv": 0.0067,
+  "pre_best_uv": 0.0274,
+  "trials_best": 7704521
+ },
+ "high_lock_c4": {
+  "win_best_uv": 0.0558,
+  "win_mean_uv": 0.0403,
+  "pre_best_uv": 0.0826,
+  "trials_best": 167175
+ },
+ "naive_c3": {
+  "win_best_uv": 0.0504,
+  "win_mean_uv": 0.0366,
+  "pre_best_uv": 0.0011,
+  "trials_best": 204534
+ },
+ "naive_c4": {
+  "win_best_uv": 0.0504,
+  "win_mean_uv": 0.0366,
+  "pre_best_uv": 0.0011,
+  "trials_best": 204534
+ },
+ "mult_c1": {
+  "amp": 0.89,
+  "trials": 0.78
+ },
+ "mult_c2": {
+  "amp": 1.0,
+  "trials": 1.0
+ },
+ "mult_c3": {
+  "amp": 0.16,
+  "trials": 0.03
+ },
+ "mult_c4": {
+  "amp": 1.11,
+  "trials": 1.22
+ }
+}
