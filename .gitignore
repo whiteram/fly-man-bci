@@ -177,3 +177,7 @@ bci/condstate11/outputs/states/
 bci/condstate12/outputs/*.npy
 bci/condstate12/outputs/*.npz
 bci/condstate12/outputs/_trial_*/
+bci/condstate13/outputs/*.npy
+bci/condstate13/outputs/*.npz
+bci/condstate13/outputs/*.json
+bci/condstate13/outputs/_trial_*/
