@@ -1,0 +1,58 @@
+{
+  "naive 静息 (17 s 暗态)": {
+    "file": "bci\\condstate3\\outputs\\ctl62_scalp.npy",
+    "window_ms": [
+      7000,
+      15000
+    ],
+    "true_bb_rms_uv": 0.00187,
+    "true_native_rms_uv": 0.82067,
+    "true_2_20_rms_uv": 0.00128,
+    "mean_interchannel_corr": 0.949,
+    "psd_slope_1_30hz": -0.87
+  },
+  "高锁静息 (DA1@1600 成锁后)": {
+    "file": "bci\\condstate4\\outputs\\hl62_scalp.npy",
+    "window_ms": [
+      7000,
+      15000
+    ],
+    "true_bb_rms_uv": 0.01237,
+    "true_native_rms_uv": 2.04051,
+    "true_2_20_rms_uv": 0.00891,
+    "mean_interchannel_corr": 0.873,
+    "psd_slope_1_30hz": -0.39
+  },
+  "残留/闩锁静息 (LAL 点火后)": {
+    "file": "bci\\condstate3\\outputs\\res62_scalp.npy",
+    "window_ms": [
+      7000,
+      15000
+    ],
+    "true_bb_rms_uv": 0.06515,
+    "true_native_rms_uv": 2.42773,
+    "true_2_20_rms_uv": 0.05593,
+    "mean_interchannel_corr": 0.998,
+    "psd_slope_1_30hz": 0.13
+  },
+  "SSVEP 14 Hz 闪烁 (naive)": {
+    "file": "bci\\condstate13\\outputs\\ssvep_naive_scalp.npy",
+    "window_ms": [
+      3500,
+      10500
+    ],
+    "true_bb_rms_uv": 0.00218,
+    "true_native_rms_uv": 0.35854,
+    "true_2_20_rms_uv": 0.00152,
+    "mean_interchannel_corr": 0.961,
+    "psd_slope_1_30hz": -0.92
+  },
+  "_meta": {
+    "gain_display": 300.0,
+    "fs_native_hz": 1000.0,
+    "fs_device_hz": 250.0,
+    "device_chain": "0.5-100 Hz Butterworth(4) 带通 + ÷4 重采样",
+    "electrodes": "17 电极 capped-Fibonacci (通道 0 = 眼轴锚点)",
+    "note": "人脑背景行为示意合成(1/f², 2-20 Hz RMS 11.4 µV), 非本仿真产物; 蝇信号按真实幅值叠加"
+  }
+}
