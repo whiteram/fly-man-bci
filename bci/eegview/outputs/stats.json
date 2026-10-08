@@ -9,6 +9,9 @@
     "true_native_rms_uv": 0.82067,
     "true_2_20_rms_uv": 0.00128,
     "mean_interchannel_corr": 0.949,
+    "car_rms_uv": 0.00042,
+    "car_common_mode_frac": 0.9513,
+    "car_mean_interchannel_corr": -0.061,
     "psd_slope_1_30hz": -0.87
   },
   "高锁静息 (DA1@1600 成锁后)": {
@@ -21,6 +24,9 @@
     "true_native_rms_uv": 2.04051,
     "true_2_20_rms_uv": 0.00891,
     "mean_interchannel_corr": 0.873,
+    "car_rms_uv": 0.00336,
+    "car_common_mode_frac": 0.87,
+    "car_mean_interchannel_corr": -0.061,
     "psd_slope_1_30hz": -0.39
   },
   "残留/闩锁静息 (LAL 点火后)": {
@@ -33,6 +39,9 @@
     "true_native_rms_uv": 2.42773,
     "true_2_20_rms_uv": 0.05593,
     "mean_interchannel_corr": 0.998,
+    "car_rms_uv": 0.00345,
+    "car_common_mode_frac": 0.9965,
+    "car_mean_interchannel_corr": -0.062,
     "psd_slope_1_30hz": 0.13
   },
   "SSVEP 14 Hz 闪烁 (naive)": {
@@ -45,6 +54,9 @@
     "true_native_rms_uv": 0.35854,
     "true_2_20_rms_uv": 0.00152,
     "mean_interchannel_corr": 0.961,
+    "car_rms_uv": 0.00042,
+    "car_common_mode_frac": 0.9618,
+    "car_mean_interchannel_corr": -0.06,
     "psd_slope_1_30hz": -0.92
   },
   "_meta": {

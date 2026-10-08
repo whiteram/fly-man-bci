@@ -19,7 +19,8 @@
 
 用法 (conda ffbm, repo root):
     python bci/eegview/make_fig.py
-输出: outputs/eegwave_250hz.png, outputs/psd_250hz.png, outputs/stats.json
+输出: outputs/eegwave_250hz.png, outputs/eegwave_250hz_car.png,
+      outputs/psd_250hz.png, outputs/stats.json
 """
 import json
 from pathlib import Path
@@ -152,6 +153,9 @@ def main():
         arms.append((label, path, t0, t1, color, x, true_bb))
         cc = np.corrcoef(x.T)
         iu = np.triu_indices(x.shape[1], 1)
+        xc = x - x.mean(axis=1, keepdims=True)      # CAR
+        cc_car = np.corrcoef(xc.T)
+        cm_frac = 1.0 - (xc ** 2).mean() / (x ** 2).mean()
         f, p = welch(x, fs=FS_D, nperseg=min(len(x), 2048), axis=0)
         pm = np.median(p, axis=1)
         m = (f >= 1.0) & (f <= 30.0)
@@ -165,11 +169,18 @@ def main():
                 band_rms(e[t0:t1] / GAIN, 2.0, 20.0))), 5),
             "mean_interchannel_corr": round(
                 float(cc[iu].mean()), 3),
+            "car_rms_uv": round(float(np.median(np.sqrt(
+                (xc ** 2).mean(axis=0)))) / GAIN, 5),
+            "car_common_mode_frac": round(float(cm_frac), 4),
+            "car_mean_interchannel_corr": round(
+                float(cc_car[iu].mean()), 3),
             "psd_slope_1_30hz": round(float(slope), 2),
         }
         print(f"{label:28s} 真实bbRMS={true_bb:7.4f} µV "
               f"2-20Hz={stats[label]['true_2_20_rms_uv']:7.4f} µV "
               f"ch-corr={stats[label]['mean_interchannel_corr']:+.2f} "
+              f"CAR共模={cm_frac * 100:5.1f}% "
+              f"CAR后corr={stats[label]['car_mean_interchannel_corr']:+.2f} "
               f"slope={stats[label]['psd_slope_1_30hz']:+.1f}")
 
     # ---- 图 1: 设备视角波形页 -------------------------------------
@@ -243,6 +254,48 @@ def main():
     fig.savefig(OUT / "eegwave_250hz.png", dpi=150)
     plt.close(fig)
 
+    # ---- 图 1b: 全局平均参考 (CAR) — 通道间差异 --------------------
+    # CAR: 每时刻减 17 导均值, 去掉共模成分; 剩余即导联场差异。
+    fig = plt.figure(figsize=(13.5, 13.6))
+    gs = fig.add_gridspec(5, 1, height_ratios=[1, 1, 1, 1, 0.8],
+                          hspace=0.46, left=0.075, right=0.985,
+                          top=0.958, bottom=0.052)
+    for r, (label, path, t0, t1, color, x, true_bb) in enumerate(arms):
+        xc = x - x.mean(axis=1, keepdims=True)
+        car_uv = float(np.median(np.sqrt(
+            (xc ** 2).mean(axis=0)))) / GAIN
+        ax = fig.add_subplot(gs[r])
+        plot_stack(ax, xc, f"{label} — CAR 平均参考后",
+                   f"0.4-3.5 nV 级: {car_uv:.5f} µV"
+                   f" (原参考 {true_bb:.4f} µV)", t0)
+    # 底行: 每导 CAR RMS 剖面 (相对 17 导均值) — 空间增益花纹
+    ax = fig.add_subplot(gs[4])
+    ch = arms[0][5].shape[1]
+    for label, path, t0, t1, color, x, true_bb in arms:
+        xc = x - x.mean(axis=1, keepdims=True)
+        prof = np.sqrt((xc ** 2).mean(axis=0))
+        ax.plot(range(ch), prof / prof.mean(), "o-", ms=3.5, lw=1.1,
+                color=color, label=label)
+    ax.axhline(1.0, color="0.6", ls="--", lw=0.8)
+    ax.set_xticks(range(ch))
+    ax.set_xticklabels([f"E{k}" for k in range(ch)], fontsize=7)
+    ax.tick_params(labelsize=7)
+    ax.set_ylabel("每导 CAR RMS / 均值", fontsize=8.5)
+    ax.set_xlabel("电极 (E0 = 眼轴锚点)", fontsize=8)
+    ax.legend(fontsize=7, frameon=False)
+    ax.grid(True, color="0.9", lw=0.4)
+    ax.set_title("通道间差异 — CAR 后每导 RMS 剖面：偏离 1.0 的幅度"
+                 "即该导联场对共模的偏离 (符号翻转=低于平均增益)",
+                 fontsize=8.5, loc="left")
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    fig.suptitle(
+        "全局平均参考 (CAR) 视图 — 通道间差异 (共模已减除, "
+        "各行灵敏度独立缩放, 真实值见标注)",
+        fontsize=11, y=0.99)
+    fig.savefig(OUT / "eegwave_250hz_car.png", dpi=150)
+    plt.close(fig)
+
     # ---- 图 2: 频谱 ------------------------------------------------
     fig, ax = plt.subplots(figsize=(9, 5.6), constrained_layout=True)
     bands = [(1, 4, "δ"), (4, 8, "θ"), (8, 13, "α"), (13, 30, "β"),
@@ -287,6 +340,7 @@ def main():
     (OUT / "stats.json").write_text(
         json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nfigures -> {OUT / 'eegwave_250hz.png'}")
+    print(f"          {OUT / 'eegwave_250hz_car.png'}")
     print(f"          {OUT / 'psd_250hz.png'}")
     print(f"stats   -> {OUT / 'stats.json'}")
 
