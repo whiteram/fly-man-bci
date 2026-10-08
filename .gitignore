@@ -181,3 +181,5 @@ bci/condstate13/outputs/*.npy
 bci/condstate13/outputs/*.npz
 bci/condstate13/outputs/*.json
 bci/condstate13/outputs/_trial_*/
+# live browser view scratch (re-exportable, big binaries)
+viz_live/
