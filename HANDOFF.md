@@ -4,6 +4,27 @@
 > 本文档包含新会话所需的**全部**上下文：科学背景、数据事实、代码 API、
 > 实验记录（含修过的 bug）、下一步计划、领域调研结论。读完本文即可无缝继续。
 >
+> **2026-11-15 更新（bci 战役收官）**：交接日期之后完成了 bci/ 全部实验弧
+> 战役（~50 弧，docs/STATUS.md 行 44-89 为权威账目）。新会话只需读三个
+> 入口，本文其余部分不必重读：
+> ① **docs/MEASURABILITY.md**——项目主论点总账（可测性六层闭环 + 解除
+> 条件四轴全封 + 解剖基础），一句话：蝇脑状态信号亚 µV（1-21 nV）vs
+> 11.4 µV 人脑背景，干净仿真内信息充足（~300 bit/签名寿命）但可实现
+> 读出速率在 0.1 µV 处精确归零——缺口是源几何与背景的性质，非工程
+> 问题；bci/README.md 为逐弧索引；根 README 的"判定"节为双语摘要。
+> ② **实验配方事实**：状态实验配方=(chem 目录条目+CLI 标志) 对，调度在
+> CLI 不在条目（pitfall #15）；化学目录 viz/data/chem_inputs.json 按弧追加
+> （现 123 条）；dangate2 标定（lr −2e-7/w0 0.03/kcm 0.015/mbmd 178/
+> gate 150,0.02,400）；conda ffbm python
+> （C:/Software/Devel/Anaconda3/envs/ffbm/python.exe）；GPU 链 ~3 min/20 s
+> 试次、300 s 长跑 ~45-52 min；类型级 pop-rate 只覆盖 CEN（cb_*），
+> 视叶 ol_intrinsic 只能经 viz_data.rates 的 R/L/MID/T4/T5 层速率观测。
+> ③ **运维陷阱**已沉淀在 memory（sim-ops-pitfalls.md，20 条：pop npz 命名
+> 不一致、lfilter 零初始态瞬态、s/ms 索引、长命服务器用 detached
+> PowerShell + 8080 端、gitignore 不影响已跟踪文件等）。viz 公开演示已
+> 换代为 cs21locknt 锁态 20 s（旧视觉 demo 在 git 历史 9aff74c 可取回）；
+> 本机演示服务器 detached PID 46556（8080）。
+>
 > **2026-09-16 更新**：实验历史与数据事实仍然有效，但交接日期之后新增了
 > 三块本文未记录的能力，以 docs/ 为权威：
 > ① 全 CNS 装配为 **150,601 神经元**（覆盖口径 = 注释表中全部 Traced 且有
