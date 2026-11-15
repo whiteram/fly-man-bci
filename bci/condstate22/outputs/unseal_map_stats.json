@@ -1,0 +1,58 @@
+{
+  "geometry": {
+    "r_now_mm": 90.62,
+    "fly_shift_um": 0.0,
+    "note": "蝇在头球正心——深源最坏位; 近全共模(cs17) 部分是中心放置的构造结果",
+    "r_subskin_mm": 17.5
+  },
+  "states": {
+    "qlock": {
+      "gap": 54.28571428571429,
+      "bg_div": 54.3,
+      "silence_frac": 0.9997,
+      "src_coherent_x": 54.3,
+      "src_coherent_n": 7600000,
+      "src_incoherent_x": 2947.0,
+      "dist_div": 7.37,
+      "r_needed_mm": 12.3,
+      "time_x": 2758.0
+    },
+    "hlock": {
+      "gap": 48.92703862660944,
+      "bg_div": 48.9,
+      "silence_frac": 0.9996,
+      "src_coherent_x": 48.9,
+      "src_coherent_n": 6849785,
+      "src_incoherent_x": 2394.0,
+      "dist_div": 6.99,
+      "r_needed_mm": 13.0,
+      "time_x": 2239.0
+    },
+    "resid": {
+      "gap": 4.9565217391304355,
+      "bg_div": 5.0,
+      "silence_frac": 0.9593,
+      "src_coherent_x": 5.0,
+      "src_coherent_n": 693913,
+      "src_incoherent_x": 25.0,
+      "dist_div": 2.23,
+      "r_needed_mm": 40.7,
+      "time_x": 23.0
+    }
+  },
+  "verdict": {
+    "resid": "距离轴可解（需求 ÷2.23 → r=40.6 mm ≤ 贴骨 25-34×增益内）；源轴也可（×4.96 相干）",
+    "hlock": "距离轴边缘（r=13.0 mm 略超皮下可达下限）；源轴 ×49 相干",
+    "qlock": "四轴均不可达（背景÷54/距离÷7.4/r=12.3 mm/相干×54）",
+    "time": "全态被封死（×23~×2758 超寿命）"
+  },
+  "amplification_paradox": {
+    "fly": 140000.0,
+    "needed_range": [
+      700000.0,
+      7600000.0
+    ],
+    "human_cortex": 86000000000.0,
+    "note": "解除只需 5-54× 相干源——蝇距可读差一个量级而非四个；但那是'果蝇脑在人头皮下'思想实验的终点（再放大就不再是蝇脑）"
+  }
+}
