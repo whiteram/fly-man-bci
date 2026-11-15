@@ -330,6 +330,13 @@ def main():
                          "floor spectral attribution). Read-only hook "
                          "on the step masks; separate RNG; never "
                          "changes the trial stream")
+    ap.add_argument("--v-trace", type=int, default=None,
+                    help="sample N neurons per population and dump "
+                         "their membrane-potential traces at 1 ms "
+                         "(_v_trace.npz, per-pop (T,n_samp) f32) -- "
+                         "the subthreshold instrument (bci/condstate37 "
+                         "v-spectrum attribution). Read-only; same "
+                         "sample ids as --spike-trace; bitwise-safe")
     ap.add_argument("--seed", type=int, default=None,
                     help="override the trial RNG seed (params: "
                     "stimulus.seed): varies delay jitter + OU background "
@@ -2010,20 +2017,25 @@ def main():
         # read-only hook on the step masks (masks live between steps);
         # separate rng (never touches the trial stream); flag-gated.
         _spike_ctx = None
-        if args.spike_trace:
+        if args.spike_trace or args.v_trace:
             import cupy as _cp
             _srng = np.random.default_rng(20261116)
             _names = list(trial._mask_offsets)
             _spike_ctx = {"names": _names, "ev": {}}
             _dt_ms = float(fp.DT_MS)
+            _nsamp = args.spike_trace or args.v_trace
             for _nm in _names:
                 _n = trial.pops[_nm].n
                 _ids = np.sort(_srng.choice(
-                    _n, min(args.spike_trace, _n), replace=False))
+                    _n, min(_nsamp, _n), replace=False))
                 _spike_ctx[_nm] = {
                     "ids": _ids,
                     "idx": _cp.asarray(_ids, dtype=np.int64),
                     "t": [], "i": []}
+                if args.v_trace:
+                    _spike_ctx[_nm]["v"] = np.zeros(
+                        (int(T_END / _dt_ms) + 1,
+                         len(_ids)), np.float32)
             _prev_hook = _hook
 
             def _hook(_k, _t, _prev=_prev_hook):
@@ -2032,11 +2044,15 @@ def main():
                 for _nm in _spike_ctx["names"]:
                     _c = _spike_ctx[_nm]
                     _hit = _cp.asnumpy(trial._mask(_nm)[_c["idx"]])
-                    _nz = np.flatnonzero(_hit)
-                    if _nz.size:
-                        _c["t"].append(np.full(_nz.size,
-                                               _k * _dt_ms, np.float32))
-                        _c["i"].append(_nz.astype(np.int32))
+                    if args.spike_trace:
+                        _nz = np.flatnonzero(_hit)
+                        if _nz.size:
+                            _c["t"].append(np.full(
+                                _nz.size, _k * _dt_ms, np.float32))
+                            _c["i"].append(_nz.astype(np.int32))
+                    if args.v_trace:
+                        _c["v"][_k] = _cp.asnumpy(
+                            trial.pops[_nm].v[_c["idx"]])
         trial.run(lambda t: I_LUM * (luminance(t) - 1.0),
                   int(T_END / fp.DT_MS), on_record=record_gpu,
                   chem_fn=chem_fn, mod_fn=mod_fn, hook=_hook)
@@ -2045,16 +2061,21 @@ def main():
             for _nm in _spike_ctx["names"]:
                 _c = _spike_ctx[_nm]
                 _out[f"{_nm}_ids"] = _c["ids"].astype(np.int64)
-                _out[f"{_nm}_t"] = (np.concatenate(_c["t"])
-                                    if _c["t"] else
-                                    np.zeros(0, np.float32))
-                _out[f"{_nm}_i"] = (np.concatenate(_c["i"])
-                                     if _c["i"] else
-                                     np.zeros(0, np.int32))
-            np.savez(OUT / "_spike_trace.npz", **_out)
-            print(f"spike-trace: " + ", ".join(
-                f"{_nm} {len(_out[f'{_nm}_t'])} events"
-                for _nm in _spike_ctx["names"]), flush=True)
+                if args.spike_trace:
+                    _out[f"{_nm}_t"] = (np.concatenate(_c["t"])
+                                        if _c["t"] else
+                                        np.zeros(0, np.float32))
+                    _out[f"{_nm}_i"] = (np.concatenate(_c["i"])
+                                         if _c["i"] else
+                                         np.zeros(0, np.int32))
+                if args.v_trace:
+                    _out[f"{_nm}_v"] = _c["v"]
+            _fname = "_spike_trace.npz" if args.spike_trace \
+                else "_v_trace.npz"
+            if args.spike_trace and args.v_trace:
+                _fname = "_trace_both.npz"
+            np.savez(OUT / _fname, **_out)
+            print(f"trace -> {OUT / _fname}", flush=True)
         if args.std_gates:
             # bci/sleep3 diagnostics: the post-run depletion state of
             # every std-gated pool (d distribution + gated-current

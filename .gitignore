@@ -330,3 +330,7 @@ bci/sleep3/outputs/buggy-norefund/
 viz/data/server.log
 viz/data/server_err.log
 viz/data_tmp/
+
+# v-trace raw 1 kHz dump (too big for GitHub; compact 250 Hz version tracked)
+bci/condstate37/outputs/_v_trace.npz
+bci/condstate37/outputs/_trial_*/

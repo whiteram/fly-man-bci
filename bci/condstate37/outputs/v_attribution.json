@@ -1,0 +1,69 @@
+{
+  "floor_expo": -0.93,
+  "floor_peak": [
+    35.8,
+    22.0
+  ],
+  "pops": {
+    "R": {
+      "v_mean_expo": -2.89,
+      "v_peak": [
+        13.9,
+        7.4
+      ],
+      "n_neuron": 128,
+      "neuron_expo_med": -2.79,
+      "neuron_expo_p10": -2.9,
+      "neuron_expo_p90": -2.69,
+      "v_rms_mv": 69.35
+    },
+    "L": {
+      "v_mean_expo": -3.11,
+      "v_peak": [
+        17.1,
+        8.8
+      ],
+      "n_neuron": 128,
+      "neuron_expo_med": -3.09,
+      "neuron_expo_p10": -3.22,
+      "neuron_expo_p90": -2.97,
+      "v_rms_mv": 25.11
+    },
+    "MID": {
+      "v_mean_expo": -0.28,
+      "v_peak": [
+        24.4,
+        5.7
+      ],
+      "n_neuron": 128,
+      "neuron_expo_med": -1.51,
+      "neuron_expo_p10": -2.8,
+      "neuron_expo_p90": 1.33,
+      "v_rms_mv": 60.29
+    },
+    "T45": {
+      "v_mean_expo": -1.1,
+      "v_peak": [
+        23.4,
+        6.5
+      ],
+      "n_neuron": 128,
+      "neuron_expo_med": -0.97,
+      "neuron_expo_p10": -2.67,
+      "neuron_expo_p90": -0.65,
+      "v_rms_mv": 58.32
+    },
+    "OLR": {
+      "v_mean_expo": -1.47,
+      "v_peak": [
+        10.5,
+        7.0
+      ],
+      "n_neuron": 128,
+      "neuron_expo_med": -2.81,
+      "neuron_expo_p10": -2.94,
+      "neuron_expo_p90": -2.68,
+      "v_rms_mv": 63.5
+    }
+  }
+}
