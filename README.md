@@ -76,6 +76,27 @@ out. The fly-man's human body is not cosmetic; it is what makes his EEG possible
 - The pipeline passes the fly-scale benchmarks first: a flash at the eye yields the
   textbook Drosophila ERG.
 
+### The verdict — his BCI is sealed (STATUS rows 71–84)
+
+The definitive account lives in **[docs/MEASURABILITY.md](docs/MEASURABILITY.md)**
+(Chinese, with figures; the bullets above are era-specific benchmark numbers).
+The closure, in one pass:
+
+- **His scalp signals are sub-µV** (1–21 nV band RMS across brain states) against
+  the ~11.4 µV human background — a 500–10,000× gap.
+- **The state channel carries ~0 bit at the background's level**: inside the clean
+  sim it is information-rich (~300 bit per signature lifetime, 96% state
+  discrimination), but the achievable rate hits exactly zero already at 0.1 µV.
+- **Integration cannot buy it back**: d'=2 needs 18.7 h–2,289 h against signature
+  lifetimes of minutes (336 s measured for the high lock; ≥3,000 s for the deeper
+  states — the plastic write rate sets the lifetime).
+- **Spatial filtering cannot either**: the signal is 96–99.8% common mode —
+  anatomically grounded (the active engines are compact mid-radius subpopulations
+  whose centroids lie within ~6 mm), so every montage removes signal with noise.
+- **No unseal axis exists inside the thought experiment** (background, time,
+  amplification and distance all sealed — the amplification paradox: unsealing is
+  only 5–54× of coherent source away, but supplying it ends the experiment).
+
 ## Repository layout
 
 ```
