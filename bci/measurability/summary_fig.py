@@ -39,8 +39,20 @@ B17 = json.loads((ROOT / "bci/condstate17/outputs/spatial_stats.json")
                  .read_text(encoding="utf-8"))
 B18 = json.loads((ROOT / "bci/condstate18/outputs/capacity_stats.json")
                  .read_text(encoding="utf-8"))
+# cs20/21 修正: 各态实测 τ_sig 与修正后 σ* (cs16 json 保留历史值)
+B20 = json.loads((ROOT / "bci/condstate20/outputs"
+                  / "stability_resid_stats.json").read_text(
+                      encoding="utf-8"))
+B21 = json.loads((ROOT / "bci/condstate21/outputs"
+                  / "stability_qlock_stats.json").read_text(
+                      encoding="utf-8"))
+TAU = {"qlock": B21["tau_sig_qlock_s"], "hlock": 336.0,
+       "resid": B20["tau_sig_resid_s"]}
+STAR = {"qlock": round(B21["sigma_star_new_uv"], 2), "hlock":
+        B16["sigma_star_uv"]["hlock"], "resid":
+        round(B20["sigma_star_new_uv"], 2)}
 
-TAU_SIG = B16["tau_sig_s"]
+TAU_SIG = B16["tau_sig_s"]   # 历史值 336 (hlock); 各态修正见 TAU
 B_BW, DPRIME = 18.0, 2.0
 SIG_BG = 11.4
 
@@ -59,9 +71,9 @@ def main():
         ("监测器膝点 2s (cs14)", 0.005, "knee"),
         ("空间最优膝点 hlock (cs17)", 0.018, "knee"),
         ("空间最优膝点 resid (cs17)", 0.057, "knee"),
-        ("σ* qlock (cs16)", B16["sigma_star_uv"]["qlock"], "knee"),
-        ("σ* hlock (cs16)", B16["sigma_star_uv"]["hlock"], "knee"),
-        ("σ* resid (cs16)", B16["sigma_star_uv"]["resid"], "knee"),
+        ("σ* qlock (cs16+21 τ修正)", STAR["qlock"], "knee"),
+        ("σ* hlock (cs16)", STAR["hlock"], "knee"),
+        ("σ* resid (cs16+20 τ修正)", STAR["resid"], "knee"),
         ("实验室级放大器噪声", 0.1, "ref"),
         ("项目人脑背景模型", 11.4, "ref"),
     ]
@@ -79,14 +91,14 @@ def main():
     ax.set_xlim(1e-4, 40)
     ax.axvline(SIG_BG, color="k", ls=":", lw=1.2)
     ax.set_xlabel("µV (2-20 Hz RMS)", fontsize=8)
-    ax.set_title("幅值阶梯：全部可读阈值聚在 0.003-0.8 µV；\n"
-                 "不可约参考（人脑背景 11.4）差 15-3600×", fontsize=9)
+    ax.set_title("幅值阶梯：全部可读阈值聚在 0.003-2.3 µV；\n"
+                 "不可约参考（人脑背景 11.4）差 5-3600×", fontsize=9)
     ax.grid(True, axis="x", which="both", color="0.93")
     from matplotlib.lines import Line2D
     ax.legend(handles=[Line2D([], [], color=cmap[g], marker="o", ls="-",
                               label=t) for g, t in
                        (("sig", "信号（态-态）"), ("knee", "可读阈值"),
-                        ("ref", "参考电平"))], fontsize=7, loc="lower right")
+                        ("ref", "参考电平"))], fontsize=7, loc="upper right")
 
     # ---- B. 积分-漂移不相容 ------------------------------------------
     ax = axes[0][1]
@@ -99,19 +111,21 @@ def main():
                   / B_BW, color=c, label=f"{tag}: s={s_*1000:.0f} nV")
     ax.plot(sigmas, 2.0 * (sigmas / 0.005) ** 2, "--", color="tab:purple",
             label="监测器 √W 外推 (cs14 锚点)")
-    ax.axhline(TAU_SIG, color="k", ls="--", lw=1.3)
-    ax.text(0.0015, TAU_SIG * 1.25, f"签名寿命 τ_sig={TAU_SIG:.0f} s "
-            "(cs15 可塑性漂移)", fontsize=7.5)
+    # 各态实测寿命线 + 曲线与其寿命交点 (=修正后 σ*, cs20/21)
+    for tag, c in colors.items():
+        ax.axhline(TAU[tag], color=c, ls=":", lw=0.9, alpha=0.7)
+        ax.plot(STAR[tag], TAU[tag], "*", ms=11, color=c, zorder=5)
+    ax.text(0.0015, 336 * 1.5, "τ(hlock)=336s", fontsize=7,
+            color="tab:green")
+    ax.text(0.0015, 2988 * 1.5, "τ(qlock)~2988s / τ(resid)~2948s "
+            "(外推下限)", fontsize=7, color="0.35")
     ax.axvline(SIG_BG, color="k", ls=":", lw=1.2)
-    ax.axhspan(TAU_SIG, 1e9, color="0.92", zorder=0)
-    ax.text(0.05, 3e4, "积分需求 > 签名寿命\n（原理上不可行）",
-            fontsize=8, color="0.35")
     ax.set_ylim(1e-2, 1e9)
     ax.set_xlabel("背景 2-20 Hz RMS (µV)", fontsize=8)
     ax.set_ylabel("d'=2 所需积分 (s)", fontsize=8)
     ax.legend(fontsize=7, loc="upper left")
-    ax.set_title("积分-漂移不相容 (cs16)：11.4 µV 需 18.7 h~2289 h，\n"
-                 "τ_sig 内监测器膝点只到 0.065 µV", fontsize=9)
+    ax.set_title("积分-漂移不相容 (cs16+20/21)：11.4 µV 需 18.7~2289 h\n"
+                 "vs 各态实测寿命（★=曲线∩寿命=修正 σ*）", fontsize=9)
     ax.grid(True, which="both", color="0.93")
 
     # ---- C. 空间膝点 ---------------------------------------------------
@@ -153,7 +167,7 @@ def main():
     ax.axhline(1.0, color="0.6", ls="--", lw=0.8)
     ax.axvline(SIG_BG, color="k", ls=":", lw=1.2)
     ax.axhspan(-0.1, 0.08, color="tab:red", alpha=0.12)
-    ax.text(0.02, -0.06, "I = 0（0.1 µV 起精确归零）", fontsize=7,
+    ax.text(1.3e-4, -0.09, "I = 0（0.1 µV 起精确归零）", fontsize=7,
             color="tab:red")
     ax.set_xlabel("背景 2-20 Hz RMS (µV)", fontsize=8)
     ax.set_ylabel("I(S; X) (bit / 2 s 窗)", fontsize=8)
@@ -162,9 +176,9 @@ def main():
                  "11.4 µV 下 I=0.000 bit", fontsize=9)
     ax.grid(True, which="both", color="0.93")
 
-    fig.suptitle("变蝇人 可测性边界总账——六弧闭环（事件 cs12 / 状态 cs14 / "
-                 "寿命 cs15 / 积分 cs16 / 空间 cs17 / 容量 cs18）",
-                 fontsize=12)
+    fig.suptitle("变蝇人 可测性边界总账——闭环与修正（事件 cs12 / 状态 cs14 / "
+                 "寿命 cs15+20+21 / 积分 cs16 / 空间 cs17 / 容量 cs18；"
+                 "解除条件 cs22 / 解剖 cs23）", fontsize=12)
     fig.savefig(OUT / "measurability_summary.png", dpi=150)
     plt.close(fig)
     print(f"-> {OUT / 'measurability_summary.png'}")
