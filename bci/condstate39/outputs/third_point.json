@@ -1,0 +1,20 @@
+{
+  "scalp_expo": 0.05,
+  "pops": {
+    "MID": {
+      "naive": -0.28,
+      "hlock": -0.24,
+      "resid": -0.24
+    },
+    "T45": {
+      "naive": -1.1,
+      "hlock": -1.05,
+      "resid": -1.07
+    },
+    "OLR": {
+      "naive": -1.47,
+      "hlock": -1.38,
+      "resid": -1.47
+    }
+  }
+}
