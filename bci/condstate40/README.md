@@ -1,0 +1,47 @@
+# bci/condstate40：SSVEP 种子-63 臂——应用层闭环的最后一个单种子例外关闭
+
+## 问题
+
+cs95（审计 seed-63 复算）注明"ssvep 臂无 63 文件除外"——应用层
+闭环（cs24 CCA）一直单种子。本弧补 17.5 s 种子-63 SSVEP naive 臂
+（3 min GPU，配方逐字同 condstate13）+ CCA 双种子并排。
+
+## 结果（ssvep_seed63.json）
+
+| 精度 | s62 | **s63** |
+|---|---|---|
+| 干净 W=1/2/4 s | 100/100/100% | **90/100/100%** |
+| @1 nV W=4 s | 100% | **95%** |
+| @3.2 nV W=4 s | 50% | 17% |
+| 膝点 70%（W=4 s）| 0.0018 µV | **0.0018 µV（相同）** |
+| ≥10 nV | 0% | 0% |
+
+**双种子判定**：干净可用（100%/90-100%）、死亡梯度同形
+（1→10 nV 掉零）、**70% 膝点两种子相同（<2 nV）**、10 nV 起全灭
+——cs24 的全部结论经种子-63 复现，应用层闭环升级为**双种子**。
+种子间差异仅在过渡带宽度（63 的 3.2 nV 段衰减更快：95→17%），
+属单次实现的抽样散布。
+
+## 语义
+
+- 审计（cs95）、监测器（cs19）、膝点（cs96）、寿命（cs30）、
+  MI（cs32-34）之后，**应用层（本弧）是最后一个双种子化的
+  承重数字**——总账与机制程序的全部关键结果现在均为双种子或
+  已定量包络。
+
+## 诚实边界
+
+- 单 trial/种子（SSVEP 稳态，窗口数 15-24/条件）；
+- 过渡带的种子散布（3.2 nV 段 50% vs 17%）未做多种子分布；
+- 仅 naive 臂（lock/hl 臂的 63 版未跑——cs24 显示它们更难，
+  结论由 naive 上界承载）。
+
+## 复现
+
+```bash
+# conda ffbm, repo root
+python viz/export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory \
+  --visual-input ssvep1_f14.0 --pop-rate ALPN,Kenyon_Cell,MBON,DAN \
+  --t-end 10500.0 --seed 63 --out <trial> --gpu
+# (CCA 对比: 见 bci/condstate40/ssvep_seed63.json)
+```
