@@ -1,0 +1,10 @@
+{
+ "naive_300s": {
+  "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+  "chem": null,
+  "visual": "dark",
+  "dur_ms": 300000.0,
+  "seed": 62,
+  "question": "naive MI \u8bda\u5b9e\u5316 + \u5e95 300 s \u7a33\u5b9a\u6027/\u5bff\u547d\u4e0b\u754c"
+ }
+}

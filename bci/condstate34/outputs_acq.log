@@ -1,0 +1,21 @@
+[acquire] nll62: dark no-chem t_end 300 s
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+pop-rate: ALPN[680], Kenyon_Cell[4050], MBON[96], DAN[340], CX[2944], lLN1_bc[30]
+kernel cache: HIT kernels-57786d43fc624ab697bf.npz (1.0 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+simulating 300.0 s ...
+GPU forward buffers: 256 records, 1330 MB on device
+pop-rate (1-2 s, Hz/neuron): ALPN 0.00, Kenyon_Cell 0.00, MBON 0.00, DAN 0.00, CX 0.00, lLN1_bc 0.00
+biology loop: 2113 s (300000 records)
+phi_scalp checksum: L2=1.850749e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate34\outputs\_trial_nll62\_debug_phi_scalp.npy)
+background EEG: fly signal 0.00 uV vs bg 11.19 uV at 156 deg -> d'=2 needs ~50006072 trials (band 2-20 Hz: ~413176907)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate34\outputs\_trial_nll62\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate34\outputs\_trial_nll62\viz_data.json (151.4 MB)
+[acquire] nll62: done 35.5 min
+R [0.0, 0.0, 0.0]
+L [100.0, 100.0, 100.0]
+MID [18.18, 18.19, 18.17]
+T4 [6.86, 6.84, 6.86]
+T5 [1.39, 1.39, 1.39]
