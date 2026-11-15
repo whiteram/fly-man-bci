@@ -1,0 +1,28 @@
+[acquire] hll63: cs4hlnt seed 63 t_end 300 s
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+pop-rate: ALPN[680], Kenyon_Cell[4050], MBON[96], DAN[340]
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+kernel cache: HIT kernels-d293c011c202b687c74b.npz (1.0 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 1600 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 300.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0369 min 0.0300 floor-hit 0/33398 | elig max 41.7130
+pop-rate (1-2 s, Hz/neuron): ALPN 99.57, Kenyon_Cell 3.95, MBON 6.09, DAN 0.32
+dan-gate: trace 600000 steps -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate30\outputs\_trial_hll63\_dan_trace.npy | r max 1.2 Hz, r0 0.00 Hz, mod max 0.025, mod integral 5103.4 ms
+biology loop: 3139 s (300000 records)
+phi_scalp checksum: L2=4.637686e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate30\outputs\_trial_hll63\_debug_phi_scalp.npy)
+background EEG: fly signal 0.03 uV vs bg 11.10 uV at 153 deg -> d'=2 needs ~613088 trials (band 2-20 Hz: ~5285447)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate30\outputs\_trial_hll63\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate30\outputs\_trial_hll63\viz_data.json (149.5 MB)
+[acquire] hll63: done in 52.6 min
+ALPN [99.75, 98.79, 100.34]
+Kenyon_Cell [3.93, 3.93, 3.93]
+MBON [5.82, 6.52, 7.57]
+DAN [0.34, 0.34, 0.33]

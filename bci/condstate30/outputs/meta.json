@@ -1,0 +1,14 @@
+{
+ "arms": {
+  "hll63": {
+   "chem": "cs4hlnt",
+   "seed": 63
+  }
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 300000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "cs4hlnt",
+ "calib": "dangate2 (lr -2e-7, w0 0.03, kcm 0.015, mbmd 178, gate 150,0.02,400)",
+ "question": "\u03c4_sig(hlock) \u7684 seed-63 \u590d\u5236\u2014\u2014\u552f\u4e00\u5b9e\u6d4b\u5bff\u547d\u7684\u53cc\u79cd\u5b50\u5316"
+}
