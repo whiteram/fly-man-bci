@@ -1,0 +1,32 @@
+{
+  "det_diff_V": 0.0,
+  "n_windows": 296,
+  "resid_retention": 0.9426,
+  "false_drift": {
+    "qlock": 9,
+    "hlock": 8
+  },
+  "feature_slopes": {
+    "lgRMS_δ": -0.044,
+    "lgRMS_bb": 0.071,
+    "lgRMS_hi": 0.133,
+    "峭度": -0.055,
+    "谱指数": 0.16,
+    "事件率": 0.198,
+    "峰dB": 0.144,
+    "峰Hz": 0.08
+  },
+  "v_sig_SD_per_s": 0.00405,
+  "tau_sig_s63": 741.0,
+  "tau_sig_s62_ref": 2948.0,
+  "w_A_22s": 0.0302,
+  "w_A_300s": 0.03312,
+  "dan_mod_integral_ms": 370.4,
+  "sigma_star_uv_62": 2.3,
+  "sigma_star_uv_63": 1.153,
+  "ALPN_first/mid/last": [
+    102.29,
+    98.11,
+    99.4
+  ]
+}
