@@ -1,0 +1,80 @@
+{
+  "r_extreme_mm": 76.4,
+  "groups": {
+    "ALPN": {
+      "n": 680,
+      "r_med": 21.7,
+      "r_p95": 24.1,
+      "cen_r": 18.7,
+      "ang_spread_deg": 30.7,
+      "rms_spread": 10.7
+    },
+    "Kenyon_Cell": {
+      "n": 4050,
+      "r_med": 19.9,
+      "r_p95": 23.2,
+      "cen_r": 17.3,
+      "ang_spread_deg": 28.8,
+      "rms_spread": 9.6
+    },
+    "MBON": {
+      "n": 96,
+      "r_med": 22.9,
+      "r_p95": 26.2,
+      "cen_r": 17.7,
+      "ang_spread_deg": 39.5,
+      "rms_spread": 13.6
+    },
+    "DAN": {
+      "n": 340,
+      "r_med": 25.2,
+      "r_p95": 25.8,
+      "cen_r": 23.2,
+      "ang_spread_deg": 21.4,
+      "rms_spread": 8.5
+    },
+    "visual": {
+      "n": 28,
+      "r_med": 34.4,
+      "r_p95": 36.0,
+      "cen_r": 15.4,
+      "ang_spread_deg": 71.0,
+      "rms_spread": 30.3
+    },
+    "CX": {
+      "n": 2944,
+      "r_med": 18.2,
+      "r_p95": 23.7,
+      "cen_r": 15.2,
+      "ang_spread_deg": 31.2,
+      "rms_spread": 10.0
+    }
+  },
+  "state_effective": {
+    "naive(视觉底)": {
+      "eff_cen_r": 15.4,
+      "eff_spread": 30.3,
+      "cm_var": 95.1,
+      "cm_pat": null
+    },
+    "qlock": {
+      "eff_cen_r": 18.7,
+      "eff_spread": 10.7,
+      "cm_var": null,
+      "cm_pat": null
+    },
+    "hlock": {
+      "eff_cen_r": 18.7,
+      "eff_spread": 10.7,
+      "cm_var": 87.0,
+      "cm_pat": 95.8
+    },
+    "resid": {
+      "eff_cen_r": 14.6,
+      "eff_spread": 14.7,
+      "cm_var": 99.7,
+      "cm_pat": 99.8
+    }
+  },
+  "note": "云归一: 极端=0.98·R_BRAIN (fit_scale_shift 目标); naive 底的'visual'为代表代理(未记录外周含 AL 局部)"
+}
