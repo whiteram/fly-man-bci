@@ -1,0 +1,43 @@
+{
+  "det_diff_V": 0.0,
+  "n_windows": 296,
+  "hlock_retention": 0.9122,
+  "false_drift": {
+    "qlock": 24,
+    "resid": 2
+  },
+  "zmax_median": 2.19,
+  "zmax_p95": 3.62,
+  "windows_beyond_3sigma": 40,
+  "feature_slope_per_sd_time": {
+    "lgRMS_δ": 0.084,
+    "lgRMS_bb": 0.007,
+    "lgRMS_hi": -0.511,
+    "峭度": 0.015,
+    "谱指数": -0.405,
+    "事件率": -0.379,
+    "峰dB": 0.123,
+    "峰Hz": 0.08
+  },
+  "first60_vs_last60": {
+    "lgRMS_δ": 0.0613,
+    "lgRMS_bb": 0.0131,
+    "lgRMS_hi": -0.1537,
+    "峭度": -2.762,
+    "谱指数": -0.3989,
+    "事件率": -0.6803,
+    "峰dB": 1.0811,
+    "峰Hz": 0.5082
+  },
+  "ALPN_first/mid/last": [
+    98.83,
+    98.25,
+    98.83
+  ],
+  "rhythm_hz_start/mid/end": [
+    7.0,
+    5.5,
+    8.0
+  ],
+  "rhythm_hz_std": 1.92
+}

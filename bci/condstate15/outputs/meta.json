@@ -1,0 +1,14 @@
+{
+ "arms": {
+  "hll62": {
+   "chem": "cs4hlnt",
+   "seed": 62
+  }
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 300000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "cs4hlnt (DA1@1600 [300,600] only)",
+ "calib": "dangate2 (lr -2e-7, w0 0.03, kcm 0.015, mbmd 178, gate 150,0.02,400)",
+ "question": "\u9ad8\u9501\u9759\u606f\u7b7e\u540d 300 s \u5e73\u7a33\u6027 + condstate14 \u76d1\u6d4b\u5668\u65f6\u95f4\u5916\u63a8"
+}

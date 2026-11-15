@@ -89,7 +89,9 @@ def main():
     pop = np.load(OUT / "hll62_pop.npz")
     pop_s = {}
     for g in ("ALPN", "Kenyon_Cell", "MBON", "DAN"):
-        pop_s[g] = np.array([pop[g][int(t0):int(t0) + 2000].mean()
+        # pop 是 1 ms 网格, tc 是秒 -> 索引 ×1000
+        pop_s[g] = np.array([pop[g][int(t0 * 1000):
+                                    int(t0 * 1000) + 2000].mean()
                              for t0 in tc])
     # 30 s 主节律 (共模 PSD 5-40 Hz argmax)
     rfreq, rtimes = [], []
@@ -170,6 +172,7 @@ def main():
     ax.set_xlabel("时间 (s)", fontsize=8)
     ax.set_ylabel("峭度", fontsize=8, color="tab:green")
     ax2.set_ylabel(">4σ 事件/s", fontsize=8, color="tab:brown")
+    ax.set_ylim(0, np.max(X[:, 3]) * 1.12)
     ax.set_title("形态特征轨迹（带=训练期 ±2σ）", fontsize=9)
 
     ax = axes[1][0]
