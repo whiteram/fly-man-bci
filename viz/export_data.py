@@ -348,6 +348,9 @@ def main():
     if args.plastic_dan_gate and not args.gpu:
         ap.error("--plastic-dan-gate requires --gpu (device spike "
                  "readback)")
+    if (args.spike_trace or args.v_trace) and not args.gpu:
+        ap.error("--spike-trace/--v-trace require --gpu (device mask "
+                 "readback; bci/condstate35/37 instruments)")
     if args.plastic_comp_reward and not (
             args.plastic_mb and args.mbon_dan_gain is not None
             and args.plastic_dan_gate):
