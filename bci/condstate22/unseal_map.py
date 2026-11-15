@@ -49,6 +49,10 @@ STATES = {             # s (µV), σ* (µV), τ_sig (s), W_req@11.4 (s)
     "hlock": dict(s=0.00598, star=0.233, tau=336.0, wreq=209 * 3600),
     "resid": dict(s=0.01997, star=2.30, tau=2948.0, wreq=18.7 * 3600),
 }
+# 几何事实（fit_scale_shift 语义 + meta 实证, 2026-11-15 修正）:
+#   SCALE×202 把蝇脑云放大到极端点 0.98·R_BRAIN≈76.4 mm（长轴骑直径
+#   穿头心，宽云居中 shift=0）——思想实验已把脑球填满，**无放置自由度**；
+#   距离轴结构上已用尽（cs22 首版的"正心小源/贴骨增益 25-34×"撤回）。
 
 
 def main():
@@ -69,18 +73,20 @@ def main():
         print(k, rows[k])
 
     res = {
-        "geometry": {"r_now_mm": R_NOW, "fly_shift_um": 0.0,
-                     "note": "蝇在头球正心——深源最坏位; 近全共模"
-                             "(cs17) 部分是中心放置的构造结果",
-                     "r_subskin_mm": R_SUBSKIN},
+        "geometry": {"scale": 202.0, "native_head_r_um": 387.2,
+                     "cloud_extreme_mm": 76.4,
+                     "note": "SCALE×202 把蝇脑云放大到 0.98·R_BRAIN"
+                             "（长轴骑直径穿头心）——脑球已填满, "
+                             "距离轴结构上用尽, 无放置自由度",
+                     "correction": "首版'正心小源 r=90.6/贴骨 25-34×'"
+                                   "判定撤回 (2026-11-15)"},
         "states": rows,
         "verdict": {
-            "resid": "距离轴可解（需求 ÷2.23 → r=40.6 mm ≤ 贴骨 "
-                     "25-34×增益内）；源轴也可（×4.96 相干）",
-            "hlock": "距离轴边缘（r=13.0 mm 略超皮下可达下限）；"
-                     "源轴 ×49 相干",
-            "qlock": "四轴均不可达（背景÷54/距离÷7.4/r=12.3 mm/"
-                     "相干×54）",
+            "resid": "距离轴 ✗ 结构用尽（极端源已至 76.4 mm ≥ 所需 "
+                     "40.7 mm, 而实测 σ* 仍差 5×——1/r² 高估分布式"
+                     "源收益）；源轴 ×5 相干（悖论）",
+            "hlock": "四轴皆封（背景÷49/距离结构用尽/相干×49）",
+            "qlock": "四轴皆封（背景÷54/距离结构用尽/相干×54）",
             "time": "全态被封死（×23~×2758 超寿命）",
         },
         "amplification_paradox": {
@@ -110,17 +116,15 @@ def main():
         ax.scatter(xs, ys, s=70, color=c, zorder=3)
         for x, y, v in zip(xs, ys, vals):
             ax.text(x, y + 0.24, f"{v:g}", ha="center", fontsize=7)
-    ax.axhspan(0.5, 1.5, color="tab:green", alpha=0.07)
-    ax.text(1.5, 1.62, "距离轴可解区（resid）", fontsize=7,
-            color="tab:green", ha="center")
+    ax.axhspan(-0.5, 2.9, color="0.97", zorder=0)
     ax.set_xticks(range(4))
     ax.set_xticklabels([f"{l}倍数\n(log)" for _, l, _ in axx], fontsize=8)
     ax.set_yticks(ys)
     ax.set_yticklabels(tags, fontsize=9)
     ax.set_xlim(-0.6, 3.6)
     ax.set_ylim(-0.5, 2.9)
-    ax.set_title("四轴解除需求（标注=倍数；时间轴全态封死）",
-                 fontsize=9)
+    ax.set_title("四轴解除需求（标注=倍数；时间轴全态封死、"
+                 "距离轴结构用尽）", fontsize=9)
 
     # B. 放大悖论
     ax = axes[1]
@@ -143,7 +147,7 @@ def main():
                  "但再放大就不再是蝇脑", fontsize=9)
     ax.grid(True, axis="x", color="0.93")
 
-    # C. 距离轴几何
+    # C. 几何事实：蝇脑云已填满脑球（修正版）
     ax = axes[2]
     ax.set_aspect("equal")
     ax.axis("off")
@@ -152,31 +156,34 @@ def main():
         a = np.deg2rad(135)
         ax.text(r * np.cos(a) * 0.93, r * np.sin(a) * 0.93, lab,
                 fontsize=7, color="0.35", ha="center", rotation=45)
+    # 源云: 长轴骑直径, 极端 76.4 mm, 中部密 (示意 250 点)
+    rng = np.random.default_rng(3)
+    t_ = rng.uniform(-1, 1, 250)
+    rad_off = rng.normal(0, 9, 250) * (1 - t_ ** 2) ** 0.5
+    ang = rng.uniform(0, 2 * np.pi, 250)
+    ax.scatter(76.4 * t_ * np.cos(np.deg2rad(8))
+               + rad_off * np.cos(ang),
+               76.4 * t_ * np.sin(np.deg2rad(8))
+               + rad_off * np.sin(ang),
+               s=2.5, color="tab:red", alpha=0.55, lw=0)
+    ax.plot([-76.4, 76.4], [-76.4 * np.tan(np.deg2rad(8)),
+                            76.4 * np.tan(np.deg2rad(8))],
+            color="0.8", lw=0.5)
     th = np.deg2rad(55)
-    ax.plot([0, 90.62 * np.cos(th)], [0, 90.62 * np.sin(th)], "-",
-            color="tab:blue", lw=1.4)
     ax.plot(90.62 * np.cos(th), 90.62 * np.sin(th), "o", ms=5,
             color="tab:blue")
-    ax.plot(0, 0, "s", ms=8, color="tab:blue")
-    ax.text(-92, -62, "蝇(现): 正心 r=90.6\n深源最坏位（等距→共模）",
-            fontsize=7, color="tab:blue")
-    th2 = np.deg2rad(15)
-    ax.plot([0, 40.7 * np.cos(th2)], [0, 40.7 * np.sin(th2)], "--",
-            color="tab:green", lw=1.2)
-    ax.plot(40.7 * np.cos(th2), 40.7 * np.sin(th2), "s", ms=7,
-            color="tab:green")
-    ax.text(46, 24, "resid 需 r≤40.7", fontsize=7, color="tab:green")
-    th3 = np.deg2rad(-40)
-    ax.plot([0, 74.5 * np.cos(th3)], [0, 74.5 * np.sin(th3)], ":",
-            color="tab:red", lw=1.2)
-    ax.plot(74.5 * np.cos(th3), 74.5 * np.sin(th3), "s", ms=7,
-            color="tab:red")
-    ax.text(14, -74, "贴骨 ~17.5（可得 ~25-34×）", fontsize=7,
-            color="tab:red")
+    ax.plot([0, 90.62 * np.cos(th)], [0, 90.62 * np.sin(th)], "-",
+            color="tab:blue", lw=1.0, alpha=0.6)
+    ax.text(-92, -68, "SCALE×202（387 µm→78 mm）\n"
+            "蝇脑云占满脑球：极端 0.98·R=76.4 mm\n"
+            "→ 距离轴结构用尽，无放置自由度",
+            fontsize=7, color="tab:red")
+    ax.text(52, 66, "电极环 90.6", fontsize=7, color="tab:blue")
     ax.set_xlim(-95, 95)
     ax.set_ylim(-95, 95)
-    ax.set_title("距离轴：唯一物理可达的解除（需核几何改动）\n"
-                 "近全共模(cs17)部分是正心放置的构造结果", fontsize=9)
+    ax.set_title("几何事实（修正）：源云已填满脑球\n"
+                 "近全共模(cs17)发生在源充满球时——活跃子群+球导联场平滑",
+                 fontsize=9)
 
     fig.suptitle("condstate22 解除条件地图——四轴 × 三态的封死/可解判定"
                  "（缺口 G=11.4/σ* = 5~54×）", fontsize=11)
