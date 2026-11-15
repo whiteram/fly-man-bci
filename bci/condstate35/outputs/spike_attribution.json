@@ -1,0 +1,56 @@
+{
+  "floor_exponent": -0.99,
+  "floor_peaks": [
+    [
+      11.5,
+      12.0
+    ],
+    [
+      35.9,
+      8.5
+    ],
+    [
+      17.8,
+      8.2
+    ]
+  ],
+  "pop": {
+    "MID": {
+      "rate_hz": 38.84,
+      "expo": 0.36,
+      "peak": [
+        32.8,
+        10.2
+      ]
+    },
+    "T45": {
+      "rate_hz": 8.2,
+      "expo": 0.13,
+      "peak": [
+        12.2,
+        10.8
+      ]
+    },
+    "OLR": {
+      "rate_hz": 1.68,
+      "expo": 0.36,
+      "peak": [
+        19.2,
+        8.4
+      ]
+    }
+  },
+  "attribution_weights": {
+    "MID": -0.15,
+    "T45": -0.01,
+    "OLR": -0.24
+  },
+  "attribution_r2": 0.09,
+  "zero_spike_pops": [
+    "R",
+    "L",
+    "CEN",
+    "ORN"
+  ],
+  "note": "R/L 零尖峰: L 的 100% 为分级释放(k_release)非放电"
+}
