@@ -53,6 +53,7 @@ cs36 把底 1/f 再定位到"前向时间滤波"（推断）。零引擎替代�
 python viz/export_data.py --regions visual_bilateral,ol_rest,central_brain,olfactory \
   --visual-input dark --t-end 20000 --seed 62 --out <trial> --gpu --v-trace 128
 python bci/condstate37/analyze.py   # 原始 1 kHz 轨迹 137 MB 超 GitHub 上限,
-                                        # 仓库内为 250 Hz 压缩版 (29.5 MB)
+                                        # 仓库内为 250 Hz 抗混叠压缩版 (29.6 MB,
+                                        # resample_poly 重制, 指数与原始一致)
 # -> outputs/v_attribution.png, outputs/v_attribution.json
 ```
