@@ -5604,5 +5604,26 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs21locknt",
+  "modality": "conditioning",
+  "label": "cs21locknt：bci/condstate21 纯漂移探针——静默锁无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate21：cs2lock 去掉训练/探针通道（DA1@150 单脉冲成静默锁）——qlock 签名 300 s 漂移率（τ_sig 剂量-响应第三点）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 150.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]

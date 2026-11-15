@@ -1,0 +1,14 @@
+{
+ "arms": {
+  "qll62": {
+   "chem": "cs21locknt",
+   "seed": 62
+  }
+ },
+ "groups": "ALPN,Kenyon_Cell,MBON,DAN",
+ "dur_ms": 300000.0,
+ "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+ "chem": "cs21locknt (DA1@150 only, no training)",
+ "calib": "dangate2 (lr -2e-7, w0 0.03, kcm 0.015, mbmd 178, gate 150,0.02,400)",
+ "question": "qlock \u7b7e\u540d 300 s \u6f02\u79fb\u7387\u2014\u2014\u03c4_sig \u5242\u91cf-\u54cd\u5e94\u7b2c\u4e09\u70b9"
+}
