@@ -1,0 +1,50 @@
+{
+  "scalp_expo": -0.49,
+  "scalp_peak": [
+    22.0,
+    16.9
+  ],
+  "pops": {
+    "MID": {
+      "naive": {
+        "expo": -0.28,
+        "peak": 24.4
+      },
+      "hlock": {
+        "expo": -0.24,
+        "peak": 4.9
+      }
+    },
+    "T45": {
+      "naive": {
+        "expo": -1.1,
+        "peak": 23.4
+      },
+      "hlock": {
+        "expo": -1.05,
+        "peak": 12.7
+      }
+    },
+    "OLR": {
+      "naive": {
+        "expo": -1.47,
+        "peak": 10.5
+      },
+      "hlock": {
+        "expo": -1.38,
+        "peak": 4.2
+      }
+    },
+    "ALPN": {
+      "naive": null,
+      "hlock": null
+    },
+    "CEN": {
+      "naive": null,
+      "hlock": {
+        "expo": -1.0,
+        "peak": 17.6
+      }
+    }
+  }
+}
