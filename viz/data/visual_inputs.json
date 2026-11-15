@@ -107,6 +107,17 @@
    "hi": 3.0,
    "linearize_srgb": false,
    "note": "bci/condstate27: 明适应底在本输入路径下不可表达"
+  },
+  {
+   "id": "checker_static",
+   "kind": "video",
+   "label": "静止棋盘（单帧 12px 棋盘, 有对比度——bci/condstate28 图案适应底）",
+   "source": "data/stimuli/chemosense/checker_static.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
   }
  ]
 }

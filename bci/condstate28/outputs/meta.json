@@ -1,0 +1,10 @@
+{
+ "pattern_floor": {
+  "regions": "visual_bilateral,ol_rest,central_brain,olfactory",
+  "chem": null,
+  "visual": "light (single white frame)",
+  "dur_ms": 20000.0,
+  "seed": 62,
+  "question": "naive \u5e95\u7684\u660e/\u6697\u654f\u611f\u6027\uff08s \u53c2\u7167\u7684\u73af\u5883\u8bef\u5dee\u68d2\uff09"
+ }
+}
