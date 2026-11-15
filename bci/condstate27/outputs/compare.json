@@ -1,0 +1,53 @@
+{
+  "layers": {
+    "dark": {
+      "R": 0.0,
+      "L": 100.0,
+      "MID": 18.18,
+      "T4": 6.85,
+      "T5": 1.39
+    },
+    "light": {
+      "R": 0.0,
+      "L": 100.0,
+      "MID": 18.18,
+      "T4": 6.85,
+      "T5": 1.39
+    }
+  },
+  "group_rates": {
+    "dark": {
+      "ALPN": 0.0,
+      "Kenyon_Cell": 0.0,
+      "MBON": 0.0,
+      "DAN": 0.0,
+      "CX": 0.0,
+      "lLN1_bc": 0.0
+    },
+    "light": {
+      "ALPN": 0.0,
+      "Kenyon_Cell": 0.0,
+      "MBON": 0.0,
+      "DAN": 0.0,
+      "CX": 0.0,
+      "lLN1_bc": 0.0
+    }
+  },
+  "scalp": {
+    "dark": {
+      "bb_rms_uv": 0.00101,
+      "delta_rms_uv": 0.00056,
+      "hi_rms_uv": 0.0009,
+      "exponent": -0.99,
+      "peak_hz": 11.5
+    },
+    "light": {
+      "bb_rms_uv": 0.00101,
+      "delta_rms_uv": 0.00056,
+      "hi_rms_uv": 0.0009,
+      "exponent": -0.99,
+      "peak_hz": 11.5
+    }
+  },
+  "bb_ratio_light_dark": 1.0
+}

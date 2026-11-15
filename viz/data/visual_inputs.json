@@ -95,6 +95,18 @@
    "hi": 3.0,
    "linearize_srgb": false,
    "eye_map": "half_split"
+  },
+  {
+   "id": "light",
+   "kind": "video",
+   "label": "恒亮基线（单白帧）——实测与 dark 动力学逐位相同（管线按刺激归一化, 恒帧零对比度）; 留作 cs27 记录",
+   "source": "data/stimuli/chemosense/light.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false,
+   "note": "bci/condstate27: 明适应底在本输入路径下不可表达"
   }
  ]
 }
