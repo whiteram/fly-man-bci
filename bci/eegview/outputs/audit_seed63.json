@@ -1,0 +1,186 @@
+{
+  "naive": {
+    "seed62": {
+      "rms_uv": 0.0019,
+      "kurtosis": 0.04,
+      "exponent_1_40": -1.06,
+      "peaks_hz_db": [
+        [
+          11.6,
+          19.9
+        ],
+        [
+          33.4,
+          13.4
+        ],
+        [
+          5.0,
+          13.1
+        ],
+        [
+          23.9,
+          12.6
+        ],
+        [
+          37.4,
+          12.5
+        ],
+        [
+          19.1,
+          12.2
+        ]
+      ],
+      "rel_band": {
+        "delta": 0.241,
+        "theta": 0.207,
+        "alpha": 0.273,
+        "beta": 0.279
+      },
+      "interch_corr": 0.95,
+      "interch_corr_car": -0.06,
+      "corr_vs_dist_r": -0.98,
+      "dfa": 1.07,
+      "ac_1e_ms": 8.0,
+      "spike_fwhm_ms": null,
+      "spike_events": 0,
+      "ssvep_2f0_db": null
+    },
+    "seed63": {
+      "rms_uv": 0.0022,
+      "kurtosis": 0.46,
+      "expo": -1.09,
+      "peak": [
+        32.0,
+        18.2
+      ],
+      "icc": 0.96,
+      "dfa": 1.09,
+      "ac1e": 28.0,
+      "fwhm": 4.0,
+      "rel_alpha": 0.22550061969306825
+    }
+  },
+  "high-lock": {
+    "seed62": {
+      "rms_uv": 0.0124,
+      "kurtosis": 6.31,
+      "exponent_1_40": -0.48,
+      "peaks_hz_db": [
+        [
+          28.0,
+          15.3
+        ],
+        [
+          22.0,
+          15.2
+        ],
+        [
+          5.9,
+          15.0
+        ],
+        [
+          32.9,
+          12.7
+        ],
+        [
+          16.5,
+          12.0
+        ],
+        [
+          31.1,
+          12.0
+        ]
+      ],
+      "rel_band": {
+        "delta": 0.144,
+        "theta": 0.283,
+        "alpha": 0.195,
+        "beta": 0.378
+      },
+      "interch_corr": 0.87,
+      "interch_corr_car": -0.06,
+      "corr_vs_dist_r": -0.76,
+      "dfa": 1.09,
+      "ac_1e_ms": 8.0,
+      "spike_fwhm_ms": 4.0,
+      "spike_events": 11,
+      "ssvep_2f0_db": null
+    },
+    "seed63": {
+      "rms_uv": 0.0109,
+      "kurtosis": 8.35,
+      "expo": -0.61,
+      "peak": [
+        4.4,
+        20.8
+      ],
+      "icc": 0.94,
+      "dfa": 1.06,
+      "ac1e": 8.0,
+      "fwhm": 4.0,
+      "rel_alpha": 0.19951159693511508
+    }
+  },
+  "res/latch": {
+    "seed62": {
+      "rms_uv": 0.0652,
+      "kurtosis": 62.74,
+      "exponent_1_40": 0.06,
+      "peaks_hz_db": [
+        [
+          10.0,
+          17.7
+        ],
+        [
+          27.4,
+          16.2
+        ],
+        [
+          24.5,
+          14.4
+        ],
+        [
+          32.1,
+          14.3
+        ],
+        [
+          18.5,
+          14.0
+        ],
+        [
+          29.5,
+          13.3
+        ]
+      ],
+      "rel_band": {
+        "delta": 0.081,
+        "theta": 0.12,
+        "alpha": 0.197,
+        "beta": 0.602
+      },
+      "interch_corr": 1.0,
+      "interch_corr_car": -0.06,
+      "corr_vs_dist_r": -0.71,
+      "dfa": 1.16,
+      "ac_1e_ms": 4.0,
+      "spike_fwhm_ms": 4.0,
+      "spike_events": 20,
+      "ssvep_2f0_db": null
+    },
+    "seed63": {
+      "rms_uv": 0.0494,
+      "kurtosis": 82.67,
+      "expo": 0.08,
+      "peak": [
+        22.0,
+        15.6
+      ],
+      "icc": 1.0,
+      "dfa": 1.16,
+      "ac1e": 4.0,
+      "fwhm": 4.0,
+      "rel_alpha": 0.19225315933768103
+    }
+  },
+  "_note": "ssvep 臂无 seed-63 文件（condstate13 单种子），剔除"
+}
