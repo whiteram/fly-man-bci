@@ -118,6 +118,28 @@
    "lo": 0.05,
    "hi": 3.0,
    "linearize_srgb": false
+  },
+  {
+   "id": "checker_c6",
+   "kind": "video",
+   "label": "静止棋盘 6px（bci/condstate29 图案尺度剂量点）",
+   "source": "data/stimuli/chemosense/checker_c6.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
+  },
+  {
+   "id": "checker_c24",
+   "kind": "video",
+   "label": "静止棋盘 24px（bci/condstate29 图案尺度剂量点）",
+   "source": "data/stimuli/chemosense/checker_c24.npy",
+   "fps": 60.0,
+   "blur_px": 0.0,
+   "lo": 0.05,
+   "hi": 3.0,
+   "linearize_srgb": false
   }
  ]
 }
