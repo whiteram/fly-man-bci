@@ -1,0 +1,44 @@
+{
+  "floor_expo": -0.99,
+  "pops": {
+    "MID": {
+      "n": 128,
+      "silent": 52,
+      "top10_share": 0.304,
+      "rate_med_hz": 1.94,
+      "rate_max_hz": 135.8,
+      "n_neuron_expos": 61,
+      "neuron_expo_med": 1.65,
+      "pooled_expo": 1.62,
+      "synth_expo_med": 1.53,
+      "synth_expo_p10": 1.06,
+      "synth_expo_p90": 1.96
+    },
+    "T45": {
+      "n": 128,
+      "silent": 10,
+      "top10_share": 0.195,
+      "rate_med_hz": 10.76,
+      "rate_max_hz": 29.9,
+      "n_neuron_expos": 75,
+      "neuron_expo_med": 0.09,
+      "pooled_expo": 0.11,
+      "synth_expo_med": 0.11,
+      "synth_expo_p10": 0.07,
+      "synth_expo_p90": 0.16
+    },
+    "OLR": {
+      "n": 128,
+      "silent": 124,
+      "top10_share": 1.0,
+      "rate_med_hz": 0.0,
+      "rate_max_hz": 77.1,
+      "n_neuron_expos": 4,
+      "neuron_expo_med": 0.86,
+      "pooled_expo": 0.74,
+      "synth_expo_med": 0.78,
+      "synth_expo_p10": 0.33,
+      "synth_expo_p90": 1.2
+    }
+  }
+}
