@@ -1,0 +1,28 @@
+[acquire] resl62: cs3resnt seed 62 sched 6000:CEN_C=0.5 t_end 300 s
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.9 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+pop-rate: ALPN[680], Kenyon_Cell[4050], MBON[96], DAN[340]
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+kernel cache: HIT kernels-d293c011c202b687c74b.npz (1.4 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: CEN[LAL*@L] -> 317 neurons (LAL001@L, LAL002@L, LAL003@L, LAL004@L...), 600 pA x 1 pulses
+simulating 300.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+gain-schedule: t=6000 ms -> CEN_C g_unit x0.5
+plastic result KCM: w_scale mean 0.0322 min 0.0300 floor-hit 0/33398 | elig max 57.9959
+pop-rate (1-2 s, Hz/neuron): ALPN 186.71, Kenyon_Cell 60.88, MBON 177.49, DAN 3.18
+dan-gate: trace 600000 steps -> D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate20\outputs\_trial_resl62\_dan_trace.npy | r max 1.6 Hz, r0 0.00 Hz, mod max 0.033, mod integral 361.8 ms
+biology loop: 3129 s (300000 records)
+phi_scalp checksum: L2=5.737836e-03 (baseline A/B file: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate20\outputs\_trial_resl62\_debug_phi_scalp.npy)
+background EEG: fly signal 0.05 uV vs bg 11.19 uV at 156 deg -> d'=2 needs ~202682 trials (band 2-20 Hz: ~1083616)
+stim view frames: D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate20\outputs\_trial_resl62\stim_frames.bin (0.0 MB)
+wrote D:\Dav\CodeHub\Agent\male-fruit-fly-brain-map\bci\condstate20\outputs\_trial_resl62\viz_data.json (150.2 MB)
+[acquire] resl62: done in 52.4 min
+ALPN [158.82, 99.3, 97.79]
+Kenyon_Cell [44.47, 17.21, 17.19]
+MBON [113.6, 24.42, 28.04]
+DAN [2.02, 0.18, 0.19]
