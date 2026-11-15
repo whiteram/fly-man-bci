@@ -1,0 +1,34 @@
+{
+  "kappa_2s": 0.95,
+  "kappa_per_W": {
+    "1.0": 0.97,
+    "2.0": 0.95,
+    "4.0": 0.71
+  },
+  "band_rms_uv": {
+    "naive": 0.00104,
+    "qlock": 0.00285,
+    "hlock": 0.00702,
+    "resid": 0.02102
+  },
+  "s_uv": {
+    "qlock": 0.00181,
+    "hlock": 0.00598,
+    "resid": 0.01997
+  },
+  "v_sig_SD_per_s": 0.00893,
+  "tau_sig_s": 336.0,
+  "tau_90_s": 53.0,
+  "sigma_star_uv": {
+    "qlock": 0.0703,
+    "hlock": 0.2325,
+    "resid": 0.7767
+  },
+  "W_req_11p4_h": {
+    "qlock": 2289.1,
+    "hlock": 209.1,
+    "resid": 18.7
+  },
+  "monitor_knee_extrap_h_at_11p4": 2888.0,
+  "monitor_knee_tau_sig_uv": 0.065
+}
