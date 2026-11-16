@@ -1,0 +1,58 @@
+{
+  "det_diff_V": 0.0,
+  "n_windows": 296,
+  "ignition": {
+    "pulse_peak_hz_63_300": 35.29,
+    "post_pulse_max_hz_63_300": 47.06,
+    "alpn_mean_hz_63_300": 19.718,
+    "alpn_mean_hz_62_150_ref": 19.724,
+    "alpn_mean_hz_63_150_failed": 0.000123
+  },
+  "qlock_retention": 0.9223,
+  "retention_62_ref": 0.7466,
+  "false_drift": {
+    "naive": 18,
+    "hlock": 2,
+    "resid": 3
+  },
+  "feature_slopes": {
+    "lgRMS_δ": -0.106,
+    "lgRMS_bb": -0.068,
+    "lgRMS_hi": 0.016,
+    "峭度": 0.019,
+    "谱指数": 0.05,
+    "事件率": 0.043,
+    "峰dB": -0.094,
+    "峰Hz": 0.039
+  },
+  "v_sig_SD_per_s": 0.00207,
+  "tau_sig_qlock_s63_300": 1452.0,
+  "tau_sig_qlock_s62_ref": 2988.0,
+  "w_A_300s_minus_w0": -0.0,
+  "dan_mod_integral_ms": 0.1,
+  "sigma_star_uv_62": 0.2099,
+  "sigma_star_uv_63_300": 0.1463,
+  "ALPN_first/mid/last": [
+    19.76,
+    20.11,
+    19.69
+  ],
+  "dose_response": {
+    "hlock": [
+      5110.0,
+      336.0
+    ],
+    "resid": [
+      361.8,
+      2948.0
+    ],
+    "qlock62": [
+      0.9,
+      2988.0
+    ],
+    "qlock63@300": [
+      0.1,
+      1452.0
+    ]
+  }
+}
