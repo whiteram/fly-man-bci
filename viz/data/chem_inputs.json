@@ -5751,5 +5751,47 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs44d100",
+  "modality": "conditioning",
+  "label": "cs44d100：bci/condstate46 种子-62 阈值下扫——DA1@100 pA 无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate46：cs44 阈值扫描的种子-62 下扫（62 只知 ≤150；100/125 两点定双侧括号）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 100.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs44d125",
+  "modality": "conditioning",
+  "label": "cs44d125：bci/condstate46 种子-62 阈值下扫——DA1@125 pA 无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate46：cs44 阈值扫描的种子-62 下扫（62 只知 ≤150；100/125 两点定双侧括号）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 125.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]
