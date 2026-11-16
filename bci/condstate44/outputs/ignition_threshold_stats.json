@@ -1,0 +1,68 @@
+{
+  "doses_seed63": {
+    "150": {
+      "pulse_peak_hz": 1.47,
+      "post_mean_hz": 0.0,
+      "post_max_hz": 0.0,
+      "post_min_hz": 0.0
+    },
+    "175": {
+      "pulse_peak_hz": 35.29,
+      "post_mean_hz": 19.46,
+      "post_max_hz": 42.65,
+      "post_min_hz": 2.941
+    },
+    "200": {
+      "pulse_peak_hz": 36.76,
+      "post_mean_hz": 20.041,
+      "post_max_hz": 41.18,
+      "post_min_hz": 2.941
+    },
+    "225": {
+      "pulse_peak_hz": 32.35,
+      "post_mean_hz": 20.29,
+      "post_max_hz": 45.59,
+      "post_min_hz": 2.941
+    },
+    "250": {
+      "pulse_peak_hz": 38.24,
+      "post_mean_hz": 19.794,
+      "post_max_hz": 42.65,
+      "post_min_hz": 2.941
+    },
+    "275": {
+      "pulse_peak_hz": 33.82,
+      "post_mean_hz": 19.89,
+      "post_max_hz": 45.59,
+      "post_min_hz": 2.941
+    },
+    "300": {
+      "pulse_peak_hz": 35.29,
+      "post_mean_hz": 19.813,
+      "post_max_hz": 47.06,
+      "post_min_hz": 1.471
+    }
+  },
+  "seed62_at_150": {
+    "pulse_peak_hz": 29.41,
+    "post_mean_hz": 19.975,
+    "post_max_hz": 47.06,
+    "post_min_hz": 0.0
+  },
+  "ignition_threshold_hz": 10.0,
+  "ignited": {
+    "150": false,
+    "175": true,
+    "200": true,
+    "225": true,
+    "250": true,
+    "275": true,
+    "300": true
+  },
+  "threshold_bracket_pa": [
+    150,
+    175
+  ],
+  "intermediate_states": {},
+  "allornone": true
+}

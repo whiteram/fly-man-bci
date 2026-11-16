@@ -1,0 +1,121 @@
+=== dose 175 pA ===
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (1.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+pop-rate: ALPN[680]
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+kernel cache: HIT kernels-5ce7c934017834af2c19.npz (1.7 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 175 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0300 min 0.0300 floor-hit 0/33398 | elig max 0.9839
+pop-rate (1-2 s, Hz/neuron): ALPN 19.81
+dan-gate: trace 40000 steps -> bci\condstate44\_d175\_dan_trace.npy | r max 0.0 Hz, r0 0.00 Hz, mod max 0.000, mod integral 0.0 ms
+biology loop: 179 s (20000 records)
+phi_scalp checksum: L2=6.245105e-04 (baseline A/B file: bci\condstate44\_d175\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 11.39 uV at 156 deg -> d'=2 needs ~3411756 trials (band 2-20 Hz: ~40134841)
+stim view frames: bci\condstate44\_d175\stim_frames.bin (0.0 MB)
+wrote bci\condstate44\_d175\viz_data.json (12.6 MB)
+[175] done 09:28:41
+=== dose 200 pA ===
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+pop-rate: ALPN[680]
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+kernel cache: HIT kernels-5ce7c934017834af2c19.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 200 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0300 min 0.0300 floor-hit 0/33398 | elig max 0.9839
+pop-rate (1-2 s, Hz/neuron): ALPN 20.39
+dan-gate: trace 40000 steps -> bci\condstate44\_d200\_dan_trace.npy | r max 0.0 Hz, r0 0.00 Hz, mod max 0.000, mod integral 0.0 ms
+biology loop: 179 s (20000 records)
+phi_scalp checksum: L2=6.245187e-04 (baseline A/B file: bci\condstate44\_d200\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 11.15 uV at 153 deg -> d'=2 needs ~2881549 trials (band 2-20 Hz: ~36402082)
+stim view frames: bci\condstate44\_d200\stim_frames.bin (0.0 MB)
+wrote bci\condstate44\_d200\viz_data.json (12.6 MB)
+[200] done 09:31:47
+=== dose 225 pA ===
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+pop-rate: ALPN[680]
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+kernel cache: HIT kernels-5ce7c934017834af2c19.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 225 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0300 min 0.0300 floor-hit 0/33398 | elig max 0.9839
+pop-rate (1-2 s, Hz/neuron): ALPN 19.81
+dan-gate: trace 40000 steps -> bci\condstate44\_d225\_dan_trace.npy | r max 0.0 Hz, r0 0.00 Hz, mod max 0.000, mod integral 0.0 ms
+biology loop: 179 s (20000 records)
+phi_scalp checksum: L2=6.246907e-04 (baseline A/B file: bci\condstate44\_d225\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 11.39 uV at 156 deg -> d'=2 needs ~3586090 trials (band 2-20 Hz: ~39834662)
+stim view frames: bci\condstate44\_d225\stim_frames.bin (0.0 MB)
+wrote bci\condstate44\_d225\viz_data.json (12.6 MB)
+[225] done 09:34:51
+=== dose 250 pA ===
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.7 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+pop-rate: ALPN[680]
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+kernel cache: HIT kernels-5ce7c934017834af2c19.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 250 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0300 min 0.0300 floor-hit 0/33398 | elig max 0.9839
+pop-rate (1-2 s, Hz/neuron): ALPN 19.53
+dan-gate: trace 40000 steps -> bci\condstate44\_d250\_dan_trace.npy | r max 0.0 Hz, r0 0.00 Hz, mod max 0.000, mod integral 0.0 ms
+biology loop: 285 s (20000 records)
+phi_scalp checksum: L2=6.247978e-04 (baseline A/B file: bci\condstate44\_d250\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 11.39 uV at 156 deg -> d'=2 needs ~3413341 trials (band 2-20 Hz: ~39474028)
+stim view frames: bci\condstate44\_d250\stim_frames.bin (0.0 MB)
+wrote bci\condstate44\_d250\viz_data.json (12.6 MB)
+[250] done 09:39:43
+=== dose 275 pA ===
+circuit cache: HIT circuit-693698e48fa257ee3380.npz (0.8 s)
+regions: ON  = visual_bilateral, ol_rest, central_brain, olfactory
+regions: OFF = audition, gustatory, proprioception, thermal, touch, vnc, vpn_central   <-- pass --regions to enable
+plastic-mb: KCM split 33398 KC->MBON pairs (lr=-2e-07)
+mbon-dan-gain: MBMD split 349 GABA MBON->DAN pairs from CEN_C (gain=178; 154 DAN_err cells)
+pop-rate: ALPN[680]
+dan-gate: monitoring DAN_err compartment (154 cells) -> 154 neurons, tau=150 ms, gain=0.02, t_ref=400 ms
+kernel cache: HIT kernels-5ce7c934017834af2c19.npz (0.1 s)
+visual input: dark -> 1 frames @ 60.0 fps, 3377 photoreceptors sampled
+chem: ORN[ORN_DA1] -> 204 neurons (ORN_DA1), 275 pA x 1 pulses
+chem calibration: CEN_C recurrence gain -> 0.002 (chem-run working point, exp019)
+simulating 20.0 s ...
+GPU forward buffers: 256 records, 1367 MB on device
+dan-gate: baseline r0 = 0.00 Hz
+plastic result KCM: w_scale mean 0.0300 min 0.0300 floor-hit 0/33398 | elig max 0.9839
+pop-rate (1-2 s, Hz/neuron): ALPN 19.56
+dan-gate: trace 40000 steps -> bci\condstate44\_d275\_dan_trace.npy | r max 0.0 Hz, r0 0.00 Hz, mod max 0.000, mod integral 0.0 ms
+biology loop: 307 s (20000 records)
+phi_scalp checksum: L2=6.247849e-04 (baseline A/B file: bci\condstate44\_d275\_debug_phi_scalp.npy)
+background EEG: fly signal 0.01 uV vs bg 11.39 uV at 156 deg -> d'=2 needs ~3656982 trials (band 2-20 Hz: ~45444429)
+stim view frames: bci\condstate44\_d275\stim_frames.bin (0.0 MB)
+wrote bci\condstate44\_d275\viz_data.json (12.6 MB)
+[275] done 09:44:57
+ALL DONE 09:44:57

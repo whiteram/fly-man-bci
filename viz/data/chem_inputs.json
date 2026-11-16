@@ -5646,5 +5646,110 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs44d175",
+  "modality": "conditioning",
+  "label": "cs44d175：bci/condstate44 点火阈值扫描——DA1@175 pA 无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate44：cs21locknt 的幅度扫描（种子 63 的点火阈值定位；150 不燃 cs42 / 300 燃 cs2 已知两端）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 175.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs44d200",
+  "modality": "conditioning",
+  "label": "cs44d200：bci/condstate44 点火阈值扫描——DA1@200 pA 无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate44：cs21locknt 的幅度扫描（种子 63 的点火阈值定位；150 不燃 cs42 / 300 燃 cs2 已知两端）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 200.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs44d225",
+  "modality": "conditioning",
+  "label": "cs44d225：bci/condstate44 点火阈值扫描——DA1@225 pA 无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate44：cs21locknt 的幅度扫描（种子 63 的点火阈值定位；150 不燃 cs42 / 300 燃 cs2 已知两端）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 225.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs44d250",
+  "modality": "conditioning",
+  "label": "cs44d250：bci/condstate44 点火阈值扫描——DA1@250 pA 无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate44：cs21locknt 的幅度扫描（种子 63 的点火阈值定位；150 不燃 cs42 / 300 燃 cs2 已知两端）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 250.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cs44d275",
+  "modality": "conditioning",
+  "label": "cs44d275：bci/condstate44 点火阈值扫描——DA1@275 pA 无训练",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate44：cs21locknt 的幅度扫描（种子 63 的点火阈值定位；150 不燃 cs42 / 300 燃 cs2 已知两端）",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 275.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]
