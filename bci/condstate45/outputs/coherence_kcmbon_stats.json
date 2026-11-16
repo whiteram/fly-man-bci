@@ -1,0 +1,120 @@
+{
+  "qlock·62": {
+    "Kenyon_Cell": {
+      "mean_rate_hz": 0.000507,
+      "ff_median": 0.81,
+      "ff_q25": 0.7,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    },
+    "MBON": {
+      "mean_rate_hz": 0.013468,
+      "ff_median": 1.0,
+      "ff_q25": 0.9,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    }
+  },
+  "qlock·63": {
+    "Kenyon_Cell": {
+      "mean_rate_hz": 0.000504,
+      "ff_median": 0.83,
+      "ff_q25": 0.71,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    },
+    "MBON": {
+      "mean_rate_hz": 0.012135,
+      "ff_median": 0.9,
+      "ff_q25": 0.77,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    }
+  },
+  "hlock·62": {
+    "Kenyon_Cell": {
+      "mean_rate_hz": 3.938543,
+      "ff_median": 0.76,
+      "ff_q25": 0.64,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    },
+    "MBON": {
+      "mean_rate_hz": 6.789387,
+      "ff_median": 0.57,
+      "ff_q25": 0.46,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    }
+  },
+  "hlock·63": {
+    "Kenyon_Cell": {
+      "mean_rate_hz": 3.940071,
+      "ff_median": 0.73,
+      "ff_q25": 0.56,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    },
+    "MBON": {
+      "mean_rate_hz": 6.738987,
+      "ff_median": 0.61,
+      "ff_q25": 0.51,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    }
+  },
+  "resid·62": {
+    "Kenyon_Cell": {
+      "mean_rate_hz": 17.199833,
+      "ff_median": 0.53,
+      "ff_q25": 0.44,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    },
+    "MBON": {
+      "mean_rate_hz": 25.637272,
+      "ff_median": 4.98,
+      "ff_q25": 3.46,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": true
+    }
+  },
+  "resid·63": {
+    "Kenyon_Cell": {
+      "mean_rate_hz": 17.191519,
+      "ff_median": 0.63,
+      "ff_q25": 0.55,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": false
+    },
+    "MBON": {
+      "mean_rate_hz": 25.783141,
+      "ff_median": 4.28,
+      "ff_q25": 3.95,
+      "w_rep_ms": 500,
+      "n_blocks": 29,
+      "synchronous": true
+    }
+  },
+  "_summary": {
+    "Kenyon_Cell": {
+      "max_ff_median": 0.83,
+      "any_synchronous": false
+    },
+    "MBON": {
+      "max_ff_median": 4.98,
+      "any_synchronous": true
+    }
+  }
+}
