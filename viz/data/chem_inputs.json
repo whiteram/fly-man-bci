@@ -5625,5 +5625,26 @@
     ]
    }
   ]
+ },
+ {
+  "id": "cs42locknt300",
+  "modality": "conditioning",
+  "label": "cs42locknt300：bci/condstate42 点火失败后续——静默锁无训练 300 pA（seed-63 点火剂量）",
+  "t_end_ms": 20000.0,
+  "edge_ms": 100.0,
+  "note": "condstate42/43：cs2lock300 的无训练版（DA1@300 单脉冲）——cs21locknt@150 在 seed 63 上点火失败（ALPN 0.000 Hz）后，按 condstate2 的 seed-63 成锁剂量做 τ_sig 真复制",
+  "channels": [
+   {
+    "pop": "ORN",
+    "group": "ORN_DA1",
+    "amp_pa": 300.0,
+    "pulses": [
+     [
+      300,
+      600
+     ]
+    ]
+   }
+  ]
  }
 ]

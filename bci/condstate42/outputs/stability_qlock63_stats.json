@@ -1,0 +1,39 @@
+{
+  "det_diff_V": 6.971309858272434e-07,
+  "divergence_onset_ms": 332,
+  "pre_300ms_diff_V": 0.0,
+  "n_windows": 296,
+  "ignition": {
+    "pulse_peak_hz_63": 1.471,
+    "pulse_peak_hz_62_ref": 29.41,
+    "post_pulse_max_hz_63": 0.0,
+    "post_pulse_max_hz_62_ref": 47.06,
+    "alpn_mean_hz_63": 0.000123,
+    "alpn_mean_hz_62_ref": 19.724,
+    "dose_locks_63_pa": 300.0
+  },
+  "qlock_retention": 0.0034,
+  "naive_classification": 0.9966,
+  "false_drift": {
+    "naive": 295
+  },
+  "feature_slopes": {
+    "lgRMS_δ": -0.127,
+    "lgRMS_bb": -0.098,
+    "lgRMS_hi": -0.062,
+    "峭度": 0.027,
+    "谱指数": -0.013,
+    "事件率": -0.048,
+    "峰dB": -0.001,
+    "峰Hz": 0.028
+  },
+  "v_sig_SD_per_s": 0.00214,
+  "tau_null_naivelike_s63": 1399.0,
+  "w_A_300s_minus_w0": -0.0,
+  "dan_mod_integral_ms": 0.1,
+  "ALPN_first/mid/last": [
+    0.0,
+    0.0,
+    0.0
+  ]
+}
